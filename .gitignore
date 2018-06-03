@@ -1,0 +1,17 @@
+*.Rproj.user
+*.Rhistory
+*.Ruserdata
+.Rout
+*.Rout
+*.out
+.Rproj.user
+*.RData
+*.Rdata
+\#*\#
+.\#*
+main/figures/
+man/
+output/
+*NAMESPACE
+*.Rd
+*.tar.gz

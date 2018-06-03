@@ -1,0 +1,25 @@
+Package: binseginf
+Title: Post-selection inference for segmentation methods
+Version: 0.0.0.9000
+Authors@R: person("Sangwon", "Hyun", email = "shyun@cmu.edu", role = c("aut", "cre"))
+Description:Post-selection inference for segmentation methods (binary segmentation, wild binary segmentation)
+Depends:
+    R (>= 3.3.0)
+License: MIT +file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+    plyr,
+    data.tree,
+    hash,
+    Rmpfr,
+    MASS,
+    wbs,
+    genlasso,
+    glmgen,
+    Matrix,
+    pryr,
+    parallel
+Suggests:
+    testthat
+RoxygenNote: 6.0.1
