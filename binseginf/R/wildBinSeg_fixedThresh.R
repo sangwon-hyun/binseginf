@@ -8,7 +8,7 @@
 ##'     (\code{env$intervals} and \code{env$tree}), or a list of wild binary
 ##'     segmentation output.
 ##' @export
-wildBinSeg_fixedThresh <- function(y, thresh, numIntervals = NULL,
+wbsft <- function(y, thresh, numIntervals = NULL,
                 return.env=FALSE, seed=NULL, verbose=FALSE, intervals = NULL, augment=FALSE){
 
     ## Basic checks
@@ -35,7 +35,7 @@ wildBinSeg_fixedThresh <- function(y, thresh, numIntervals = NULL,
     env$intervals = intervals ## Carry through the intervals!
 
     ## Run WBS
-    .wildBinSeg_fixedThresh_inner(y, thresh, 1, length(y), 0, 1, verbose, env=env, augment=augment)
+    .wbsft_inner(y, thresh, 1, length(y), 0, 1, verbose, env=env, augment=augment)
 
     ## Clean the result and return
     .clean_env(env)
@@ -49,13 +49,13 @@ wildBinSeg_fixedThresh <- function(y, thresh, numIntervals = NULL,
                                                          "sign"),
                          fixedInterval = !is.null(intervals),
                          augment = augment),
-                    class = "wbsFt")
+                    class = "wbsft")
 
     if(return.env){ return(env) } else{ return(obj) }
 }
 
 ##' Inner function for wbs-ft
-.wildBinSeg_fixedThresh_inner <- function(y, thresh, s, e, j, k, verbose=FALSE, env=NULL, augment){
+.wbsft_inner <- function(y, thresh, s, e, j, k, verbose=FALSE, env=NULL, augment){
 
     if(verbose) cat('j,k are', j,k,fill=TRUE)
     if(verbose) cat('s,e are', s,e,fill=TRUE)
@@ -91,8 +91,8 @@ wildBinSeg_fixedThresh <- function(y, thresh, numIntervals = NULL,
             b = semat[passed,"b"]
 
             ## Recurse
-            .wildBinSeg_inner(y, thresh, s,   b,  j+1,  2*k-1, verbose=verbose, env=env, augment=augment)
-            .wildBinSeg_inner(y, thresh, b+1, e, j+1, 2*k, verbose=verbose, env=env, augment=augment)
+            .wbsft_inner(y, thresh, s,   b,  j+1,  2*k-1, verbose=verbose, env=env, augment=augment)
+            .wbsft_inner(y, thresh, b+1, e, j+1, 2*k, verbose=verbose, env=env, augment=augment)
         }
     }
 }
@@ -101,7 +101,7 @@ wildBinSeg_fixedThresh <- function(y, thresh, numIntervals = NULL,
 #' @param obj wbsft object
 #' @return TRUE if valid
 #' @export
-is_valid.wbsFt <- function(obj){
+is_valid.wbsft <- function(obj){
     if(!all(names(obj) %in%
             c("tree",
               "y",
@@ -117,8 +117,8 @@ is_valid.wbsFt <- function(obj){
 
 
 ## Print wild binary segmentation
-print.wbsFt <- function(obj){
-    stopifnot(is_valid.wbsFt(obj))
+print.wbsft <- function(obj){
+    stopifnot(is_valid.wbsft(obj))
     print("The changepoints of this object are: ")
     print(obj$cp * obj$cp.sign)
     print("The tree structure is")

@@ -385,8 +385,8 @@ piecewise_mean <- function(y,cp){
 }
 
 
-##' Helper function for making segment contrasts from a wildBinSeg object OR
-##' bsFt object or path object (from genlassoinf package), or just cps
+##' Helper function for making segment contrasts from a bsfs/wbsfs/cbsfs object
+##' or path object (from genlassoinf package).
 ##' @param obj Result from running wbs()
 ##' @export
 make_all_segment_contrasts <- function(obj){

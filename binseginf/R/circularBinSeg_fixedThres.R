@@ -1,4 +1,4 @@
-circularBinSeg_fixedThres<- function(y, thres){
+cbsft <- function(y, thres){
   stopifnot(thres > 0)
   
   #initialization
@@ -31,10 +31,10 @@ circularBinSeg_fixedThres<- function(y, thres){
     round <- round+1
   }
   
-  obj <- structure(list(tree = tree, thres = thres), class = "cbsFt")
+  obj <- structure(list(tree = tree, thres = thres), class = "cbsft")
 }
 
-#' Get jumps from cbsFt objects
+#' Get jumps from cbsft objects
 #' 
 #' Enumerates the jumps for circular binary segmentation. 
 #'
@@ -43,6 +43,6 @@ circularBinSeg_fixedThres<- function(y, thres){
 #'
 #' @return vector of all the jump locations
 #' @export
-jumps.cbsFt <- function(obj, ...){
-  jumps.cbsFs(obj, ...)
+jumps.cbsft <- function(obj, ...){
+  jumps.cbsfs(obj, ...)
 }

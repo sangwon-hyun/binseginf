@@ -3,19 +3,19 @@
 #' The polyhedra has elements \code{gamma} (a matrix) and \code{u}
 #' (a vector).
 #'
-#' @param obj cbsFt object
+#' @param obj cbsft object
 #' @param ... void, not used
 #'
 #' @return a polyhedra 
 #' @export
-polyhedra.cbsFt <- function(obj, ...){
+polyhedra.cbsft <- function(obj, ...){
   n <- .get_startEnd(obj$tree$name)[2] 
   comp_lis <- .list_comparison(obj)
   numNodes <- length(comp_lis)
   gamma_row_lis <- vector("list", numNodes)
   u_lis <- vector("list", numNodes)
   
-  sign_vec <- .get_signs_cbsFt(obj)
+  sign_vec <- .get_signs_cbsft(obj)
   
   for(i in 1:numNodes){
     add <- !all(is.na(comp_lis[[i]]$winning))
@@ -29,7 +29,7 @@ polyhedra.cbsFt <- function(obj, ...){
     } else {
       row_minus_one <- ifelse(length(nrow(gamma_row_lis[[i]])) > 0, nrow(gamma_row_lis[[i]]) - 1, 0)
       u_lis[[i]] <- c(rep(0, row_minus_one), obj$thres)
-    }
+    
   }
   
   mat <- do.call(rbind, gamma_row_lis)
@@ -50,10 +50,10 @@ polyhedra.cbsFt <- function(obj, ...){
 #' the front of the vector. All the inactive nodes are towards the back of
 #' the returned vector with element 0.
 #'
-#' @param obj cbsFt object
+#' @param obj cbsft object
 #'
 #' @return a vector containing (1,-1,0)
-.get_signs_cbsFt <- function(obj){
+.get_signs_cbsft <- function(obj){
   nodes <- obj$tree$Get("active")
   active_vec <- names(sort(nodes))
   

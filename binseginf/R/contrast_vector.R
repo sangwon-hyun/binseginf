@@ -10,7 +10,7 @@
 #' @export
 contrast_vector <- function(obj, jump.idx, sorted = F,
   type = c("segment", "spike"), ...){
-  stopifnot(class(obj) %in% c("bsFs", "flFs","wbsFs"))
+  stopifnot(class(obj) %in% c("bsfs", "flFs","wbsfs"))
   if(!is.character(type[1])) stop("type must be character")
   if(!type[1] %in% c("segment", "spike")) stop("type must be either segment or spike")
   type <- type[1]
@@ -31,7 +31,7 @@ contrast_vector <- function(obj, jump.idx, sorted = F,
   v * jump_sign
 }
 
-.get_length.bsFs <- function(obj){
+.get_length.bsfs <- function(obj){
   .get_startEnd(obj$tree$name)[2]
 }
 

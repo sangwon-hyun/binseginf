@@ -1,15 +1,15 @@
-#' Generate polyhedra matrix from bsFs object
+#' Generate polyhedra matrix from bsfs object
 #'
 #' Forms both Gamma matrix and u vector
 #'
-#' @param obj bsFs object
+#' @param obj bsfs object
 #' @param inference.type type of return -- either the actual polyhedron, or the
 #'     pre-multiplied quantities Gv, Gy and Gw.
 #' @param ... not used
 #'
 #' @return An object of class polyhedra
 #' @export
-polyhedra.bsFs <- function(obj, numSteps = NA,
+polyhedra.bsfs <- function(obj, numSteps = NA,
                            inference.type=c('rows','pre-multiply'),
                            new.noise=NULL, v=NULL, icpoly=NULL, y=NULL,...){
 

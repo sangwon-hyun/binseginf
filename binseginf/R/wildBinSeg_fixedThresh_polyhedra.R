@@ -3,7 +3,7 @@
 max_of_max_obj <- function(obj){
 
     ## Basic check
-    stopifnot(is_valid.wbsFt(obj))
+    stopifnot(is_valid.wbsft(obj))
 
     ## Apply max to all |semat|'s in |obj|
     polyobjs = lapply(obj$tree, max_of_max_semat, obj)
@@ -100,10 +100,10 @@ max_of_max_semat <- function(semat, obj){
 #'
 #' @return An object of class polyhedra
 #' @export
-polyhedra.wbsFt <- function(obj, ...){
+polyhedra.wbsft <- function(obj, ...){
 
     ## Basic checks
-    stopifnot(is_valid.wbsFt(obj))
+    stopifnot(is_valid.wbsft(obj))
 
     ## Combine polyhedron
     return(max_of_max_obj(obj))

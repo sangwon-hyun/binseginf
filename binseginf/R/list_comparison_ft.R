@@ -15,10 +15,10 @@
 #' it means for that particular split, all possible future splits resulted in
 #' a cusum statistic lower than the desired threshold.
 #'
-#' @param obj cbsFt object
+#' @param obj cbsft object
 #'
 #' @return a list of lists of matrices
-.list_comparison.cbsFt <- function(obj){
+.list_comparison.cbsft <- function(obj){
   nodes <- obj$tree$Get("active")
   active_vec <- names(sort(nodes))
   inactive_vec <- names(nodes)[!names(nodes) %in% active_vec]

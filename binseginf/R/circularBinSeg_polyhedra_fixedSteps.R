@@ -3,12 +3,12 @@
 #' The polyhedra has elements \code{gamma} (a matrix) and \code{u}
 #' (a vector).
 #'
-#' @param obj cbsFs object
+#' @param obj cbsfs object
 #' @param ... void, not used
 #'
 #' @return a polyhedra
 #' @export
-polyhedra.cbsFs <- function(obj, ...){
+polyhedra.cbsfs <- function(obj, ...){
   n <- .get_startEnd(obj$tree$name)[2]
   numSteps <- obj$numSteps
   comp_lis <- .list_comparison(obj)

@@ -14,7 +14,7 @@
 ##' @param return.env Set to true if you'd like to get the environment
 ##'     containing the algorithm output, instead of a list.
 ##' @import pryr
-binSeg_fixedThresh = function(y, thresh, s=1, e=length(y), verbose=FALSE, return.env=FALSE, numIntervals=NULL){
+bsft = function(y, thresh, s=1, e=length(y), verbose=FALSE, return.env=FALSE, numIntervals=NULL){
 
     n = length(y)
 
@@ -33,15 +33,15 @@ binSeg_fixedThresh = function(y, thresh, s=1, e=length(y), verbose=FALSE, return
                          thresh = thresh,
                          cp = env$infotable[which(env$infotable[,"pass"]),"b"],
                          cp.sign = env$infotable[which(env$infotable[,"pass"]),"dir"]),
-                    class = "bsFt")
+                    class = "bsft")
 
     if(return.env){ return(env) } else{ return(obj) }
 
 }
 
-##' Checks of object is of class "bsFt", produced by binSeg_fixedThresh().
-##' @param obj bsFt object
-is_valid.bsFt <- function(obj){
+##' Checks of object is of class "bsft", produced by binSeg_fixedThresh().
+##' @param obj bsft object
+is_valid.bsft <- function(obj){
     if(!(all(names(obj) %in% c("infotable",
                                "y",
                                "thresh",
@@ -113,7 +113,7 @@ binseg.by.thresh.inner <- function(y, thresh, s=1, e=length(y), j=1, k=1, verbos
 
 
 
-##' Print function for bsFt class
-print.bsFt <- function(obj){
+##' Print function for bsft class
+print.bsft <- function(obj){
     cat("Changepoint set is ", obj$cp*obj$cp.sign, "produced from threshold =", obj$thresh, fill=TRUE)
 }

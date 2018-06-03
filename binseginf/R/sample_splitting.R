@@ -29,7 +29,7 @@ sample_splitting <- function(y, method, ...){
 #' of occurance in the binSeg algorithm. Sorted = T will list the jumps
 #' in numeric order
 #'
-#' @param obj bsFs object
+#' @param obj bsfs object
 #' @param sorted boolean
 #' @param ... not used
 #'

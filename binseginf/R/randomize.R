@@ -63,7 +63,7 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
             obj.new = partition_TG(y=y, poly=poly, shift=new.noise,
                                    v=v, sigma=sqrt(sigma^2), bits=bits)
         } else if (inference.type=="pre-multiply"){
-            premult = polyhedra.bsFs(orig.fudged.obj,
+            premult = polyhedra.bsfs(orig.fudged.obj,
                                      inference.type="pre-multiply",
                                      new.noise=new.noise, v=v,
                                      numSteps=numSteps, y=y)
@@ -139,7 +139,7 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
 ##' scheme.
 ##' @param y Data
 ##' @param sigma Gaussian noise standard deviation in data around mean.
-##' @param winning.wbs.obj Winning WBS object of class \code{wbsFs}.
+##' @param winning.wbs.obj Winning WBS object of class \code{wbsfs}.
 ##' @param v Test contrast vector. This is assumed to be fixed in the model
 ##'     selection event.
 ##' @param orig.fudged.poly Original polyhedron object (of class
@@ -245,7 +245,7 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
                       ic.poly=NULL, bits=50, warn=FALSE){
 
     ## Basic checks
-    assert_that(is_valid.wbsFs(winning.wbs.obj))
+    assert_that(is_valid.wbsfs(winning.wbs.obj))
 
     ## New intervals added onto old winning intervals
     n = length(v)
@@ -259,7 +259,7 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
 
     ## Create new halfspaces (through |mimic| option)
     if(inference.type=="rows"){
-        g.new = wildBinSeg_fixedSteps(y=winning.wbs.obj$y, numSteps= numSteps,
+        g.new = wbsfs(y=winning.wbs.obj$y, numSteps= numSteps,
                                       intervals= intervals.new, mimic=TRUE,
                                       wbs.obj=winning.wbs.obj,
                                       inference.type=inference.type)
@@ -276,7 +276,7 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
     } else {
 
         ## new way using new function
-        g.new = wildBinSeg_fixedSteps(y=winning.wbs.obj$y, numSteps= numSteps,
+        g.new = wbsfs(y=winning.wbs.obj$y, numSteps= numSteps,
                                       intervals= intervals.new, mimic=TRUE,
                                       wbs.obj=winning.wbs.obj,
                                       cumsum.y=cumsum.y,

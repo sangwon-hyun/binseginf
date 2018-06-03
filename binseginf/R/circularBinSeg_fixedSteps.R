@@ -10,7 +10,7 @@
 #'
 #' @return cbs object
 #' @export
-circularBinSeg_fixedSteps <- function(y, numSteps){
+cbsfs <- function(y, numSteps){
   if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
 
   #initialization
@@ -35,7 +35,7 @@ circularBinSeg_fixedSteps <- function(y, numSteps){
     if(!any(is.na(node_pairs$right))) node_selected$AddChildNode(node_pairs$right)
   }
 
-  obj <- structure(list(tree = tree, numSteps = numSteps), class = "cbsFs")
+  obj <- structure(list(tree = tree, numSteps = numSteps), class = "cbsfs")
 
   ## Extract cp and cp.sign
   cp <- jumps(obj, unique=FALSE, sorted=FALSE)
@@ -47,17 +47,17 @@ circularBinSeg_fixedSteps <- function(y, numSteps){
   })
   cp.sign = unlist(all.signs)
 
-  ## Handling when cp is NA, from jump.cbsFs
+  ## Handling when cp is NA, from jump.cbsfs
   cp.sign = cp.sign[which(!is.na(cp))]
   cp = cp[which(!is.na(cp))]
 
   ## Return with cp and cp.sign
   obj <- structure(list(y=y, tree = tree, numSteps = numSteps,
-                        cp = cp, cp.sign=cp.sign), class = "cbsFs")
+                        cp = cp, cp.sign=cp.sign), class = "cbsfs")
 
 }
 
-#' Get jumps from cbsFs objects
+#' Get jumps from cbsfs objects
 #'
 #' Enumerates the jumps for circular binary segmentation. If \code{sorted}
 #' is true, then only the unique changepoints are reported, and no
@@ -72,7 +72,7 @@ circularBinSeg_fixedSteps <- function(y, numSteps){
 #'
 #' @return vector of all the jump locations
 #' @export
-jumps.cbsFs <- function(obj, sorted = T, unique=TRUE,cbs=FALSE, remove.na=FALSE,...){
+jumps.cbsfs <- function(obj, sorted = T, unique=TRUE,cbs=FALSE, remove.na=FALSE,...){
   leaves <- .enumerate_splits(obj$tree)
   if(length(leaves) == 0) return(NA)
 
@@ -216,7 +216,7 @@ jumps.cbsFs <- function(obj, sorted = T, unique=TRUE,cbs=FALSE, remove.na=FALSE,
 is.na.Node <- function(x){FALSE}
 
 
-jump_cusum.cbsFs <- function(obj, ...){
+jump_cusum.cbsfs <- function(obj, ...){
   jump_cusum(obj$tree, F)
 }
 

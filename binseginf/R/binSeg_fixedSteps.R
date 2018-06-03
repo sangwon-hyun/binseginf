@@ -6,9 +6,9 @@
 #' @param y numeric vector to contain data
 #' @param numSteps numeric of number of steps
 #'
-#' @return a bsFs object
+#' @return a bsfs object
 #' @export
-binSeg_fixedSteps <- function(y, numSteps){
+bsfs <- function(y, numSteps){
   if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
   if(numSteps <= 0) step("numSteps must be at least 1.")
 
@@ -35,23 +35,23 @@ binSeg_fixedSteps <- function(y, numSteps){
   }
 
   y.fit <- .refit_binseg(y, jumps(tree))
-  obj <- structure(list(tree = tree, y.fit = y.fit, numSteps = numSteps), class = "bsFs")
+  obj <- structure(list(tree = tree, y.fit = y.fit, numSteps = numSteps), class = "bsfs")
   cp <- jumps(obj)
   leaves <- .enumerate_splits(tree)
   cp.sign <- sign(as.numeric(sapply(leaves, function(x){
       data.tree::FindNode(tree, x)$cusum})))
   obj <- structure(list(tree = tree, y.fit = y.fit, numSteps = numSteps, cp = cp,
-                        cp.sign=cp.sign, y=y), class = "bsFs")
+                        cp.sign=cp.sign, y=y), class = "bsfs")
 
 }
 
-#' is_valid for bsFs
+#' is_valid for bsfs
 #'
-#' @param obj bsFs object
+#' @param obj bsfs object
 #'
 #' @return TRUE if valid
 #' @export
-is_valid.bsFs <- function(obj){
+is_valid.bsfs <- function(obj){
   if(class(obj$tree)[1] != "Node") stop("obj$tree must a Node")
   if(!is.numeric(obj$numSteps)) stop("obj$numSteps must be a numeric")
   if(length(.enumerate_splits(obj$tree)) != obj$numSteps)
@@ -60,46 +60,46 @@ is_valid.bsFs <- function(obj){
   TRUE
 }
 
-#' Get jumps from bsFs objects
+#' Get jumps from bsfs objects
 #'
 #' Enumerates the jumps. Sorted = F will return the jumps in order
 #' of occurance in the binSeg algorithm. Sorted = T will list the jumps
 #' in numeric order
 #'
-#' @param obj bsFs object
+#' @param obj bsfs object
 #' @param sorted boolean
 #' @param ... not used
 #'
 #' @return vector of jumps
 #' @export
-jumps.bsFs <- function(obj, sorted = F, ...){
+jumps.bsfs <- function(obj, sorted = F, ...){
   jumps(obj$tree, sorted)
 }
 
-#' Get the cusum for jumps for bsFs objects
+#' Get the cusum for jumps for bsfs objects
 #'
 #' Enumerates the cusum for each jump. Sorted = F will return the jumps in order
 #' of occurance in the binSeg algorithm. Sorted = T will list the jumps
 #' in numeric order
 #'
-#' @param obj  bsFs object
+#' @param obj  bsfs object
 #' @param sorted  boolean
 #' @param ... not use
 #'
 #' @return vector of cusum numerics
 #' @export
-jump_cusum.bsFs <- function(obj, sorted = F, ...){
+jump_cusum.bsfs <- function(obj, sorted = F, ...){
   jump_cusum(obj$tree, sorted)
 }
 
-##' Summary of bsFs object
+##' Summary of bsfs object
 ##'
-##' @param object  bsFs object
+##' @param object  bsfs object
 ##' @param ... not used
 ##'
 ##' @return matrix of summary statistics
 ##' @export
-summary.bsFs <- function(object, ...){
+summary.bsfs <- function(object, ...){
   summary(object$tree)
 }
 
@@ -153,6 +153,6 @@ summary.bsFs <- function(object, ...){
 
 
 ##' Print function for convenience, of |wbs| class object.
-print.bsFs <- function(obj){
+print.bsfs <- function(obj){
     cat("Detected changepoints using WBS with", obj$numSteps, "steps is", obj$cp * obj$cp.sign, fill=TRUE)
 }

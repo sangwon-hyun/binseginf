@@ -13,7 +13,7 @@
 ##' @return List of useful algorithm results, including the |gamma| matrix and
 ##'     |u|.
 ##' @export
-wildBinSeg_fixedSteps <- function(y, numSteps, numIntervals=NULL,
+wbsfs <- function(y, numSteps, numIntervals=NULL,
                                   intervals=NULL, mimic=FALSE, wbs.obj=NULL,
                                   comprehensive=FALSE, cumsum.y=NULL, cumsum.v=NULL,
                                   inference.type =c("rows","pre-multiply", "none"),
@@ -156,20 +156,20 @@ wildBinSeg_fixedSteps <- function(y, numSteps, numIntervals=NULL,
                           intervals=intervals,
                           numIntervals=intervals$numIntervals,
                           inference.type=inference.type,
-                          y=y), class="wbsFs"))
+                          y=y), class="wbsfs"))
 }
 
 
 
 ##' Print function for convenience, of |wbs| class object.
 ##' @export
-print.wbsFs <- function(obj){
+print.wbsfs <- function(obj){
     if(obj$mimic) cat("Mimicked object!", fill=TRUE)
     cat("Detected changepoints using WBS with", obj$numSteps, "steps is", obj$cp * obj$cp.sign, fill=TRUE)
 }
 
 ##' Checks if obj is a valid |wbs| class object
-is_valid.wbsFs <- function(obj){
+is_valid.wbsfs <- function(obj){
     return(all(names(obj) %in% c("results", "gamma", "u", "cp", "cp.sign", "y",
                                  "numSteps", "mimic", "rows.list","intervals",
                                  "numIntervals", "Gy", "Gv", "info.list","inference.type")))
@@ -177,8 +177,8 @@ is_valid.wbsFs <- function(obj){
 
 .get_max_info <- function(wbs.obj,...){ UseMethod(".get_max_info")}
 ##' Helper to /manually/ obtain maximizing information from a |wbs| class object, at i'th step
-.get_max_info.wbsFs <- function(wbs.obj, istep){
-    assert_that(is_valid.wbsFs(wbs.obj))
+.get_max_info.wbsfs <- function(wbs.obj, istep){
+    assert_that(is_valid.wbsfs(wbs.obj))
     myrow  = wbs.obj$results[istep,]
     mylist = lapply(myrow, function(a) a)
     mylist = mylist[names(mylist) %in% c("max.s", "max.b", "max.e", "max.sign")]
@@ -188,9 +188,9 @@ is_valid.wbsFs <- function(obj){
 
 
 ##' Polyhedra export function.
-##' @param obj Object of class |wbsFs|
+##' @param obj Object of class |wbsfs|
 ##' @return object of class |polyhedra|.
 ##' @export
-polyhedra.wbsFs <- function(obj){
+polyhedra.wbsfs <- function(obj){
     polyhedra(obj = obj$gamma, u = obj$u)
 }

@@ -23,8 +23,8 @@
 ##' @param how.close How close would you like points to be in each cluster, for
 ##'     the centroid clustering, to be.
 ##' @param locs Which locations to test. Defaults to \code{1:length(y)}.
-##' @param return An object of class \code{bsFs} with p-values.
-inference_bsFs <- function(y=y, max.numSteps=20, consec=2, sigma, icstop=TRUE,
+##' @param return An object of class \code{bsfs} with p-values.
+inference_bsfs <- function(y=y, max.numSteps=20, consec=2, sigma, icstop=TRUE,
                            postprocess=TRUE, locs=1:length(y), numIS=100,
                            sigma.add = 0.2, bits=50,
                            inference.type=c("rows", "pre-multiply"),
@@ -160,7 +160,7 @@ inference_wbs <- function(y=y, max.numSteps=20, numIntervals=length(y),
     if(is.null(intervals) & !is.null(numIntervals)){
         intervals = intervals(numIntervals=numIntervals, n=n)
     }
-    g = wildBinSeg_fixedSteps(y, intervals=intervals, numSteps=max.numSteps,
+    g = wbsfs(y, intervals=intervals, numSteps=max.numSteps,
                               inference.type='none')
     cumsum.y = cumsum(y)
 

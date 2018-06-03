@@ -1,4 +1,5 @@
-#' Fused lasso with fixed steps
+#' Fused lasso with fixed steps (this is not needed anymore; the genlasso
+#' package already does it).
 #'
 #' y must not have duplicated values. This is to avoid
 #' degenerate behavior of binary segmentation. The reported \code{y.fit}

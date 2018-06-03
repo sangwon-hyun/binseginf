@@ -1,4 +1,4 @@
-.list_comparison.bsFs <- function(obj){
+.list_comparison.bsfs <- function(obj){
   is_valid(obj)
 
   numSteps <- obj$numSteps
@@ -37,7 +37,7 @@
 #' @param obj 
 #'
 #' @return a list of lists of matrices
-.list_comparison.cbsFs <- function(obj){
+.list_comparison.cbsfs <- function(obj){
   numSteps <- obj$numSteps
   comp_lis <- vector("list", numSteps)
   active_vec <- .enumerate_splits(obj$tree)
