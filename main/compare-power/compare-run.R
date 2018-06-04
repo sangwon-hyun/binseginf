@@ -14,7 +14,7 @@ ii.list = as.numeric(args)
 for(ii in ii.list){
     lev = levs[ii]
     nsim = nsims[ii]
-    dosim(lev = lev, nsim, mc.cores=1)
+    dosim(lev = lev, nsim, mc.cores=8)
 }
 
 
