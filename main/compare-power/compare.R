@@ -6,7 +6,7 @@ dosim <- function(lev, nsim, mc.cores=1){
     onesim <- function(isim){
 
         ## Generate data
-        n = 20
+        n = 200
         mn = fourjump(lev=lev, n=n)
         y = mn + rnorm(n, 0, 1)
         results = list()
