@@ -7,11 +7,18 @@
 #'
 #' @param y data, numeric vector
 #' @param numSteps integer for number of jumps
+#' @param sigma.add is the amount (standard deviation) of i.i.d. Gaussian noise
+#'     added to the data.
 #'
 #' @return cbs object
 #' @export
-cbsfs <- function(y, numSteps){
+cbsfs <- function(y, numSteps, sigma.add=NULL){
   if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
+
+  if(!is.null(sigma.add)){
+      y.addnoise = rnorm(length(y), 0, sigma.add)
+      y = y + y.addnoise
+  }
 
   #initialization
   n <- length(y); tree <- .create_node(1, n); vec <- cumsum(y)
@@ -54,6 +61,13 @@ cbsfs <- function(y, numSteps){
   ## Return with cp and cp.sign
   obj <- structure(list(y=y, tree = tree, numSteps = numSteps,
                         cp = cp, cp.sign=cp.sign), class = "cbsfs")
+
+  if(!is.null(sigma.add)){
+      obj$sigma.add = sigma.add
+      obj$y.addnoise = y.addnoise
+      obj$noisy = TRUE
+  }
+  return(obj)
 
 }
 
@@ -220,3 +234,13 @@ jump_cusum.cbsfs <- function(obj, ...){
   jump_cusum(obj$tree, F)
 }
 
+
+##' Print function for convenience, of |wbs| class object.
+##' @export
+print.cbsfs <- function(obj){
+    cat("Detected changepoints using CBS with", obj$numSteps, "steps is",
+        obj$cp * obj$cp.sign, fill=TRUE)
+    if(!is.null(obj$pvs)){
+        cat("Pvalues of", obj$cp * obj$cp.sign, "are", obj$pvs, fill=TRUE)
+    }
+}

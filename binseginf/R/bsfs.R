@@ -5,12 +5,19 @@
 #'
 #' @param y numeric vector to contain data
 #' @param numSteps numeric of number of steps
+#' @param sigma.add is the amount (standard deviation) of i.i.d. Gaussian noise
+#'     added to the data.
 #'
 #' @return a bsfs object
 #' @export
-bsfs <- function(y, numSteps){
+bsfs <- function(y, numSteps, sigma.add=NULL){
   if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
   if(numSteps <= 0) step("numSteps must be at least 1.")
+
+  if(!is.null(sigma.add)){
+      y.addnoise = rnorm(length(y), 0, sigma.add)
+      y = y + y.addnoise
+  }
 
   #initialization
   n <- length(y); tree <- .create_node(1, n)
@@ -41,8 +48,15 @@ bsfs <- function(y, numSteps){
   cp.sign <- sign(as.numeric(sapply(leaves, function(x){
       data.tree::FindNode(tree, x)$cusum})))
   obj <- structure(list(tree = tree, y.fit = y.fit, numSteps = numSteps, cp = cp,
-                        cp.sign=cp.sign, y=y), class = "bsfs")
+                        cp.sign=cp.sign, y=y, noisy=FALSE), class = "bsfs")
 
+  if(!is.null(sigma.add)){
+      obj$sigma.add = sigma.add
+      obj$y.addnoise = y.addnoise
+      obj$noisy = TRUE
+  }
+  
+  return(obj)
 }
 
 #' is_valid for bsfs
@@ -153,6 +167,10 @@ summary.bsfs <- function(object, ...){
 
 
 ##' Print function for convenience, of |wbs| class object.
+##' @export
 print.bsfs <- function(obj){
-    cat("Detected changepoints using WBS with", obj$numSteps, "steps is", obj$cp * obj$cp.sign, fill=TRUE)
+    cat("Detected changepoints using BS with", obj$numSteps, "steps is", obj$cp * obj$cp.sign, fill=TRUE)
+    if(!is.null(obj$pvs)){
+        cat("Pvalues of", obj$cp * obj$cp.sign, "are", obj$pvs, fill=TRUE)
+    }
 }

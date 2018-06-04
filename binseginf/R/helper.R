@@ -372,7 +372,12 @@ prune_of_1_length_segments <- function(Tcurr,Scurr,Ecurr){
   return(Tcurr.copy)
 }
 
-##' Gets piecewise mean, given segments
+##' Gets piecewise mean, given changepoint locations.
+##' @param y Data.
+##' @param cp Changepoints.
+##' @return Piecewise constant vector of data whose entries are sample means of
+##'     segments.
+##' @export
 piecewise_mean <- function(y,cp){
   stopifnot(all(1<=cp & cp<=length(y)))
   ## stopifnot(all.equal(sort(cp),cp))
@@ -387,7 +392,8 @@ piecewise_mean <- function(y,cp){
 
 ##' Helper function for making segment contrasts from a bsfs/wbsfs/cbsfs object
 ##' or path object (from genlassoinf package).
-##' @param obj Result from running wbs()
+##' @param obj Result from running one of: \code{bsfs(), bsft(), wbsfs(),
+##'     wbsft(), cbsfs()}.
 ##' @export
 make_all_segment_contrasts <- function(obj){
 
@@ -400,10 +406,12 @@ make_all_segment_contrasts <- function(obj){
 }
 
 
-##' Take |cp| and |cp.sign| and make all segment contrasts.
-##' @param cp integer vector of changepoints.
-##' @param cp.sign integer vector of changepoint signs.
-##' @param n length of data.
+##' Take |cp| and |cp.sign| and make all segment contrast vectors.
+##' @param cp An integer vector of changepoints.
+##' @param cp.sign An integer vector of changepoint signs.
+##' @param n Data length.
+##' @return A list of test contrast vectors, whose names are the signed
+##'     changepoint locations.
 ##' @export
 make_all_segment_contrasts_from_cp <- function(cp, cp.sign, n, scaletype = c("segmentmean", "unitnorm")){
 
@@ -434,14 +442,20 @@ make_all_segment_contrasts_from_cp <- function(cp, cp.sign, n, scaletype = c("se
     return(dlist)
 }
 
-##' Makes segment contrasts with endpoints as the winning intervals' start/ends
-##' @param cps if not null, these are the only ones we actually want.
-make_all_segment_contrasts_from_wbs <- function(wbs_obj, cps=NULL, scaletype = c("segmentmean", "unitnorm")){
 
-    n = length(wbs_obj$y)
-    cp = wbs_obj$cp
-    cp.sign = wbs_obj$cp.sign
-    winning.intervals = lapply(1:nrow(wbs_obj$results), function(myrow)wbs_obj$results[myrow, c("max.s", "max.e")])
+##' Makes segment contrasts with endpoints as the winning intervals' start/ends
+##' @param wbsfs_obj An object of class \code{wbsfs}.
+##' @param cps if not \code{NULL}, only form contrasts from changepoints in this
+##'     set.
+##' @return A list of test contrast vectors, whose names are the signed
+##'     changepoint locations.
+##' @export
+make_all_segment_contrasts_from_wbs <- function(wbsfs_obj, cps=NULL, scaletype = c("segmentmean", "unitnorm")){
+
+    n = length(wbsfs_obj$y)
+    cp = wbsfs_obj$cp
+    cp.sign = wbsfs_obj$cp.sign
+    winning.intervals = lapply(1:nrow(wbsfs_obj$results), function(myrow)wbsfs_obj$results[myrow, c("max.s", "max.e")])
 
     scaletype = match.arg(scaletype)
 

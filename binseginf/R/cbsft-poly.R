@@ -29,7 +29,7 @@ polyhedra.cbsft <- function(obj, ...){
     } else {
       row_minus_one <- ifelse(length(nrow(gamma_row_lis[[i]])) > 0, nrow(gamma_row_lis[[i]]) - 1, 0)
       u_lis[[i]] <- c(rep(0, row_minus_one), obj$thres)
-    
+    }  
   }
   
   mat <- do.call(rbind, gamma_row_lis)

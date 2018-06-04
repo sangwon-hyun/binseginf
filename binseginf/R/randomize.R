@@ -218,6 +218,7 @@ randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
         things = sum(parts.so.far["weight",] > 0)
         enough.things = (things > min.num.things)
         reached.limit = (numIS.cumulative > max.numIS)
+
         if( reached.limit | enough.things){ done = TRUE }
     }
 
@@ -287,8 +288,16 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
                                       v=v)
 
         ## Calculate TG denom and numer directly
+
+        ## Temporarily adding tryCatch clause for warnings
+
+        tryCatch({
         pvobj = poly_pval_from_inner_products(Gy=g.new$Gy, Gv=g.new$Gv, v=v, y=g.new$y,
                                               sigma=sigma, u=g.new$u, bits=bits, warn=warn)
+        },
+        warning=browser
+        )
+
         pv = pvobj$pv
         if(is.nan(pv)) pv=0 ## temporary fix
         weight = pvobj$denom
