@@ -1,12 +1,11 @@
 ## Synopsis: Simulation code to compare each method's power. To be run from compare-run.R
-
 dosim <- function(lev, nsim, mc.cores=1){
     cat("lev=", lev, fill=TRUE)
     outputdir = "../output"
     onesim <- function(isim){
 
         ## Generate data
-        n = 20
+        n = 200
         mn = fourjump(lev=lev, n=n)
         y = mn + rnorm(n, 0, 1)
         results = list()
@@ -86,7 +85,7 @@ dosim <- function(lev, nsim, mc.cores=1){
     results.list = mclapply(1:nsim, function(isim){
         printprogress(isim, nsim, start.time=start.time)
         onesim(isim)
-    }, mc.cores=mc.cores, mc.preschedule=FALSE)
+    }, mc.cores=mc.cores, mc.preschedule=TRUE) ## If you use mc.preschedule=FALSE, it will use different cores!
 
     filename = paste0("compare-power-lev", lev, ".Rdata")
     save(results.list, file=file.path(outputdir, filename))
