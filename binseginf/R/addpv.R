@@ -18,7 +18,7 @@ addpv <- function(obj,...) UseMethod("addpv")
 ##' @param mn original mean vector.
 ##' @export
 addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
-                       sigma.add=NULL, declutter=FALSE, mn=NULL){
+                       sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30){
 
     ## Basic checks
     assert_that(class(obj)=="bsfs")
@@ -47,7 +47,7 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                                     sigma.add=sigma.add,
                                     orig.fudged.poly=poly.fudged, bits= 5000,
                                     max.numIS=2000,
-                                    min.num.things=30)$pv})
+                                    min.num.things=min.num.things)$pv})
     } else {
         stop("|type| argument is wrong!")
     }
@@ -69,7 +69,7 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 ##' @param mn original mean vector.
 ##' @export
 addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
-                        declutter=FALSE, mn=NULL){
+                        declutter=FALSE, mn=NULL, min.num.things=30){
 
     ## Basic checks
     assert_that(class(obj)=="wbsfs")
@@ -97,7 +97,7 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
                                  cumsum.y=cumsum(obj$y),
                                  cumsum.v=cumsum(v), bits=2000,
                                  max.numIS=2000,
-                                 min.num.things=30)$pv
+                                 min.num.things=min.num.things)$pv
         })
 
     } else {
@@ -123,7 +123,7 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
 ##' @param mn original mean vector.
 ##' @export
 addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
-                       sigma.add=NULL, declutter=FALSE, mn=NULL){
+                       sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30){
 
     ## Basic checks
     assert_that(class(obj)=="cbsfs")
@@ -152,7 +152,7 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                                     sigma.add=obj$sigma.add,
                                     orig.fudged.poly=poly.fudged, bits= 5000,
                                     max.numIS=2000,
-                                    min.num.things=30)$pv})
+                                    min.num.things=min.num.things)$pv})
     } else {
         stop("|type| argument is wrong!")
     }
