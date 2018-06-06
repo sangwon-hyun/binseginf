@@ -15,10 +15,23 @@ addpv <- function(obj,...) UseMethod("addpv")
 ##' @param sigma Noise level (standard deviation) of data.
 ##' @param sigma.add Additive noise. Defaults to NULL, in which case no additive
 ##'     noise randomization inference is done.
+##' @param inference.type One of \code{c("rows","pre-multiply")}. Defaults to '
+##'     \code{"rows"}. Use \code{"pre-multiply"} if the polyhedron is too big
+##'     for memory.  (Warning: the rest is more of a note to self (Justin) than
+##'     ' for users.). The use of \code{"pre-multiply"} was originally built for
+##'     ' WBS. It actually prevents \code{polyhedra.wbsfs()} from having to form
+##'     ' the entire WBS polyhedron in the first place. It also makes importance
+##'     ' sampling faster the \code{type="rows"} option for WBS (thanks to
+##'     manual ' speedups we've made), but slower for all other segmentation
+##'     methods ' since there are no such manual tweaks for speedup. The most
+##'     crucial ' difference for the user is perhaps that, when the size of the
+##'     polyhedron ' is too big in memory, then this is a !necessity! as it
+##'     circumvents ' having to actually form the polyhedron.
 ##' @param mn original mean vector.
 ##' @export
 addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
-                       sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30){
+                       sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30,
+                       inference.type = c("rows", "pre-multiply")){
 
     ## Basic checks
     assert_that(class(obj)=="bsfs")
@@ -28,6 +41,7 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         assert_that(obj$noisy)
         assert_that(!is.null(obj$sigma.add))
     }
+    inference.type = match.arg(inference.type)
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
@@ -46,8 +60,11 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
             pv = randomize_addnoise(y=obj$y, v=v, sigma=sigma, numIS=10,
                                     sigma.add=sigma.add,
                                     orig.fudged.poly=poly.fudged, bits= 5000,
+                                    orig.fudged.obj=obj,
                                     max.numIS=2000,
-                                    min.num.things=min.num.things)$pv})
+                                    min.num.things=min.num.things,
+                                    inference.type=inference.type,
+                                    )$pv})
     } else {
         stop("|type| argument is wrong!")
     }
@@ -66,15 +83,21 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
 ##'     \code{"addnoise"}, then \code{sigma.add} needs to be provided.
 ##' @param sigma Noise level (standard deviation) of data.
+##' @param inference.type One of \code{c("pre-multiply")}. Defaults to '
+##'     \code{"pre-multiply"}. Use \code{"pre-multiply"} if the polyhedron is
+##'     too big for memory. There is really no reason to use \code{"rows"} in
+##'     WBS.
 ##' @param mn original mean vector.
 ##' @export
 addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
-                        declutter=FALSE, mn=NULL, min.num.things=30){
+                        declutter=FALSE, mn=NULL, min.num.things=30,
+                        inference.type=c("pre-multiply","rows")){
 
     ## Basic checks
     assert_that(class(obj)=="wbsfs")
     assert_that(is.null(obj$pvs))
     type = match.arg(type)
+    inference.type = match.arg(inference.type)
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
@@ -93,10 +116,11 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
         pvs = sapply(vlist, function(v){
             pv = randomize_wbsfs(v=v, winning.wbs.obj=obj,
                                  sigma=sigma, numIS=10,
-                                 inference.type="pre-multiply",
                                  cumsum.y=cumsum(obj$y),
                                  cumsum.v=cumsum(v), bits=2000,
                                  max.numIS=2000,
+                                 verbose=TRUE,
+                                 inference.type=inference.type,
                                  min.num.things=min.num.things)$pv
         })
 
@@ -120,10 +144,14 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
 ##' @param sigma Noise level (standard deviation) of data.
 ##' @param sigma.add Additive noise. Defaults to NULL, in which case no additive
 ##'     noise randomization inference is done.
+##' @param inference.type One of \code{c("rows","pre-multiply")}. Defaults to '
+##'     \code{"rows"}. Use \code{"pre-multiply"} if the polyhedron is too big
+##'     for memory. 
 ##' @param mn original mean vector.
 ##' @export
 addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
-                       sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30){
+                        sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30,
+                        inference.type = c("rows", "pre-multiply")){
 
     ## Basic checks
     assert_that(class(obj)=="cbsfs")
@@ -152,6 +180,7 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                                     sigma.add=obj$sigma.add,
                                     orig.fudged.poly=poly.fudged, bits= 5000,
                                     max.numIS=2000,
+                                    inference.type=inference.type,
                                     min.num.things=min.num.things)$pv})
     } else {
         stop("|type| argument is wrong!")
@@ -179,7 +208,8 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 ##' @param mn original mean vector.
 ##' @export
 addpv_fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
-                       sigma.add=NULL, declutter=FALSE, mn=NULL){
+                     sigma.add=NULL, declutter=FALSE, mn=NULL,
+                     inference.type = c("rows", "pre-multiply")){
 
     ## Basic checks
     assert_that(is.null(obj$pvs))
@@ -189,7 +219,6 @@ addpv_fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         assert_that(obj$noisy)
         assert_that(!is.null(obj$sigma.add))
     }
-
 
     ## Get randomized p-value
     vlist <- make_all_segment_contrasts(obj)
@@ -209,6 +238,7 @@ addpv_fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
             pv = randomize_addnoise(y=obj$y, v=v, sigma=sigma, numIS=10,
                                     sigma.add=sigma.add,
                                     orig.fudged.poly=poly.fudged, bits= 5000,
+                                    inference.type=inference.type,
                                     max.numIS=2000, min.num.things=30)$pv})
     } else {
         stop("|type| argument is wrong!")

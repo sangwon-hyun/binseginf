@@ -36,7 +36,8 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
                                verbose=FALSE,
                                min.num.things=10,
                                mc.cores=1,
-                               start.time=NULL
+                               start.time=NULL,
+                               warn=FALSE
                                ){
 
     ## New: Get many fudged TG statistics.
@@ -51,7 +52,7 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
     }
 
     ## Helper function
-    one_IS_addnoise = function(isim, numIS.cumulative){
+    one_IS_addnoise = function(isim, numIS.cumulative, investigate){
         if(verbose) {printprogress(isim+numIS.cumulative, numIS+numIS.cumulative,
                                   "importance sampling replicate",
                                   start.time = start.time)}
@@ -81,7 +82,8 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
                                                     Gv=premult$Gv, v=v, y=y,
                                                     sigma=sigma,
                                                     u=premult$u - premult$Gw,
-                                                    bits=bits)
+                                                    bits=bits,
+                                                    warn=warn)
             pv = obj.new$pv
             if(is.nan(obj.new$pv)) obj.new$pv=0 ## temporary fix ## Need to deal
                                                 ## with this.
@@ -92,7 +94,15 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
         ## Handle boundary cases
         pv.new = obj.new$pv
         weight.new = obj.new$denom
-        if(is.nan(pv.new)) return(c(0,0)) ## Actually not calculable
+        if(is.nan(pv.new)){ ## This happens when the TG components are
+                            ## numerically incalculable because vlo and vty are
+                            ## too high.
+            emptyrow = rbind(c(0,0,NA,NA,NA,NA)) ## Setting both pv and
+                                                      ## weight to zero so it
+                                                      ## doesn't count.
+            colnames(emptyrow)= c("pv", "weight", "vlo", "vty", "vup", "sigma")
+            return(emptyrow)
+        }
         if(pv.new > 1 | pv.new < 0)  browser() ## Not sure why this would happen, but anyway!
         if(weight.new < 0 | weight.new > 1){
             weight.new=0 ## Nomass problem is to be caught here.
@@ -105,7 +115,7 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
     ## Importance-sample until you have some amount of variation.
     parts.so.far = cbind(c(Inf, Inf, Inf, Inf, Inf, Inf))[,-1, drop=FALSE]
     rownames(parts.so.far) = c("pv", "weight", "vlo", "vty", "vup", "sigma")
-    numIS.cumulative = 0
+    numIS.cumulative = things = 0
     done = FALSE
     while(!done){
         parts = mcmapply(one_IS_addnoise, 1:numIS, numIS.cumulative,
@@ -275,28 +285,18 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
 
 
     } else {
-
-        ## new way using new function
         g.new = wbsfs(y=winning.wbs.obj$y, numSteps= numSteps,
-                                      intervals= intervals.new, mimic=TRUE,
-                                      wbs.obj=winning.wbs.obj,
-                                      cumsum.y=cumsum.y,
-                                      cumsum.v=cumsum.v,
-                                      inference.type="pre-multiply",
-                                      stop.time=stop.time,
-                                      ic.poly=ic.poly,
-                                      v=v)
-
-        ## Calculate TG denom and numer directly
-
-        ## Temporarily adding tryCatch clause for warnings
-
-        tryCatch({
-        pvobj = poly_pval_from_inner_products(Gy=g.new$Gy, Gv=g.new$Gv, v=v, y=g.new$y,
-                                              sigma=sigma, u=g.new$u, bits=bits, warn=warn)
-        },
-        warning=browser
-        )
+                      intervals= intervals.new, mimic=TRUE,
+                      wbs.obj=winning.wbs.obj,
+                      cumsum.y=cumsum.y,
+                      cumsum.v=cumsum.v,
+                      inference.type="pre-multiply",
+                      stop.time=stop.time,
+                      ic.poly=ic.poly,
+                      v=v)
+        pvobj = poly_pval_from_inner_products(Gy=g.new$Gy, Gv=g.new$Gv, v=v,
+                                              y=g.new$y, sigma=sigma, u=g.new$u,
+                                              bits=bits, warn=warn)
 
         pv = pvobj$pv
         if(is.nan(pv)) pv=0 ## temporary fix
