@@ -1,15 +1,18 @@
 ##' Function that takes changepoint location vector \code{cp} (in the order that
-##' they entered, from fixed step SBS of fixed step WBS), and calcualtes BIC of
-##' each intermediate changepoint model (piecewise constant underlying mean
-##' Gaussian model).
+##' they entered, from fixed step SBS of fixed step WBS), and calculates BIC of
+##' each intermediate changepoint model (changepoint model = piecewise constant
+##' underlying mean Gaussian model).
 ##' @param cp Vector of changepoints
 ##' @param y Data vector.
 ##' @param sigma Noise standard deviation.
+
+
 ##' @param verbose \code{TRUE} to print progress
 ##'
 ##' @return A list containing two elements: a numeric vector of BICs, and a list
 ##'     containing basis vectors \eqn{a} of the projection \eqn{P=aa^T}from one
 ##'     changepoint column basis space to the next.
+##' @export
 get_ic <- function(cp, y, sigma, consec=2, maxsteps=length(cp), type="bic", verbose=FALSE){
     ## Basic checks
     if(type!="bic") stop("Only BIC is coded so far!")
@@ -23,7 +26,6 @@ get_ic <- function(cp, y, sigma, consec=2, maxsteps=length(cp), type="bic", verb
     ## Collect BIC at each step 0 ~ (maxsteps-1)
     allsteps = 0:(pmin(maxsteps,length(cp)) )
     for(ii in allsteps ){
-
         if(verbose)  cat('step', ii, '\n')
 
         ## Form proj null(D_{-B}) by orth proj onto row(D_{-B}) = col(t(D_{-B})) ~= tD
@@ -34,12 +36,11 @@ get_ic <- function(cp, y, sigma, consec=2, maxsteps=length(cp), type="bic", verb
             tDb = make.tDb(cps = cp[1:ii], n=n)
             curr.proj = .proj(tDb)
         }
-            ## y.fitted = rep(mean(y),n)
-            y.fitted = (curr.proj) %*% y
+
+        y.fitted = (curr.proj) %*% y
 
         ## Obtain RSS and penalty
         myRSS = sum( (y - y.fitted)^2 )
-        ## mydf  = n-rr
         mydf = ii + 1
         if(ii==0) prev.df = mydf
         mypen = (sigma^2) * mydf * log(n)
@@ -52,7 +53,7 @@ get_ic <- function(cp, y, sigma, consec=2, maxsteps=length(cp), type="bic", verb
                                 cp_new=cp[ii], n=n)
         }
 
-        ## Store BIC and re
+        ## Store BIC and residuals
         ic[ii+1] <- myRSS + mypen
         pen[ii+1] <- mypen
         RSS[ii+1] <- myRSS
@@ -78,20 +79,17 @@ get_ic <- function(cp, y, sigma, consec=2, maxsteps=length(cp), type="bic", verb
         stoptime = pmin(stoptime, length(y)-consec-1)
     }
 
-    ## Get directions
+    ## Form polyhedron.
     seqdirs = c(.getorder(ic))
     names(seqdirs) = allsteps
 
     if(flag=="normal"){
-        ## Get order of ICs
 
-        ## Make empty things before collecting halfspaces
+        ## Collect halfspaces
         newrows = matrix(NA, nrow = 2*(stoptime+consec+1),
                          ncol = length(y))
         newu = rep(NA, 2*(stoptime+consec+1))
         irow = 0
-
-        ## Collect halfspaces
         all.relevant.steps = (1:(stoptime + consec))-1
         for(ii in all.relevant.steps){
 
@@ -101,19 +99,18 @@ get_ic <- function(cp, y, sigma, consec=2, maxsteps=length(cp), type="bic", verb
 
             if(seqdirs[toString(ii+1)] < 0){
                 ## Add one row \sqrt{C} < z_a \times a^Ty
-                newrows[irow+1,] = pos.resid #(sign(as.numeric(t(residual)%*%y)) * residual)/sqrt(sum(residual^2))
+                newrows[irow+1,] = pos.resid
                 newu[irow+1] = sqrt(const)
                 irow = irow + 1
             } else {
                 ## Add two rows -\sqrt{C} < z_a \times a^Ty < \sqrt{C}
-                newrows[irow+1,] = pos.resid # (sign(as.numeric(t(residual)%*%y)) * residual) / sqrt(sum(residual^2))
-                newrows[irow+2,] = -pos.resid #(-sign(as.numeric(t(residual)%*%y)) * residual)/sqrt(sum(residual^2))
+                newrows[irow+1,] = pos.resid
+                newrows[irow+2,] = -pos.resid
                 newu[irow+1] = -sqrt(const)
                 newu[irow+2] = -sqrt(const)
                 irow = irow + 2
             }
         }
-        ## Form polyhedra
         poly = polyhedra(obj = trim(newrows), u = trim(newu))
     } else {
         poly = make_empty.polyhedra()
@@ -123,6 +120,7 @@ get_ic <- function(cp, y, sigma, consec=2, maxsteps=length(cp), type="bic", verb
                           stoptime=stoptime,y=y, type=type, flag=flag, poly=poly, seqdirs=seqdirs), class="ic"))
 }
 
+##' Helper to identify and flag the outcome of an IC vector.
 ic_flag <- function(ic, consec=2, cp, maxsteps){
 
     ## Flag the result, case by case.
@@ -130,7 +128,7 @@ ic_flag <- function(ic, consec=2, cp, maxsteps){
         ##  warning("Not enough steps to do forward sequential BIC/AIC!")
         return("not.enough.steps")
     } else if (.whichrise(ic,consec) + consec - 1 > pmin(maxsteps, length(cp))){
-        ##  warning("Didn't stop!")
+        ## warning("Didn't stop!")
         return("didnt.stop")
     } else if (.whichrise(ic,consec) - 1 == 0){
         return("zero.stop")

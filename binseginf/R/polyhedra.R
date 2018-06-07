@@ -32,8 +32,10 @@ is_valid.polyhedra <- function(obj){
 #' @param obj object
 combine <- function(obj, ...) {UseMethod("combine")}
 
-##' Combines several polyhedra to a single polyhedron
-##' @param ... polyhedra objects to add
+##' Combines several polyhedra to a single polyhedron. It is possible to add
+##' \code{NULL} valued objects with other polyhedra (to no effect)
+##' @param ... Polyhedra objects to add. It is permissible for some of these to
+##'     be \code{NULL} valued.
 combine.polyhedra <- function(...){
 
     polyobjs = list(...)

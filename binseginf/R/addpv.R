@@ -195,9 +195,11 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 
 
 ##' Appends the inference results to an object created as a result of
-##' \code{genlassoinf::dualpathSvd2()}. It is important that, when
+##' \code{genlassoinf::dualpathSvd2()}. It is required that, when
 ##' \code{type=="addnoise"}, that the object is a result of running fused lasso
-##' on noise-added response. This is flagged by obj$noisy
+##' on a noise-added response. This is flagged by \code{obj$noisy}. When
+##' information criteria stopping is involved, then only contrasts from the
+##' stopped model are used.
 ##' @param obj object of |path| type.
 ##' @param loc only test locations in \code{loc}.
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
@@ -212,6 +214,7 @@ addpv_fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                      inference.type = c("rows", "pre-multiply")){
 
     ## Basic checks
+    if(obj$ic.stop){assert_that(obj$ic_flag=="normal")}
     assert_that(is.null(obj$pvs))
     type = match.arg(type)
     if(type=="addnoise"){
@@ -220,20 +223,23 @@ addpv_fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         assert_that(!is.null(obj$sigma.add))
     }
 
+    ## The number of algorithm steps to use
+    numSteps = (if(obj$ic.stop)obj$stoptime + obj$consec else obj$numSteps )
+
     ## Get randomized p-value
-    vlist <- make_all_segment_contrasts(obj)
+    vlist <- make_all_segment_contrasts(obj, numSteps)
     vlist <- filter_vlist(vlist, loc)
 
     ## Obtain p-values
     if(type=="plain"){
-        poly.nonfudged = polyhedra_fl(obj)
+        poly.nonfudged = polyhedra_fl(obj, numSteps)
+        poly.combined = combine(poly.nonfudged, obj$ic_poly)
         pvs = sapply(vlist, function(v){
-            pv = poly.pval2(y=obj$y, poly=poly.nonfudged, v=v, sigma=sigma, bits=5000)$pv
+            pv = poly.pval2(y=obj$y, poly=poly.combined, v=v, sigma=sigma, bits=5000)$pv
         })
 
     } else if (type=="addnoise") {
-
-        poly.fudged = polyhedra_fl(obj)
+        poly.fudged = polyhedra_fl(obj, numSteps)
         pvs = sapply(vlist, function(v){
             pv = randomize_addnoise(y=obj$y, v=v, sigma=sigma, numIS=10,
                                     sigma.add=sigma.add,
@@ -244,18 +250,29 @@ addpv_fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         stop("|type| argument is wrong!")
     }
 
-    ## Add to object
+    ## Add pvalues before return
     obj$pvs = pvs
     obj$vlist = vlist
     if(!is.null(mn)){obj$means = sapply(vlist, function(v){ sum(v*mn) })}
     return(obj)
-
 }
 
 ##' Helper to harvest polyhedra from FL object.
-polyhedra_fl <- function(obj){
+polyhedra_fl <- function(obj, numSteps=NULL){
+    if(is.null(numSteps)) numSteps = obj$maxsteps
     Gobj = genlassoinf::getGammat.naive(obj=obj, y=obj$y,
-                                        condition.step=obj$maxsteps)
+                                        condition.step=numSteps)
     poly = polyhedra(obj=Gobj$G, u=Gobj$u)
     return(poly)
+}
+
+
+##' Proprietary print object for |path| class object. This is temporary, and
+##' assumes that fused lasso (and not a different form of generalized lasso) is
+##' run.
+print.path <- function(obj){
+    cat("Detected changepoints using FL with", obj$numSteps, "steps is", obj$cp * obj$cp.sign, fill=TRUE)
+    if(!is.null(obj$pvs)){
+        cat("Pvalues of", obj$cp * obj$cp.sign, "are", obj$pvs, fill=TRUE)
+    }
 }

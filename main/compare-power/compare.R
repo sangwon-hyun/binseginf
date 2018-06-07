@@ -76,6 +76,12 @@ dosim <- function(lev, nsim, n=200, meanfun=fourjump, mc.cores=1, numSteps=4, fi
         }, error=function(err){ print('error occurred during noisy fl')})
 
         ## IC-stopped FL inference (not written yet)
+        tryCatch({
+        obj = fl(y, numSteps=numSteps, sigma.add=0.2) 
+        obj = addpv_fl(obj, sigma=1, sigma.add=0.1, type="addnoise", mn=mn)
+        results$fl_addnoise = obj$pvs
+        results$fl_addnoise_zero = (obj$means==0)
+        }, error=function(err){ print('error occurred during noisy fl')})
         
         return(results)
     }

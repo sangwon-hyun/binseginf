@@ -390,19 +390,27 @@ piecewise_mean <- function(y,cp){
 }
 
 
-##' Helper function for making segment contrasts from a bsfs/wbsfs/cbsfs object
-##' or path object (from genlassoinf package).
+##' Helper function for making plain segment contrasts from a bsfs/wbsfs/cbsfs
+##' object or path object (from genlassoinf package). Essentially, the
+##' requirements are that \code{obj} has a nonempty component called \code{cp}
+##' and \code{cp.sign} and \code{y}.
 ##' @param obj Result from running one of: \code{bsfs(), bsft(), wbsfs(),
 ##'     wbsft(), cbsfs()}.
 ##' @export
-make_all_segment_contrasts <- function(obj){
+make_all_segment_contrasts <- function(obj, numSteps=NULL){
 
     ## Basic checks
     if(length(obj$cp)==0) stop("No detected changepoints!")
     if(all(is.na(obj$cp)))stop("No detected changepoints!")
-    assert_that(!is.null(obj$y))#, msg="in make_all_segment_contrasts(), you need an object that contains the data vector.")
-
-    return(make_all_segment_contrasts_from_cp(obj$cp, obj$cp.sign, length(obj$y)))
+    assert_that(!is.null(obj$y))
+    ## if(is.null(numSteps)){
+        all.cp = obj$cp
+        all.cp.sign = obj$cp.sign
+    ## } else {
+    ##     all.cp = obj$cp[1:numSteps]
+    ##     all.cp.sign = obj$cp.sign[1:numSteps]
+    ## }
+    return(make_all_segment_contrasts_from_cp(all.cp, all.cp.sign, length(obj$y)))
 }
 
 
@@ -656,4 +664,14 @@ jumps.numeric <- function(obj, tol = 1e-10, ...){
   idx = which(dif > tol)
   
   idx
+}
+
+
+##' Experimental: a convenience wrapper to \code{mclapply()} that takes
+##' \code{start.time}.
+Mclapply <- function(nsim, myfun, mc.cores, start.time=NULL){
+    results.list = parallel::mclapply(1:nsim, function(isim){
+        printprogress(isim, nsim, start.time=start.time)
+        myfun(isim)
+    }, mc.cores=mc.cores, mc.preschedule=TRUE)
 }
