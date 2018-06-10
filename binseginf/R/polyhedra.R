@@ -88,8 +88,12 @@ print.polyhedra <- function(mypoly){
 
 
 
-##' Check if y is in polyhedra
+##' Check if y is in polyhedra (generic).
+##' @export
 contained <- function(obj,...){UseMethod("contained")}
+
+##' Check if y is in polyhedra.
+##' @export
 contained.polyhedra <- function(obj, y){
     all(obj$gamma %*% y >= obj$u)
 }

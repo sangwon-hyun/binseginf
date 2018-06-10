@@ -675,3 +675,9 @@ Mclapply <- function(nsim, myfun, mc.cores, start.time=NULL){
         myfun(isim)
     }, mc.cores=mc.cores, mc.preschedule=TRUE)
 }
+
+##' Helper for tests; checks of \code{vec} is uniform.
+##' @export
+expect_uniform <- function(vec){
+    expect_equal(ks.test(unlist(vec),punif)$p.value<0.05, FALSE)
+}

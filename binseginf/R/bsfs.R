@@ -8,7 +8,10 @@
 #' @param sigma.add is the amount (standard deviation) of i.i.d. Gaussian noise
 #'     added to the data.
 #'
-#' @return a bsfs object
+#' @return a bsfs object, which is a list of information regarding the fitted
+#'     algorithm. The list component \code{y} is the data used for actual
+#'     fitting; \code{y.orig} is the pre-noise original data; \code{y.addnoise}
+#'     (if not null) is the added noise.
 #' @export
 bsfs <- function(y, numSteps, sigma.add=NULL){
   if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
@@ -16,6 +19,7 @@ bsfs <- function(y, numSteps, sigma.add=NULL){
 
   if(!is.null(sigma.add)){
       y.addnoise = rnorm(length(y), 0, sigma.add)
+      y.orig = y
       y = y + y.addnoise
   }
 
@@ -48,12 +52,13 @@ bsfs <- function(y, numSteps, sigma.add=NULL){
   cp.sign <- sign(as.numeric(sapply(leaves, function(x){
       data.tree::FindNode(tree, x)$cusum})))
   obj <- structure(list(tree = tree, y.fit = y.fit, numSteps = numSteps, cp = cp,
-                        cp.sign=cp.sign, y=y, noisy=FALSE), class = "bsfs")
+                        cp.sign=cp.sign, y=y, y.orig=y, noisy=FALSE), class = "bsfs")
 
   if(!is.null(sigma.add)){
       obj$sigma.add = sigma.add
       obj$y.addnoise = y.addnoise
       obj$noisy = TRUE
+      obj$y.orig = y.orig
   }
   
   return(obj)

@@ -10,7 +10,11 @@
 #' @param sigma.add is the amount (standard deviation) of i.i.d. Gaussian noise
 #'     added to the data.
 #'
-#' @return cbs object
+#' @return cbs object, which is a list of information regarding the fitted
+#'     algorithm. The list component \code{y} is the data used for actual
+#'     fitting; \code{y.orig} is the pre-noise original data; \code{y.addnoise}
+#'     (if not null) is the added noise.
+
 #' @export
 cbsfs <- function(y, numSteps, sigma.add=NULL){
   if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
@@ -60,12 +64,13 @@ cbsfs <- function(y, numSteps, sigma.add=NULL){
 
   ## Return with cp and cp.sign
   obj <- structure(list(y=y, tree = tree, numSteps = numSteps,
-                        cp = cp, cp.sign=cp.sign), class = "cbsfs")
+                        cp = cp, cp.sign=cp.sign, y.orig=y), class = "cbsfs")
 
   if(!is.null(sigma.add)){
       obj$sigma.add = sigma.add
       obj$y.addnoise = y.addnoise
       obj$noisy = TRUE
+      obj$y.orig = y.orig
   }
   return(obj)
 

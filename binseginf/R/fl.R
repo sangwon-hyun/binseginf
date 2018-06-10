@@ -1,4 +1,8 @@
 ##' Wrapper for running FL.
+##' @return list of information regarding the fitted algorithm. The list
+##'     component \code{y} is the data used for actual fitting; \code{y.orig} is
+##'     the pre-noise original data; \code{y.addnoise} (if not null) is the
+##'     added noise.
 ##' @export
 fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, maxSteps=NULL){
 
@@ -13,10 +17,12 @@ fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, maxSteps=NULL){
     
 
     if(!is.null(sigma.add)){
-        y.addnoise = rnorm(length(y), 0, sigma.add)
-        y = y + y.addnoise
+        if(sigma.add > 0){
+            y.orig = y
+            y.addnoise = rnorm(length(y), 0, sigma.add)
+            y = y + y.addnoise
+        }
     }
-
     obj = genlassoinf::dualpathSvd2(y, maxsteps=numSteps,
                                     D=genlassoinf::makeDmat(length(y), ord=0))
     obj$numSteps = numSteps
@@ -49,6 +55,9 @@ fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, maxSteps=NULL){
         obj$noisy = TRUE
         obj$sigma.add = sigma.add
         obj$y.addnoise = y.addnoise
+        obj$y.orig = y
+    } else {
+        obj$y.orig = y
     }
     return(obj)
 }

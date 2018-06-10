@@ -57,9 +57,10 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
     } else if (type=="addnoise") {
         poly.fudged = polyhedra(obj)
         pvs = sapply(vlist, function(v){
-            pv = randomize_addnoise(y=obj$y, v=v, sigma=sigma, numIS=10,
+            pv = randomize_addnoise(y=obj$y.orig, 
+                                    v=v, sigma=sigma, numIS=10,
                                     sigma.add=sigma.add,
-                                    orig.fudged.poly=poly.fudged, bits= 5000,
+                                    orig.fudged.poly=poly.fudged, bits=5000,
                                     orig.fudged.obj=obj,
                                     max.numIS=2000,
                                     min.num.things=min.num.things,
@@ -237,11 +238,10 @@ addpv_fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         pvs = sapply(vlist, function(v){
             pv = poly.pval2(y=obj$y, poly=poly.combined, v=v, sigma=sigma, bits=5000)$pv
         })
-
     } else if (type=="addnoise") {
         poly.fudged = polyhedra_fl(obj, numSteps)
         pvs = sapply(vlist, function(v){
-            pv = randomize_addnoise(y=obj$y, v=v, sigma=sigma, numIS=10,
+            pv = randomize_addnoise(y=obj$y.orig, v=v, sigma=sigma, numIS=10,
                                     sigma.add=sigma.add,
                                     orig.fudged.poly=poly.fudged, bits= 5000,
                                     inference.type=inference.type,
@@ -271,8 +271,9 @@ polyhedra_fl <- function(obj, numSteps=NULL){
 ##' assumes that fused lasso (and not a different form of generalized lasso) is
 ##' run.
 print.path <- function(obj){
-    cat("Detected changepoints using FL with", obj$numSteps, "steps is", obj$cp * obj$cp.sign, fill=TRUE)
+    cat("Detected changepoints using FL with", obj$numSteps, "steps is",
+        obj$cp * obj$cp.sign, fill=TRUE)
     if(!is.null(obj$pvs)){
-        cat("Pvalues of", obj$cp * obj$cp.sign, "are", obj$pvs, fill=TRUE)
+        cat("Pvalues of", names(obj$pvalues), "are", obj$pvalues, fill=TRUE)
     }
 }
