@@ -20,6 +20,7 @@ cbsfs <- function(y, numSteps, sigma.add=NULL){
   if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
 
   if(!is.null(sigma.add)){
+      y.orig = y
       y.addnoise = rnorm(length(y), 0, sigma.add)
       y = y + y.addnoise
   }
