@@ -28,6 +28,6 @@ dosim <- function(sigma.add, nsim, mc.cores=1){
         onesim(isim)
     }, mc.cores=mc.cores, mc.preschedule=FALSE)
 
-    filename = paste0("tune-addnoise-sigma-add-", sigma.add, ".Rdata")
+    filename = paste0("tune-addnoise-sigma-add-", round(sigma.add,3), ".Rdata")
     save(results.list, file=file.path(outputdir, filename))
 }

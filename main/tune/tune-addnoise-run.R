@@ -1,5 +1,5 @@
 ## Synopsis: this script is to be run on command line as "Rscript
-## ../main/tune-addnoise-run.R" from binseginf/binseginf directory,
+## ../main/tune/tune-addnoise-run.R" from binseginf/binseginf directory,
 
 library(binseginf)
 source("../main/tune/tune-addnoise.R")
