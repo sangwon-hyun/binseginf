@@ -41,6 +41,10 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         assert_that(obj$noisy)
         assert_that(!is.null(obj$sigma.add))
     }
+    if(!is.null(obj$sigma.add) & type=="plain"){
+        stop("Original algorithm was run with additive noise! Can't do plain inference.")
+    }
+
     inference.type = match.arg(inference.type)
     if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
 
@@ -165,6 +169,9 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         assert_that(!is.null(obj$sigma.add))
     }
     if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
+    if(!is.null(obj$sigma.add) & type=="plain"){
+        stop("Original algorithm was run with additive noise! Can't do plain inference.")
+    }
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
@@ -227,6 +234,9 @@ addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         assert_that(!is.null(obj$sigma.add))
     }
     if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
+    if(!is.null(obj$sigma.add) & type=="plain"){
+        stop("Original algorithm was run with additive noise! Can't do plain inference.")
+    }
 
     ## The number of algorithm steps to use
     numSteps = (if(obj$ic.stop)obj$stoptime + obj$consec else obj$numSteps )
