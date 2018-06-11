@@ -18,9 +18,9 @@ wbsfs <- function(y, numSteps, numIntervals=NULL,
                                   comprehensive=FALSE, cumsum.y=NULL, cumsum.v=NULL,
                                   inference.type =c("rows","pre-multiply", "none"),
                                   stop.time=numSteps,
-                                  ic.poly = NULL,
+                  ic.poly = NULL,
+                  sigma.add=NULL,
                                   v=NULL){
-
     inference.type = match.arg(inference.type)
 
     ## Basic checks
@@ -29,6 +29,7 @@ wbsfs <- function(y, numSteps, numIntervals=NULL,
                 msg="Must provide either |numIntervals| or |intervals|.")
     if(mimic & is.null(wbs.obj))stop("When mimic=TRUE, provide a wbs object.")
     if(!mimic & !is.null(wbs.obj))stop("Even though mimic==FALSE, you're providing a wbs object.")
+    if(!is.null(sigma.add)) warning("You provided |sigma.add| but this will not be used.")
 
     ## Calculate all cusums for all intervals
     if(is.null(intervals)){

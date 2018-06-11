@@ -30,7 +30,7 @@ addpv <- function(obj,...) UseMethod("addpv")
 ##' @param mn original mean vector.
 ##' @export
 addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
-                       sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30,
+                       sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30, numIntervals=NULL,
                        inference.type = c("rows", "pre-multiply")){
 
     ## Basic checks
@@ -42,6 +42,7 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         assert_that(!is.null(obj$sigma.add))
     }
     inference.type = match.arg(inference.type)
+    if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
@@ -91,7 +92,7 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 ##' @param mn original mean vector.
 ##' @export
 addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
-                        declutter=FALSE, mn=NULL, min.num.things=30,
+                        declutter=FALSE, mn=NULL, min.num.things=30, sigma.add=NULL,
                         inference.type=c("pre-multiply","rows")){
 
     ## Basic checks
@@ -99,6 +100,7 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
     assert_that(is.null(obj$pvs))
     type = match.arg(type)
     inference.type = match.arg(inference.type)
+    if(!is.null(sigma.add)) warning("You provided |sigma.add| but this will not be used.")
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
@@ -151,7 +153,8 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
 ##' @param mn original mean vector.
 ##' @export
 addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
-                        sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30,
+                        sigma.add=NULL, declutter=FALSE, mn=NULL,
+                        min.num.things=30, numIntervals=NULL,
                         inference.type = c("rows", "pre-multiply")){
 
     ## Basic checks
@@ -162,6 +165,7 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         assert_that(obj$noisy)
         assert_that(!is.null(obj$sigma.add))
     }
+    if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
@@ -210,8 +214,8 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 ##'     noise randomization inference is done.
 ##' @param mn original mean vector.
 ##' @export
-addpv_fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
-                     sigma.add=NULL, declutter=FALSE, mn=NULL,
+addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
+                     sigma.add=NULL, declutter=FALSE, mn=NULL, numIntervals=NULL,
                      inference.type = c("rows", "pre-multiply")){
 
     ## Basic checks
@@ -223,6 +227,7 @@ addpv_fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         assert_that(obj$noisy)
         assert_that(!is.null(obj$sigma.add))
     }
+    if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
 
     ## The number of algorithm steps to use
     numSteps = (if(obj$ic.stop)obj$stoptime + obj$consec else obj$numSteps )
@@ -233,13 +238,13 @@ addpv_fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 
     ## Obtain p-values
     if(type=="plain"){
-        poly.nonfudged = polyhedra_fl(obj, numSteps)
+        poly.nonfudged = polyhedra.fl(obj, numSteps)
         poly.combined = combine(poly.nonfudged, obj$ic_poly)
         pvs = sapply(vlist, function(v){
             pv = poly.pval2(y=obj$y, poly=poly.combined, v=v, sigma=sigma, bits=5000)$pv
         })
     } else if (type=="addnoise") {
-        poly.fudged = polyhedra_fl(obj, numSteps)
+        poly.fudged = polyhedra(obj, numSteps)
         pvs = sapply(vlist, function(v){
             pv = randomize_addnoise(y=obj$y.orig, v=v, sigma=sigma, numIS=10,
                                     sigma.add=sigma.add,
@@ -257,8 +262,10 @@ addpv_fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
     return(obj)
 }
 
+addpv_fl = addpv.fl
+
 ##' Helper to harvest polyhedra from FL object.
-polyhedra_fl <- function(obj, numSteps=NULL){
+polyhedra.fl <- function(obj, numSteps=NULL){
     if(is.null(numSteps)) numSteps = obj$maxsteps
     Gobj = genlassoinf::getGammat.naive(obj=obj, y=obj$y,
                                         condition.step=numSteps)
@@ -266,14 +273,16 @@ polyhedra_fl <- function(obj, numSteps=NULL){
     return(poly)
 }
 
+polyhedra_fl = polyhedra.fl
+
 
 ##' Proprietary print object for |path| class object. This is temporary, and
 ##' assumes that fused lasso (and not a different form of generalized lasso) is
 ##' run.
-print.path <- function(obj){
+print.fl <- function(obj){
     cat("Detected changepoints using FL with", obj$numSteps, "steps is",
         obj$cp * obj$cp.sign, fill=TRUE)
     if(!is.null(obj$pvs)){
-        cat("Pvalues of", names(obj$pvalues), "are", obj$pvalues, fill=TRUE)
+        cat("Pvalues of", names(obj$pvs), "are", obj$pvs, fill=TRUE)
     }
 }

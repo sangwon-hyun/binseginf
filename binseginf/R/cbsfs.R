@@ -16,11 +16,14 @@
 #'     (if not null) is the added noise.
 
 #' @export
-cbsfs <- function(y, numSteps, sigma.add=NULL){
+cbsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL){
   if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
 
+  ## Basic checks
+  if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
+
+  y.orig = y
   if(!is.null(sigma.add)){
-      y.orig = y
       y.addnoise = rnorm(length(y), 0, sigma.add)
       y = y + y.addnoise
   }
@@ -65,13 +68,12 @@ cbsfs <- function(y, numSteps, sigma.add=NULL){
 
   ## Return with cp and cp.sign
   obj <- structure(list(y=y, tree = tree, numSteps = numSteps,
-                        cp = cp, cp.sign=cp.sign, y.orig=y), class = "cbsfs")
+                        cp = cp, cp.sign=cp.sign, y.orig=y.orig), class = "cbsfs")
 
   if(!is.null(sigma.add)){
       obj$sigma.add = sigma.add
       obj$y.addnoise = y.addnoise
       obj$noisy = TRUE
-      obj$y.orig = y.orig
   }
   return(obj)
 
