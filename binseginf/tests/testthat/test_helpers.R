@@ -55,3 +55,5 @@ test_that("decluttering is done correctly", {
     expect_equal(c(-83,-107,-120,159),declutter(coords,coords.sign, how.close=5))
 
 })
+
+

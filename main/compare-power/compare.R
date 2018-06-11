@@ -11,6 +11,15 @@ dosim <- function(lev, nsim, n=200, meanfun=fourjump, mc.cores=1, numSteps=4, fi
         results = list()
 
 
+        ## ## One attempt at /unifying/ the code
+        ## obj = alg(y, numSteps=numSteps, numIntervals=numIntervals, sigma.add=sigma.add)
+        ## obj1 = addpv(obj, sigma=1, mn=mn)
+        ## if(!change) ##don't run obj2
+        ## obj2 = addpv(obj, sigma=1, mn=mn, with.decluttering)
+        ## results$bsfs_plain= obj$pvs
+        ## results$bsfs_plain_zero = (obj$means==0)
+        ## }, error=function(err){ print('error occurred during plain bsfs')})
+
         ## Plain BS inference
         tryCatch({
         obj = bsfs(y, numSteps=numSteps)
@@ -75,26 +84,25 @@ dosim <- function(lev, nsim, n=200, meanfun=fourjump, mc.cores=1, numSteps=4, fi
         results$fl_addnoise_zero = (obj$means==0)
         }, error=function(err){ print('error occurred during noisy fl')})
 
-        ## IC-stopped FL inference (not written yet)
-        tryCatch({
-        obj = fl(y, numSteps=numSteps, sigma.add=0.2) 
-        obj = addpv_fl(obj, sigma=1, sigma.add=0.1, type="addnoise", mn=mn)
-        results$fl_addnoise = obj$pvs
-        results$fl_addnoise_zero = (obj$means==0)
-        }, error=function(err){ print('error occurred during noisy fl')})
+        ## ## IC-stopped FL inference (with decluttering? not written yet)
+        ## tryCatch({
+        ## obj = fl(y, numSteps=numSteps, sigma.add=0.2, ic.stop=TRUE) 
+        ## obj = addpv_fl(obj, sigma=1, sigma.add=0.1, type="addnoise", mn=mn)
+        ## results$fl_ic_addnoise = obj$pvs
+        ## results$fl_ic_addnoise_zero = (obj$means==0)
+        ## print('fl')
+        ## }, error=function(err){ print('error occurred during noisy fl')})
+        ##
         
         return(results)
     }
 
     ## Run the actual simulations
     start.time = Sys.time()
-    results.list = mclapply(1:nsim, function(isim){
-        printprogress(isim, nsim, start.time=start.time)
-        onesim(isim)
-    }, mc.cores=mc.cores, mc.preschedule=TRUE) ## If you use mc.preschedule=FALSE, it will use different cores!
+    results.list = Mclapply(nsim, onesim, mc.cores, Sys.time())
 
-    if(!is.null(filename)) filename = paste0("compare-power-lev", lev, ".Rdata")
+    ## Save or return
+    if(!is.null(filename)) filename = paste0("compare-power-fourjump-lev", lev, ".Rdata")
     save(results.list, file=file.path(outputdir, filename))
     ## return(results.list)
 }
-

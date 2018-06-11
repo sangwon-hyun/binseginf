@@ -1,101 +1,163 @@
-context("Test wildBinSeg.R and some helper functions.")
+context("Test whether we get null uniform p-values")
 
-test_that("Null p-values are all uniform", {
-
-    ## Test settings
-
-    ## Load in simulation driver functions
-    source('../main/justin/sim-driver.R')
-
-    n = 10
-    numSteps = 1
-    numIntervals = 100
-    nsim=1000
-    lev=0
-    sigma=1
-    nreplicate = 100
-    mc.cores=3
-    nsim.is=1000
-    sim.settings = list(numIntervals=numIntervals,
-                        nreplicate=nreplicate,
-                        lev=lev,
-                        numSteps=numSteps,
-                        nsim.is=nsim.is)
-    nsim.is = 100
-
-    ## Simulation settings
-    sim.settings = list(sigma=1, lev=0, nsim.is=10, numSteps=1,
-                        numIntervals=20, n=6, meanfun=onejump,
-                        reduce=FALSE,augment=TRUE,  bootstrap=FALSE, std.bootstrap=NULL,
-                        cleanmn.bootstrap=NULL, thresh = 1,
-                        type = "random")##plain
-    sim.settings.plain = sim.settings; sim.settings.plain[["type"]]="plain"
-
-    ## Actually run the simulations
-    ## printprogress <- function(isim,nsim){cat("\r", "simulation ", isim,
-    ##                                          "out of", nsim)}
-    methods = list(onesim_bsft, onesim_bsfs, onesim_wbs, onesim_wbs,
-                   onesim_fusedlasso, onesim_fusedlasso)
-    settings = list(sim.settings, sim.settings, sim.settings.plain,
-                    sim.settings, sim.settings.plain, sim.settings)
-
-    ## Conduct all KS tests
-    Map(function(mymethod, mysetting){
-        a = mclapply(1:nsim,
-                     function(isim){printprogress(isim,nsim); onesim_bsft(sim.settings)},
-                     mc.cores=3)
-        ## qqunif(unlist(a))
-        expect_equal(ks.test(unlist(a),punif)$p.value<0.05, FALSE)
-    }, methods, settings)
+test_that("Null p-values are uniform under several scenarios.",{
 
 
+    dosim <- function(lev, nsim, meanfun=onejump, mc.cores=1, numSteps=1,
+                      ic.stop=FALSE,  alg, type){
+        onesim <- function(isim){
 
-  ## Individual tests; Erase when done:
-    a1 = mclapply(1:nsim, function(isim){printprogress(isim,nsim); onesim_bsft(sim.settings)}, mc.cores=3)
-    a2 = mclapply(1:nsim, function(isim){printprogress(isim,nsim); onesim_bsfs(sim.settings)}, mc.cores=3)
-    a3 = mclapply(1:nsim, function(isim){printprogress(isim,nsim); onesim_wbs(sim.settings.plain)}, mc.cores=3)
-    a4 = mclapply(1:nsim, function(isim){printprogress(isim,nsim); onesim_wbs(sim.settings)}, mc.cores=3)
-    a5 = mclapply(1:nsim, function(isim){printprogress(isim,nsim); onesim_fusedlasso(sim.settings.plain)}, mc.cores=3)
-    a6 = mclapply(1:nsim, function(isim){printprogress(isim,nsim); onesim_fusedlasso(sim.settings)}, mc.cores=3)
+            ## Base settings
+            sigma.add = (if(type=="plain") 0 else 0.2)
+            n = 10
+            numIntervals = 20
+            maxSteps = 10
 
-    ## ## Plot and test
-    ## methodnames = c("bsft", "bsfs", "wbs-plain", "wbs-rand", "fusedlasso-plain", "fuselasso-rand")
-    ## for(ii in 1:6){
-    ##     cat("testing", methodnames[ii],fill=TRUE)
-    ##     a = list(a1,a2,a3,a4,a5,a6)[[ii]]
-    ##     expect_equal(ks.test(unlist(a),punif)$p.value<0.05, FALSE)
-    ## }
+            ## Generate mean and data
+            mn = meanfun(lev=lev, n=n)
+            y = mn + rnorm(n)
+
+            ## Fit algorithm
+            obj = alg(y=y, numSteps=numSteps, sigma.add=sigma.add, numIntervals=numIntervals)
+            ## if(ic.stop){if(obj$ic_flag!="normal") return()}
+
+            ## Conduct inference
+            obj = addpv(obj, sigma=1, sigma.add=sigma.add, numIntervals=numIntervals, type=type, mn=mn)
+
+            ## Store results
+            results = list()
+            results$pvs = obj$pvs
+            results$zero = (obj$means==0)
+            return(results)
+        }
+        results.list = Mclapply(nsim, onesim, mc.cores, Sys.time(), beep=TRUE)
+        return(results.list)
+    }
+
+    testsim <- function(results.list){
+        null.pvals = sapply(results.list, function(a){ a$pvs[a$zero] })
+        expect_uniform(null.pvals)
+        return(null.pvals)
+    }
+
+    ## (1) Two combinations: (lev=0 + numSteps=1), (lev=0 + numSteps=2)
+    ## (2) With and without additive noise.
+    ## (3) With and without IC stopping. (not coded for WBSFS, CBSFS, BSFS yet)
+
+    mc.cores = 8
+    algs = list(bsfs, fl, cbsfs, wbsfs)
+    for(ic.stop in c(TRUE, FALSE)){
+        for(i.alg in 1:4){
+            alg = algs[[i.alg]]
+            a = dosim(lev=0, nsim=5000, numSteps=1, alg=alg, ic.stop=ic.stop, mc.cores=mc.cores, type="plain")
+            a = dosim(lev=0, nsim=5000, numSteps=1, alg=alg, ic.stop=ic.stop, mc.cores=mc.cores, type=(if(i.alg==4)"rand" else "addnoise"))
+            a = dosim(lev=2, nsim=5000, numSteps=2, alg=alg, ic.stop=ic.stop, mc.cores=mc.cores, type="plain")
+            a = dosim(lev=2, nsim=5000, numSteps=2, alg=alg, ic.stop=ic.stop, mc.cores=mc.cores, type=(if(i.alg==4)"rand" else "addnoise"))
+        }
+    }
 
 
-    ## Ideas:: Randomization wrapper to methods that produce obj$cp, obj$cp.sign? Or
-    ## randomization wrapper once given a v?
-    source('../main/justin/sim-driver.R')
-    sim.settings = list(sigma=1, lev=0, nsim.is=50, numSteps=1,
-                        numIntervals=1, n=6, meanfun=onejump,
-                        reduce=FALSE,augment=TRUE,  bootstrap=FALSE, std.bootstrap=NULL,
-                        cleanmn.bootstrap=NULL, thresh = 1,
-                        ## type = "random", v=c(1.5,2.5,1.32,0.42,3.8,-1.2))##plain
-                        type = "random", v=NULL)##plain
-    sim.settings.plain = sim.settings; sim.settings.plain[["type"]]="plain"
-    nsim=200
-    onesim_wbs(sim.settings)
-    a3.with.segment.contrast = mclapply(1:nsim, function(isim){printprogress(isim,nsim); onesim_wbs(sim.settings)}, mc.cores=3)
-    nsim=30
-    b = mclapply(1:nsim, function(isim)onesim_wbs(sim.settings))
+})
 
-    qqunif(unlist(a3.more))
-    qqunif(unlist(a3.without.justin.tweak))
-    qqunif(unlist(a3.with.justin.tweak))
-    qqunif(unlist(a3.with.single.interval))
-    qqunif(unlist(a3.with.segment.contrast))
 
-    onesim_fusedlasso(sim.settings)
-    a6 = mclapply(1:nsim, function(isim){printprogress(isim,nsim); onesim_fusedlasso(sim.settings)}, mc.cores=3)
-    qqunif(unlist(a3))
-    qqunif(unlist(a6))
 
-    ## Ideas: fix v and see if this is still true?
-    ## Answer: Not getting uniformity even after fixing v.
-    ## If I make numIntervals small, I think exceptions will happen more.
-    ## Exceptions basically mean that WBS picked different model, or that i was
-    ## I think tg behaving weird /when/ WBS picks the same model is rare.
+
+
+
+
+## test_that("Separate test for whether FL null p-values are all uniform", {
+
+##     ## Testing FL in flat mean
+##     onesim <- function(isim){
+##         n = 10
+##         mn = rep(0, n)
+##         y = mn + rnorm(n, 0, 1)
+##         obj = fl(y=y, numSteps=1)
+##         obj = addpv_fl(obj, sigma=1, type="plain", mn=mn)
+##         return(obj$pvs)
+##     }
+##     pvslist = Mclapply(nsim=1000, onesim, 4, Sys.time())
+##     qqunif(unlist(pvslist))
+##     expect_uniform(unlist(pvslist))
+
+##     ## Testing FL in nonflat mean
+##     onesim <- function(isim){
+##         n = 10
+##         mn = c(rep(0, n/2), rep(2, n/2))
+##         y = mn + rnorm(n, 0, 1)
+##         obj = fl(y=y, numSteps=2)
+##         obj = addpv_fl(obj, sigma=1, type="plain", mn=mn)
+##         return(obj$pvs[which(obj$means==0)])
+##     }
+##     pvslist = Mclapply(nsim=4000, onesim, 4, Sys.time())
+##     qqunif(unlist(pvslist))
+##     expect_uniform(unlist(pvslist))
+
+## })
+
+
+## test_that("Uniform null FL p-values without ic stopping.",{
+
+##     dosim <- function(lev, nsim, n=200, meanfun=onejump, mc.cores=1,
+##                       numSteps=4, maxSteps=n/3,
+##                       ic.stop=FALSE){
+##         onesim <- function(isim){
+##             mn = meanfun(lev=lev, n=n)
+##             y = mn + rnorm(n)
+##             results = list()
+##             obj = fl(y=y, maxSteps=maxSteps, numSteps=numSteps, sigma.add=0.2,
+##                      ic.stop=ic.stop)
+##             if(ic.stop){if(obj$ic_flag!="normal") return()}
+##             obj = addpv_fl(obj, sigma=1, sigma.add=0.2, type="addnoise", mn=mn)
+##             results$bsfs_addnoise = obj$pvs
+##             results$bsfs_addnoise_zero = (obj$means==0)
+##             return(results)
+##         }
+##         results.list = Mclapply(nsim, onesim, mc.cores, Sys.time(), beep=TRUE)
+##         return(results.list)
+##     }
+
+##     ## continue here!!
+##     a = dosim(lev=0, nsim=600, n=10, numSteps=1, mc.cores=4)
+##     a = dosim(lev=0, nsim=10000, maxSteps=10, n=20, numSteps=1, mc.cores=8)
+##     save(a, file=file.path("../output", "fix-fl.rdata"))
+##     load(file=file.path("~/desktop/tempoutput/fix-fl.rdata"))
+##     aa = a[sapply(a,length)!=0]
+##     obj = a[[1]]
+##     aa = sapply(a, function(obj){obj[[1]][which(obj[[2]])]})
+##     qqunif(aa)
+
+## })
+
+## test_that("Uniform null BS p-values without ic stopping.",{
+
+##     dosim <- function(lev, nsim, n=200, meanfun=onejump, mc.cores=1,
+##                       numSteps=4, maxSteps=n/3,
+##                       ic.stop=FALSE, sigma.add=0.2){
+##         onesim <- function(isim){
+##             mn = meanfun(lev=lev, n=n)
+##             y = mn + rnorm(n)
+##             results = list()
+##             obj = bsfs(y=y, numSteps=numSteps, sigma.add=sigma.add)
+##             if(ic.stop){if(obj$ic_flag!="normal") return()}
+##             obj = addpv(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
+##             results$pvs = obj$pvs
+##             results$zero = (obj$means==0)
+##             return(results)
+##         }
+##         results.list = Mclapply(nsim, onesim, mc.cores, Sys.time(), beep=TRUE)
+##         return(results.list)
+##     }
+
+##     ## Flat
+##     results = dosim(lev=0, nsim=2000, n=10, numSteps=1, mc.cores=8)
+##     null.pvals = sapply(results, function(a){ a$pvs[a$zero] })
+##     expect_uniform(null.pvals)
+
+
+##     ## Nonflat
+##     results = dosim(lev=2, nsim=2000, n=10, numSteps=2, mc.cores=8)
+##     null.pvals = sapply(results, function(a){ a$pvs[a$zero] })
+##     expect_uniform(null.pvals)
+    
+## })

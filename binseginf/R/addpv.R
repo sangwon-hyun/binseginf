@@ -122,7 +122,6 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
                                  cumsum.y=cumsum(obj$y),
                                  cumsum.v=cumsum(v), bits=2000,
                                  max.numIS=2000,
-                                 verbose=TRUE,
                                  inference.type=inference.type,
                                  min.num.things=min.num.things)$pv
         })
