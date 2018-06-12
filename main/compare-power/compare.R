@@ -1,8 +1,9 @@
 ## Synopsis: Simulation code to compare each method's power. To be run from compare-run.R
-dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1, numSteps=4, filename=NULL){
+dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1, numSteps=4, filename=NULL, sigma.add=0.2){
     cat("lev=", lev, " and ichunk", ichunk, fill=TRUE)
     outputdir = "../output"
     onesim <- function(isim){
+        set.seed(isim)
 
         ## Generate data
         ## n = 200
@@ -30,8 +31,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1, numSte
         
         ## Noisy BS inference
         tryCatch({
-        obj = bsfs(y, numSteps=numSteps, sigma.add=0.2)
-        obj = addpv(obj, sigma=1, sigma.add=0.2, type="addnoise", mn=mn)
+        obj = bsfs(y, numSteps=numSteps, sigma.add=sigma.add)
+        obj = addpv(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
         results$bsfs_addnoise = obj$pvs
         results$bsfs_addnoise_zero = (obj$means==0)
         }, error=function(err){ print('error occurred during noisy bsfs')})
@@ -62,8 +63,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1, numSte
         
         ## Noisy CBS inference
         tryCatch({
-        obj = cbsfs(y, numSteps=numSteps/2, sigma.add=0.2)
-        obj = addpv(obj, sigma=1, type="addnoise", mn=mn, sigma.add=0.2)
+        obj = cbsfs(y, numSteps=numSteps/2, sigma.add=sigma.add)
+        obj = addpv(obj, sigma=1, type="addnoise", mn=mn, sigma.add=sigma.add)
         results$cbsfs_addnoise = obj$pvs
         results$cbsfs_addnoise_zero = (obj$means==0)
         }, error=function(err){ print('error occurred during noisy cbsfs')})
@@ -78,16 +79,16 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1, numSte
         
         ## Noisy FL inference
         tryCatch({
-        obj = fl(y, numSteps=numSteps, sigma.add=0.2) 
-        obj = addpv_fl(obj, sigma=1, sigma.add=0.1, type="addnoise", mn=mn)
+        obj = fl(y, numSteps=numSteps, sigma.add=sigma.add) 
+        obj = addpv_fl(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
         results$fl_addnoise = obj$pvs
         results$fl_addnoise_zero = (obj$means==0)
-        }, error=function(err){ print('error occurred during noisy fl')})
+        }, error=function(err){ print(paste0('error occurred during noisy fl isim=', isim)) })
 
         ## ## IC-stopped FL inference (with decluttering? not written yet)
         ## tryCatch({
-        ## obj = fl(y, numSteps=numSteps, sigma.add=0.2, ic.stop=TRUE) 
-        ## obj = addpv_fl(obj, sigma=1, sigma.add=0.1, type="addnoise", mn=mn)
+        ## obj = fl(y, numSteps=numSteps, sigma.add=sigma.add, ic.stop=TRUE) 
+        ## obj = addpv_fl(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
         ## results$fl_ic_addnoise = obj$pvs
         ## results$fl_ic_addnoise_zero = (obj$means==0)
         ## print('fl')
@@ -102,9 +103,14 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1, numSte
     results.list = Mclapply(nsim, onesim, mc.cores, Sys.time())
 
     ## Save or return
-    ## if(!is.null(filename)) filename = paste0("compare-power-fourjump-lev-",
+    ## if(is.null(filename)) filename = paste0("compare-power-fourjump-lev-",
     ##                                          myfractions(lev), ".Rdata")
     if(is.null(filename)){ filename = paste0("compare-power-fourjump-lev-",
                                              myfractions(lev), "-ichunk-", ichunk, ".Rdata")}
+    print(filename)
     save(results.list, file=file.path(outputdir, filename))
+    ## return(results.list)
 }
+
+## nsim=80;nchunk=1
+## a = dosim(lev=1, ichunk=1, n=20, nsim=nsim/nchunk, mc.cores=8)
