@@ -681,3 +681,7 @@ Mclapply <- function(nsim, myfun, mc.cores, start.time=NULL){
 expect_uniform <- function(vec){
     expect_equal(ks.test(unlist(vec),punif)$p.value<0.05, FALSE)
 }
+
+##' Generate Laplace noie with sigma=1
+##' @export
+lapl <- function(n,samp=NULL){ rexp(n,rate=sqrt(2)) * sample(c(-1,1),n,replace=TRUE)}
