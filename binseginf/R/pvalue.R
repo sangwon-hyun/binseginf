@@ -193,6 +193,7 @@ ff <- function(z) {
 ##'     pvalue. (i.e. precision of Rmpfr)
 ##'
 ##' @return List of vup, vlo and pv.
+##' @export
 poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, reduce=FALSE, correct.ends=FALSE) {
 
     z = sum(v*y)
@@ -272,13 +273,16 @@ poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootma
 ##' Calculating TG p-value from bootstrapped residuals
 ##' @export
 poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v=NULL, sigma=1, adjustmean=NULL){
-        obj = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
-        Vlo = obj$vlo
-        Vup = obj$vup
-        ## vty = obj$vty
-        vty = sum(v*y)
-        p = pval_plugin(Vlo, Vup, vty, v, y, nboot=nboot, bootmat=bootmat, bootmat.times.v=bootmat.times.v, adjustmean=adjustmean)
-        return(p)
+    obj = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
+    Vlo = obj$vlo
+    Vup = obj$vup
+    vty = sum(v*y)
+    p = poly_pval_bootsub_inner(Vlo, Vup, vty, v, y, nboot=nboot,
+                                bootmat=bootmat,
+                                bootmat.times.v=bootmat.times.v,
+                                adjustmean=adjustmean)
+    ## if(is.nan(p))stop()
+    return(p)
 }
 
 pval_plugin = poly_pval_bootsub_inner

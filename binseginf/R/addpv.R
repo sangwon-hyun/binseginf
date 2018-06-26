@@ -8,7 +8,7 @@
 addpv <- function(obj,...) UseMethod("addpv")
 
 ##' Appends the inference results to an object of class |bsFs|.
-##' @param obj object of type bsFs
+##' @param obj object of type bsFs.
 ##' @param loc only test locations in \code{loc}.
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
 ##'     \code{"addnoise"}, then \code{sigma.add} needs to be provided.
@@ -31,7 +31,13 @@ addpv <- function(obj,...) UseMethod("addpv")
 ##' @export
 addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                        sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30, numIntervals=NULL,
-                       inference.type = c("rows", "pre-multiply")){
+                       ## inference.type = c("rows", "pre-multiply")){##, excessive, stoptime){
+                       inference.type = c("rows", "pre-multiply"),
+                       excessive=FALSE ## Temporary addition.
+                       ){#, stoptime){
+
+    ## ' @param excessive Temporary addition, for competitor CUSUM sign conditioning
+    ## ' @param stoptime Temporary addition, for stopping the polyhedron at a particular point
 
     ## Basic checks
     assert_that(class(obj)=="bsfs")
@@ -50,11 +56,13 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
+    ## vlist <- make_all_segment_contrasts(obj, numSteps=stoptime) ## Temporary addition
     vlist <- filter_vlist(vlist, loc)
 
     ## Obtain p-values
     if(type=="plain"){
-        poly.nonfudged = polyhedra(obj)
+        ## poly.nonfudged = polyhedra(obj)
+        poly.nonfudged = polyhedra(obj, excessive=excessive, y=obj$y)#, stoptime=stoptime) ## Temporary addition
         pvs = sapply(vlist, function(v){
             pv = poly.pval2(y=obj$y, poly=poly.nonfudged, v=v, sigma=sigma, bits=5000)$pv
         })
@@ -219,10 +227,12 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 ##' @param sigma.add Additive noise. Defaults to NULL, in which case no additive
 ##'     noise randomization inference is done.
 ##' @param mn original mean vector.
+## ' @param stoptime temporarary addition
 ##' @export
 addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                      sigma.add=NULL, declutter=FALSE, mn=NULL, numIntervals=NULL,
                      inference.type = c("rows", "pre-multiply")){
+                     ## stoptime){
 
     ## Basic checks
     if(obj$ic.stop){assert_that(obj$ic_flag=="normal")}
@@ -243,11 +253,13 @@ addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 
     ## Get randomized p-value
     vlist <- make_all_segment_contrasts(obj, numSteps)
+    ## vlist <- make_all_segment_contrasts(obj, stoptime) ## Temporary addition
     vlist <- filter_vlist(vlist, loc)
 
     ## Obtain p-values
     if(type=="plain"){
         poly.nonfudged = polyhedra.fl(obj, numSteps)
+        ## poly.nonfudged = polyhedra.fl(obj, stoptime) ## Temporary addition
         poly.combined = combine(poly.nonfudged, obj$ic_poly)
         pvs = sapply(vlist, function(v){
             pv = poly.pval2(y=obj$y, poly=poly.combined, v=v, sigma=sigma, bits=5000)$pv

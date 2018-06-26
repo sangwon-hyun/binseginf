@@ -403,13 +403,13 @@ make_all_segment_contrasts <- function(obj, numSteps=NULL){
     if(length(obj$cp)==0) stop("No detected changepoints!")
     if(all(is.na(obj$cp)))stop("No detected changepoints!")
     assert_that(!is.null(obj$y))
-    ## if(is.null(numSteps)){
+    if(is.null(numSteps)){
         all.cp = obj$cp
         all.cp.sign = obj$cp.sign
-    ## } else {
-    ##     all.cp = obj$cp[1:numSteps]
-    ##     all.cp.sign = obj$cp.sign[1:numSteps]
-    ## }
+    } else {
+        all.cp = obj$cp[1:numSteps]
+        all.cp.sign = obj$cp.sign[1:numSteps]
+    }
     return(make_all_segment_contrasts_from_cp(all.cp, all.cp.sign, length(obj$y)))
 }
 
@@ -685,3 +685,5 @@ expect_uniform <- function(vec){
 ##' Generate Laplace noie with sigma=1
 ##' @export
 lapl <- function(n,samp=NULL){ rexp(n,rate=sqrt(2)) * sample(c(-1,1),n,replace=TRUE)}
+
+

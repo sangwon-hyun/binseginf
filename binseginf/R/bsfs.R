@@ -178,6 +178,7 @@ summary.bsfs <- function(object, ...){
 print.bsfs <- function(obj){
     cat("Detected changepoints using BS with", obj$numSteps, "steps is", obj$cp * obj$cp.sign, fill=TRUE)
     if(!is.null(obj$pvs)){
-        cat("Pvalues of", obj$cp * obj$cp.sign, "are", obj$pvs, fill=TRUE)
+        ## cat("Pvalues of", obj$cp * obj$cp.sign [ 1:obj$numSteps], "are", obj$pvs, fill=TRUE)
+        cat("Pvalues of", names(obj$pvs), "are", obj$pvs, fill=TRUE)
     }
 }
