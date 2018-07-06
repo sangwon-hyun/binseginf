@@ -34,6 +34,7 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                        ## inference.type = c("rows", "pre-multiply")){##, excessive, stoptime){
                        inference.type = c("rows", "pre-multiply"),
                        excessive=FALSE ## Temporary addition.
+                       only.test.nulls=FALSE, ## Temporary addition
                        ){#, stoptime){
 
     ## ' @param excessive Temporary addition, for competitor CUSUM sign conditioning
@@ -58,6 +59,14 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
     vlist <- make_all_segment_contrasts(obj)
     ## vlist <- make_all_segment_contrasts(obj, numSteps=stoptime) ## Temporary addition
     vlist <- filter_vlist(vlist, loc)
+
+    ## Temporary addition: only test the null contrasts
+    if(only.test.nulls){
+        means = sapply(vlist, function(v){ sum(v*mn) })
+        which.null = which(means==0)
+        vlist = vlist[which.null]
+    } 
+
 
     ## Obtain p-values
     if(type=="plain"){
