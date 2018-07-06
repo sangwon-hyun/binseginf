@@ -33,7 +33,7 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                        sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30, numIntervals=NULL,
                        ## inference.type = c("rows", "pre-multiply")){##, excessive, stoptime){
                        inference.type = c("rows", "pre-multiply"),
-                       excessive=FALSE ## Temporary addition.
+                       excessive=FALSE, ## Temporary addition.
                        only.test.nulls=FALSE, ## Temporary addition
                        ){#, stoptime){
 
