@@ -34,7 +34,7 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                        ## inference.type = c("rows", "pre-multiply")){##, excessive, stoptime){
                        inference.type = c("rows", "pre-multiply"),
                        excessive=FALSE, ## Temporary addition.
-                       only.test.nulls=FALSE, ## Temporary addition
+                       only.test.nulls=FALSE ## Temporary addition
                        ){#, stoptime){
 
     ## ' @param excessive Temporary addition, for competitor CUSUM sign conditioning
