@@ -334,7 +334,6 @@ poly_pval_bootsub_large <- function(y, G, v, nboot=10000, sigma=1, adjustmean=me
         if(!is.nan(p)) done=TRUE
         p.so.far = c(p.so.far, p)
     }
-    print(nrep.so.far)
     return(p)
 }
 

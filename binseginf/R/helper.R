@@ -598,7 +598,8 @@ filter_vlist <- function(vlist, visc=NULL, only.test.nulls=FALSE, mn=NULL){
     if(only.test.nulls){
         assert_that(!is.null(mn))
         means = sapply(vlist, function(v){ sum(v*mn) })
-        which.null = which(means==0)
+        tol = 1E-10
+        which.null = which(abs(means)<tol)
         vlist = vlist[which.null]
     } 
 
