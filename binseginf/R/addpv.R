@@ -7,6 +7,19 @@
 ##' @export
 addpv <- function(obj,...) UseMethod("addpv")
 
+##' Conducts basic checks for addpv.bsfs()
+checks_addpv_bsfs <- function(obj, type, inference.type){
+    assert_that(class(obj)=="bsfs")
+    assert_that(is.null(obj$pvs))
+    if(type=="addnoise"){
+        assert_that(obj$noisy)
+        assert_that(!is.null(obj$sigma.add))
+    }
+    if(!is.null(obj$sigma.add) & type=="plain"){
+        stop("Original algorithm was run with additive noise! Can't do plain inference.")
+    }
+}
+
 ##' Appends the inference results to an object of class |bsFs|.
 ##' @param obj object of type bsFs.
 ##' @param loc only test locations in \code{loc}.
@@ -27,72 +40,50 @@ addpv <- function(obj,...) UseMethod("addpv")
 ##'     crucial ' difference for the user is perhaps that, when the size of the
 ##'     polyhedron ' is too big in memory, then this is a !necessity! as it
 ##'     circumvents ' having to actually form the polyhedron.
-##' @param mn original mean vector.
+##' @param mn Original mean vector. This is purely for simulation purposes,
+##'     along with the |only.test.nulls| option.
+##' @param only.test.nulls If \code{TRUE}, only test the contrasts whose true
+##'     mean is zero (i.e. the ones that constitute null tests).
 ##' @export
 addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
-                       sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30, numIntervals=NULL,
-                       ## inference.type = c("rows", "pre-multiply")){##, excessive, stoptime){
-                       inference.type = c("rows", "pre-multiply"),
-                       excessive=FALSE, ## Temporary addition.
-                       only.test.nulls=FALSE ## Temporary addition
-                       ){#, stoptime){
-
-    ## ' @param excessive Temporary addition, for competitor CUSUM sign conditioning
-    ## ' @param stoptime Temporary addition, for stopping the polyhedron at a particular point
+                       sigma.add=NULL, declutter=FALSE, min.num.things=30,
+                       max.numIS=2000, mn=NULL,
+                       only.test.nulls=FALSE, bootsub=FALSE){
 
     ## Basic checks
-    assert_that(class(obj)=="bsfs")
-    assert_that(is.null(obj$pvs))
     type = match.arg(type)
-    if(type=="addnoise"){
-        assert_that(obj$noisy)
-        assert_that(!is.null(obj$sigma.add))
-    }
-    if(!is.null(obj$sigma.add) & type=="plain"){
-        stop("Original algorithm was run with additive noise! Can't do plain inference.")
-    }
-
-    inference.type = match.arg(inference.type)
-    if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
+    ## inference.type = match.arg(inference.type)
+    checks_addpv_bsfs(obj, type, inference.type)
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
-    ## vlist <- make_all_segment_contrasts(obj, numSteps=stoptime) ## Temporary addition
-    vlist <- filter_vlist(vlist, loc)
-
-    ## Temporary addition: only test the null contrasts
-    if(only.test.nulls){
-        means = sapply(vlist, function(v){ sum(v*mn) })
-        which.null = which(means==0)
-        vlist = vlist[which.null]
-    } 
-
+    vlist <- filter_vlist(vlist, loc, only.test.nulls, mn)
 
     ## Obtain p-values
     if(type=="plain"){
-        ## poly.nonfudged = polyhedra(obj)
-        poly.nonfudged = polyhedra(obj, excessive=excessive, y=obj$y)#, stoptime=stoptime) ## Temporary addition
-        pvs = sapply(vlist, function(v){
-            pv = poly.pval2(y=obj$y, poly=poly.nonfudged, v=v, sigma=sigma, bits=5000)$pv
-        })
-
+        if(bootsub){
+            poly.nonfudged = polyhedra(obj, y=obj$y)
+            pvs = poly_pval_bootsub_large_for_vlist(y, poly.nonfudged$gamma, vlist, nboot, sigma)
+        } else {
+            pvs = sapply(vlist, function(v){
+                poly_pval_premultiply(y=obj$y, v=v, obj=obj, sigma=sigma)
+            })
+        }
     } else if (type=="addnoise") {
-        poly.fudged = polyhedra(obj)
         pvs = sapply(vlist, function(v){
             pv = randomize_addnoise(y=obj$y.orig, 
                                     v=v, sigma=sigma, numIS=10,
                                     sigma.add=sigma.add,
-                                    orig.fudged.poly=poly.fudged, bits=5000,
                                     orig.fudged.obj=obj,
-                                    max.numIS=2000,
+                                    max.numIS=max.numIS,
                                     min.num.things=min.num.things,
-                                    inference.type=inference.type,
+                                    inference.type="pre-multiply",
                                     )$pv})
     } else {
         stop("|type| argument is wrong!")
     }
 
-    ## Add to object
+    ## Add the inference results to object
     obj$pvs = pvs
     obj$vlist = vlist
     if(!is.null(mn)){obj$means = sapply(vlist, function(v){ sum(v*mn) })}

@@ -13,7 +13,7 @@
 #'     fitting; \code{y.orig} is the pre-noise original data; \code{y.addnoise}
 #'     (if not null) is the added noise.
 #' @export
-bsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL){
+bsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL, ic.stop=FALSE){
 
     ## Basic checks
     if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
@@ -26,36 +26,61 @@ bsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL){
         y = y + y.addnoise
     }
 
-  #initialization
-  n <- length(y); tree <- .create_node(1, n)
-  cp <- c()
+    # Initialization
+    n <- length(y); tree <- .create_node(1, n)
+    cp <- c()
 
-  for(steps in 1:numSteps){
-    leaves.names <- .get_leaves_names(tree)
-    for(i in 1:length(leaves.names)){
-      leaf <- data.tree::FindNode(tree, leaves.names[i])
+    for(steps in 1:numSteps){
+      leaves.names <- .get_leaves_names(tree)
+      for(i in 1:length(leaves.names)){
+        leaf <- data.tree::FindNode(tree, leaves.names[i])
 
-      res <- .find_breakpoint(y, leaf$start, leaf$end)
+        res <- .find_breakpoint(y, leaf$start, leaf$end)
 
-      leaf$breakpoint <- res$breakpoint; leaf$cusum <- res$cusum
+        leaf$breakpoint <- res$breakpoint; leaf$cusum <- res$cusum
+      }
+
+      node.name <- .find_leadingBreakpoint(tree)
+      node.selected <- data.tree::FindNode(tree, node.name)
+      node.selected$active <- steps
+      node.pairs <- .split_node(node.selected)
+      node.selected$AddChildNode(node.pairs$left)
+      node.selected$AddChildNode(node.pairs$right)
     }
 
-    node.name <- .find_leadingBreakpoint(tree)
-    node.selected <- data.tree::FindNode(tree, node.name)
-    node.selected$active <- steps
-    node.pairs <- .split_node(node.selected)
-    node.selected$AddChildNode(node.pairs$left)
-    node.selected$AddChildNode(node.pairs$right)
-  }
+    y.fit <- .refit_binseg(y, jumps(tree))
+    obj <- structure(list(tree = tree, y.fit = y.fit, numSteps = numSteps), class = "bsfs")
+    cp <- jumps(obj)
+    leaves <- .enumerate_splits(tree)
+    cp.sign <- sign(as.numeric(sapply(leaves, function(x){
+        data.tree::FindNode(tree, x)$cusum})))
+    obj <- structure(list(tree = tree, y.fit = y.fit, numSteps = numSteps, cp = cp,
+                          cp.sign=cp.sign, y=y, y.orig=y.orig, noisy=FALSE), class = "bsfs")
+    obj$y.orig = y.orig
 
-  y.fit <- .refit_binseg(y, jumps(tree))
-  obj <- structure(list(tree = tree, y.fit = y.fit, numSteps = numSteps), class = "bsfs")
-  cp <- jumps(obj)
-  leaves <- .enumerate_splits(tree)
-  cp.sign <- sign(as.numeric(sapply(leaves, function(x){
-      data.tree::FindNode(tree, x)$cusum})))
-  obj <- structure(list(tree = tree, y.fit = y.fit, numSteps = numSteps, cp = cp,
-                        cp.sign=cp.sign, y=y, y.orig=y.orig, noisy=FALSE), class = "bsfs")
+    ## If applicable, collect IC stoppage information
+    obj$ic.stop = ic.stop
+    if(ic.stop){
+
+        ## Obtain IC information
+        ic_obj = get_ic(obj$cp, obj$y, 2, sigma)
+        obj$stoptime = ic_obj$stoptime
+        obj$consec = consec
+        obj$ic_poly = ic_obj$poly
+        obj$ic_flag = ic_obj$flag
+        obj$ic_obj = ic_obj
+
+        ## Update changepoints with stopped model
+        obj$cp.all = obj$cp
+        obj$cp.sign.all = obj$cp.sign
+        if(ic_obj$flag=="normal"){
+            obj$cp = obj$cp[1:obj$stoptime]
+            obj$cp.sign = obj$cp.sign[1:obj$stoptime]
+        } else {
+            obj$cp = obj$cp.sign = c()
+        }
+    }
+
 
   if(!is.null(sigma.add)){
       obj$sigma.add = sigma.add

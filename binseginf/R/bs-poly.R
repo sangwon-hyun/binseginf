@@ -52,7 +52,7 @@ polyhedra.bsfs <- function(obj, numSteps = NA,
             return(polyhedra(obj = rbind(mat,icpoly$gamma),
                              u = c(rep(0, nrow(mat)), icpoly$u)))
         } else {
-            return(polyhedra(obj = mat, u = rep(0, nrow(mat))))
+            return(polyhedra(obj=mat, u=rep(0, nrow(mat))))
         }
     } else {
         Gy = do.call(c,lapply(premultiply.lis, function(el) el[["new.Gy"]]))

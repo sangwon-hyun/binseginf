@@ -13,18 +13,12 @@
 ##'     the pre-noise original data; \code{y.addnoise} (if not null) is the
 ##'     added noise.
 ##' @export
-fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, maxSteps=NULL, numIntervals=NULL,...){
+fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, numIntervals=NULL,...){
 
     ## Basic checks
-    if(ic.stop){
-        ## warning("|numSteps| option will be ignored and replaced with maxSteps.")
-        assert_that(!is.null(maxSteps))
-        numSteps = maxSteps
-    }    
     if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
     if(numSteps <= 0) step("numSteps must be at least 1.")
     if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
-    
 
     y.orig = y
     if(!is.null(sigma.add)){

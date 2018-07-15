@@ -237,23 +237,19 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, re
 
 ##' Calculating TG p-value from bootstrapping centered residuals
 ##' @param y data vector.
-##' @param bootmat vector whose rows are bootstrapped y's
-##' @param bootmat.times.v vector of bootmat times y
+##' @param bootmat vector whose rows are bootstrapped y's.
+##' @param bootmat.times.v vector of bootmat times y.
 ##' @param weight if TRUE, returns denominator of TG; if FALSE, returns entire
 ##'     p-value.
 ##' @return p-value or weight, depending on \code{weight} input.
 poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootmat=NULL,
-                        weight=FALSE, bootmat.times.v=NULL, adjustmean=adjustmean){
+                                    weight=FALSE, bootmat.times.v=NULL, adjustmean){
+    y.centered = y - adjustmean
 
     ## Calculate bootstrapped v^T(y^*-\bar y).
     if(is.null(bootmat.times.v)){
         if(is.null(bootmat)){
             assert_that(!is.null(y))
-            if(is.null(adjustmean)){
-                y.centered = y - mean(y)
-            } else {
-                y.centered = y - adjustmean
-            }
             n = length(y)
             bootmat = t(sapply(1:nboot, function(iboot){
                 y.centered[sample(n, size=n, replace=TRUE)]
@@ -264,7 +260,7 @@ poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootma
 
     ## Calculate the requisite quantities
     vtr = as.numeric(bootmat.times.v)
-    numer = sum(vtr > as.numeric(vty) & vtr < as.numeric(Vup) )
+    numer = sum(vtr > as.numeric(vty) & vtr < as.numeric(Vup))
     denom = sum(vtr > as.numeric(Vlo) & vtr < as.numeric(Vup))
     if(!weight){  p = numer/denom; return(p) }
     if(weight){  w = denom ; return(w) }
@@ -272,7 +268,10 @@ poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootma
 
 ##' Calculating TG p-value from bootstrapped residuals
 ##' @export
-poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v=NULL, sigma=1, adjustmean=NULL){
+poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v=NULL,
+                              sigma, adjustmean=mean(y)){
+
+    y.centered = y - adjustmean
     obj = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
     Vlo = obj$vlo
     Vup = obj$vup
@@ -281,12 +280,80 @@ poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v
                                 bootmat=bootmat,
                                 bootmat.times.v=bootmat.times.v,
                                 adjustmean=adjustmean)
-    ## if(is.nan(p))stop()
     return(p)
 }
 
+
+##' If a list of contrast vectors are supplied, use this.
+poly_pval_bootsub_large_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=mean(y)){
+    if(!is.null(vlist)){
+        pvs = sapply(vlist, function(v){
+            poly_pval_bootsub_large(y, G, v, nboot, sigma, adjustmean)
+        })
+    }
+}
+
+##' For large |nboot|, Calculating TG p-value from bootstrapped residuals.
+##' @param y data vector.
+##' @param G Polyhedron gamma matrix.
+##' @param v contrast vector
+##' @param vlist A list of contrast vectors. If supplied, then v will be
+##'     ignored.
+##' @param nboot number of bootstraps in total
+##' @export
+poly_pval_bootsub_large <- function(y, G, v, nboot=10000, sigma=1, adjustmean=mean(y)){
+
+    ## Basic checks
+    mboot = 10000
+    if(nboot < mboot)  stop("Use poly_pval_bootsub() instead of .._large().")
+    
+    ## Get TG quantities
+    out = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
+    y.centered = y - adjustmean
+
+    ## Record (bootmat x v) by doing it |nrep| times separately
+    bootmat.times.v.list = list()
+    nrep = ceiling(nboot/mboot)
+
+    nrep.so.far = 0
+    p.so.far = 0
+    stable <- function(p, p.so.far){abs(tail(p.so.far,1)-p) < 0.1}
+    done = FALSE
+    while(!done){
+        for(irep in nrep.so.far+(1:nrep)){
+            n = length(y)
+            yboot = rep(NA, n * mboot)
+            yboot = y[sample(n, size=n * mboot, replace=TRUE)]
+            bootmat = matrix(yboot, nrow=mboot)
+            bootmat.times.v.list[[irep]] = as.numeric(bootmat %*% v)
+        }
+        p = poly_pval_bootsub_inner(Vlo=out$vlo, Vup=out$vup, vty=sum(v*y), v, y, nboot=nboot,
+                                    bootmat.times.v=unlist(bootmat.times.v.list),
+                                    adjustmean=adjustmean)
+        ## if(!is.nan(p) & stable(p, p.so.far)) done=TRUE
+        if(!is.nan(p)) done=TRUE
+        p.so.far = c(p.so.far, p)
+    }
+    print(nrep.so.far)
+    return(p)
+}
+
+
 pval_plugin = poly_pval_bootsub_inner
 pval_plugin_wrapper = poly_pval_bootsub
+
+
+##' Wrapper to *only* do the premultiply option for plain TG inference..
+##' @param y data vector
+##' @param v contrast vector
+##' @param obj output from running an algorithm *before* adding polyhedra information.
+poly_pval_premultiply <- function(y=y, v=v, obj=obj, sigma=sigma){
+    pv = randomize_addnoise(y=y, v=v, sigma=sigma,
+                            inference.type="pre-multiply", sigma.add=0,
+                            orig.fudged.obj=obj, bits=5000)$pv
+    return(pv)
+}
+
 
 ##' Computes TG p-value and related objects (vlo,vup,vty,denom,numer) in the
 ##' case that Gy and Gv are pre-calculated; the option
@@ -299,7 +366,7 @@ pval_plugin_wrapper = poly_pval_bootsub
 ##' @param bits number of precision bits used for calculation of Gaussian
 ##'     tails. Roughly 3*bits is the /number/ of digits that is being used.
 ##' @return list containing pv,vlo,vup,vty,denom,numer.
-poly_pval_from_inner_products <- function(Gy,Gv, v,y,sigma,u,bits=1000, warn=TRUE){
+poly_pval_from_inner_products <- function(Gy, Gv, v,y,sigma,u,bits=1000, warn=TRUE){
 
     ## Rounding ridiculously small numbers
     Gv[which(abs(Gv)<1E-15)] = 0
