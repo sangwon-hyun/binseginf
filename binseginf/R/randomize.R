@@ -29,7 +29,7 @@
 ##' @param verbose If \code{TRUE}, the importance sampling progress
 ##' @export
 randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
-                               numSteps=NA, numIS, bits=1000,
+                               numSteps=NA, numIS=100, bits=1000,
                                orig.fudged.obj = NULL, ic.poly=NULL,
                                max.numIS=2000,
                                inference.type = c("rows", "pre-multiply"),
@@ -45,10 +45,12 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
     if(sigma.add==0) numIS=max.numIS=1
 
     ## If applicable, append IC poly to the original poly
-    poly = orig.fudged.poly
-    if(!is.null(ic.poly)){
-        poly$gamma = rbind(poly$gamma, ic.poly$gamma) ## I don't like this rbind..
-        poly$u = c(poly$u, ic.poly$u)
+    if(inference.type=="rows"){
+        poly = orig.fudged.poly
+        if(!is.null(ic.poly)){
+            poly$gamma = rbind(poly$gamma, ic.poly$gamma)
+            poly$u = c(poly$u, ic.poly$u)
+        }
     }
 
     ## Helper function
@@ -56,7 +58,6 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
         if(verbose) {printprogress(isim+numIS.cumulative, numIS+numIS.cumulative,
                                   "importance sampling replicate",
                                   start.time = start.time)}
-
 
         new.noise = rnorm(length(y),0,sigma.add)
 

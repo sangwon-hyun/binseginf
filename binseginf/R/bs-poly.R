@@ -11,7 +11,7 @@
 #' @export
 polyhedra.bsfs <- function(obj, numSteps = NA,
                            inference.type=c('rows','pre-multiply'),
-                           new.noise=NULL, v=NULL, icpoly=NULL, y=NULL,...){
+                           new.noise=NULL, v=NULL, icpoly=NULL, y=NULL, excessive=FALSE,...){
 
     ## Basic checks
     inference.type = match.arg(inference.type)
@@ -32,7 +32,10 @@ polyhedra.bsfs <- function(obj, numSteps = NA,
         if(inference.type=="rows"){
             gamma.row.lis[[i]] <- .gammaRows_from_comparisons(comp.lis[[i]]$winning,
                                                               losing.mat, sign.vec[i], n,
-                                                              inference.type="rows")
+                                                              inference.type="rows",
+                                                              excessive=excessive,
+                                                              y=y ## Temporary addition
+                                                              )
         } else {
             premultiply.lis[[i]] = .gammaRows_from_comparisons(comp.lis[[i]]$winning,
                                                                losing.mat,
@@ -49,7 +52,7 @@ polyhedra.bsfs <- function(obj, numSteps = NA,
             return(polyhedra(obj = rbind(mat,icpoly$gamma),
                              u = c(rep(0, nrow(mat)), icpoly$u)))
         } else {
-            return(polyhedra(obj = mat, u = rep(0, nrow(mat))))
+            return(polyhedra(obj=mat, u=rep(0, nrow(mat))))
         }
     } else {
         Gy = do.call(c,lapply(premultiply.lis, function(el) el[["new.Gy"]]))
@@ -66,9 +69,15 @@ polyhedra.bsfs <- function(obj, numSteps = NA,
         return(list(Gv=Gv, Gy=Gy, Gw=Gw, u=rep(0, length(Gv)))) }
 }
 
+
+##' Helper to make a set of rows (or multiplications with v)
+##' @param excessive Experimental feature that /additionally/ (and excessively)
+##'     conditions on the signs of competitor CUSUMs.
 .gammaRows_from_comparisons <- function(vec, mat, sign.win, n, y=NULL, v=NULL,
                                         w=NULL,
-                                        inference.type=c('rows', "pre-multiply")){
+                                        inference.type=c('rows', "pre-multiply"),
+                                        excessive=FALSE
+                                        ){
     inference.type = match.arg(inference.type)
     stopifnot(length(vec) == 3, ncol(mat) == 3)
 
@@ -84,6 +93,17 @@ polyhedra.bsfs <- function(obj, numSteps = NA,
                                     -rep(1, nrow(lose.contrast)))
   newrows = rbind(res, res2)
 
+    ## Temporary addition
+    if(excessive){
+        null.contrast = rep(0,n); null.sign=1
+        losing.signs = sign(as.numeric(lose.contrast%*%y))
+        res3 <- .vector_matrix_signedDiff(vec=null.contrast,
+                                          mat=lose.contrast,
+                                          sign.vec=null.sign,
+                                          sign.mat=-losing.signs)
+        newrows = rbind(newrows, res3)
+    }
+
   if(inference.type=='rows'){
       ## add inequalities to compare splits to 0 (ensure correct sign)
       return(newrows)
@@ -97,6 +117,8 @@ polyhedra.bsfs <- function(obj, numSteps = NA,
 }
 
 .vector_matrix_signedDiff <- function(vec, mat, sign.vec, sign.mat){
+
+  ## Basic checks
   stopifnot(!is.matrix(vec), is.numeric(vec), is.matrix(mat), is.numeric(mat))
   stopifnot(length(vec) == ncol(mat))
   stopifnot(length(sign.vec) == 1, length(sign.mat) == nrow(mat))

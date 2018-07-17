@@ -385,7 +385,10 @@ piecewise_mean <- function(y,cp){
   segments = lapply(1:(length(cp)+1), function(ii){ v=c(0,cp,length(y));(v[ii]+1):(v[ii+1]) })
   segment.means = sapply(segments, function(mysegment){mean(y[mysegment])})
   cleanmn = rep(NA,length(y))
-  lapply(1:length(segments), function(ii){cleanmn[segments[[ii]]] <<- segment.means[ii]})
+  ## lapply(1:length(segments), function(ii){cleanmn[segments[[ii]]] <<- segment.means[ii]})
+  for(ii in 1:length(segments)){
+      cleanmn[segments[[ii]]] <- segment.means[ii]
+  }
   return(cleanmn)
 }
 
@@ -403,13 +406,13 @@ make_all_segment_contrasts <- function(obj, numSteps=NULL){
     if(length(obj$cp)==0) stop("No detected changepoints!")
     if(all(is.na(obj$cp)))stop("No detected changepoints!")
     assert_that(!is.null(obj$y))
-    ## if(is.null(numSteps)){
+    if(is.null(numSteps)){
         all.cp = obj$cp
         all.cp.sign = obj$cp.sign
-    ## } else {
-    ##     all.cp = obj$cp[1:numSteps]
-    ##     all.cp.sign = obj$cp.sign[1:numSteps]
-    ## }
+    } else {
+        all.cp = obj$cp[1:numSteps]
+        all.cp.sign = obj$cp.sign[1:numSteps]
+    }
     return(make_all_segment_contrasts_from_cp(all.cp, all.cp.sign, length(obj$y)))
 }
 
@@ -580,8 +583,12 @@ get_piecewise_mean <- function(y, cp){
 
 ##' Takes a named list of n-length contrast vectors, and filters them so that
 ##' only the contrasts that are desired i.e. contained in \code{visc}.
+##' @param visc Only test points in visc
+##' @param only.test.nulls If TRUE, only test NULLs.
 ##' @export
-filter_vlist <- function(vlist, visc=NULL){
+filter_vlist <- function(vlist, visc=NULL, only.test.nulls=FALSE, mn=NULL){
+
+    ## Filter by location
     if(!is.null(visc)){
         retain = which(abs(as.numeric(names(vlist))) %in% visc)
         if(length(retain)==0){
@@ -589,6 +596,16 @@ filter_vlist <- function(vlist, visc=NULL){
         }
         vlist = vlist[retain]
     }
+
+    ## Only test the null contrasts
+    if(only.test.nulls){
+        assert_that(!is.null(mn))
+        means = sapply(vlist, function(v){ sum(v*mn) })
+        tol = 1E-10
+        which.null = which(abs(means)<tol)
+        vlist = vlist[which.null]
+    } 
+
     return(vlist)
 }
 
@@ -680,4 +697,31 @@ Mclapply <- function(nsim, myfun, mc.cores, start.time=NULL){
 ##' @export
 expect_uniform <- function(vec){
     expect_equal(ks.test(unlist(vec),punif)$p.value<0.05, FALSE)
+}
+
+##' Generate Laplace noie with sigma=1
+##' @export
+lapl <- function(n,samp=NULL){ rexp(n,rate=sqrt(2)) * sample(c(-1,1),n,replace=TRUE)}
+
+
+
+
+##' Train a binseg changepoint model size using cross validation.
+cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
+    testerrors = matrix(nrow=max.numSteps,ncol=numsplit)
+    testinds = lapply(1:numsplit, function(ii)seq(from=ii, to=length(y), by=numsplit))
+    for(numSteps in 1:max.numSteps){
+
+        ## Cycle through each partition of the data and calculate test error
+        for(jj in 1:numsplit){
+            leaveout = testinds[[jj]]
+            testData <- y[leaveout]
+            trainData <- y[-leaveout]
+            obj = bsfs(trainData, numSteps)
+            testcp = round(obj$cp / length(trainData) * length(testData))
+            testerrors[numSteps,jj] = mean((testData - piecewise_mean(trainData, testcp))^2)
+        }
+    }
+    errors = apply(testerrors,1,mean)
+    return(list(k=which.min(errors), errors=testerrors))
 }

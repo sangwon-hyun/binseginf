@@ -7,8 +7,21 @@
 ##' @export
 addpv <- function(obj,...) UseMethod("addpv")
 
+##' Conducts basic checks for addpv.bsfs()
+checks_addpv_bsfs <- function(obj, type, inference.type){
+    assert_that(class(obj)=="bsfs")
+    assert_that(is.null(obj$pvs))
+    if(type=="addnoise"){
+        assert_that(obj$noisy)
+        assert_that(!is.null(obj$sigma.add))
+    }
+    if(!is.null(obj$sigma.add) & type=="plain"){
+        stop("Original algorithm was run with additive noise! Can't do plain inference.")
+    }
+}
+
 ##' Appends the inference results to an object of class |bsFs|.
-##' @param obj object of type bsFs
+##' @param obj object of type bsFs.
 ##' @param loc only test locations in \code{loc}.
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
 ##'     \code{"addnoise"}, then \code{sigma.add} needs to be provided.
@@ -27,55 +40,60 @@ addpv <- function(obj,...) UseMethod("addpv")
 ##'     crucial ' difference for the user is perhaps that, when the size of the
 ##'     polyhedron ' is too big in memory, then this is a !necessity! as it
 ##'     circumvents ' having to actually form the polyhedron.
-##' @param mn original mean vector.
+##' @param mn Original mean vector. This is purely for simulation purposes,
+##'     along with the |only.test.nulls| option.
+##' @param only.test.nulls If \code{TRUE}, only test the contrasts whose true
+##'     mean is zero (i.e. the ones that constitute null tests).
 ##' @export
 addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
-                       sigma.add=NULL, declutter=FALSE, mn=NULL, min.num.things=30, numIntervals=NULL,
-                       inference.type = c("rows", "pre-multiply")){
+                       sigma.add=NULL, declutter=FALSE, min.num.things=30,
+                       max.numIS=2000, mn=NULL, only.test.nulls=FALSE,
+                       bootsub=FALSE, nboot=10000,
+                       v2=FALSE){
 
     ## Basic checks
-    assert_that(class(obj)=="bsfs")
-    assert_that(is.null(obj$pvs))
     type = match.arg(type)
-    if(type=="addnoise"){
-        assert_that(obj$noisy)
-        assert_that(!is.null(obj$sigma.add))
-    }
-    if(!is.null(obj$sigma.add) & type=="plain"){
-        stop("Original algorithm was run with additive noise! Can't do plain inference.")
-    }
-
-    inference.type = match.arg(inference.type)
-    if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
+    ## inference.type = match.arg(inference.type)
+    checks_addpv_bsfs(obj, type, inference.type)
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
-    vlist <- filter_vlist(vlist, loc)
+    vlist <- filter_vlist(vlist, loc, only.test.nulls, mn)
 
     ## Obtain p-values
     if(type=="plain"){
-        poly.nonfudged = polyhedra(obj)
-        pvs = sapply(vlist, function(v){
-            pv = poly.pval2(y=obj$y, poly=poly.nonfudged, v=v, sigma=sigma, bits=5000)$pv
-        })
+        if(bootsub){
+            poly.nonfudged = polyhedra(obj, y=obj$y)
 
+            ## Experimental
+            if(v2){
+                numSteps = cv.bsfs(obj$y, 10) ## This is expensive!
+                cv.obj = bsfs(y, numSteps=numSteps)
+                adjustmean = get_piecewise_mean(obj$y, sort(abs(cv.obj$cp)))
+            } else {
+                adjustmean = mean(y)
+            }
+                pvs = poly_pval_bootsub_for_vlist(obj$y, poly.nonfudged$gamma, vlist, nboot, sigma, adjustmean)
+        } else {
+            pvs = sapply(vlist, function(v){
+                poly_pval_premultiply(y=obj$y, v=v, obj=obj, sigma=sigma)
+            })
+        }
     } else if (type=="addnoise") {
-        poly.fudged = polyhedra(obj)
         pvs = sapply(vlist, function(v){
             pv = randomize_addnoise(y=obj$y.orig, 
                                     v=v, sigma=sigma, numIS=10,
                                     sigma.add=sigma.add,
-                                    orig.fudged.poly=poly.fudged, bits=5000,
                                     orig.fudged.obj=obj,
-                                    max.numIS=2000,
+                                    max.numIS=max.numIS,
                                     min.num.things=min.num.things,
-                                    inference.type=inference.type,
+                                    inference.type="pre-multiply",
                                     )$pv})
     } else {
         stop("|type| argument is wrong!")
     }
 
-    ## Add to object
+    ## Add the inference results to object
     obj$pvs = pvs
     obj$vlist = vlist
     if(!is.null(mn)){obj$means = sapply(vlist, function(v){ sum(v*mn) })}
@@ -219,10 +237,12 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 ##' @param sigma.add Additive noise. Defaults to NULL, in which case no additive
 ##'     noise randomization inference is done.
 ##' @param mn original mean vector.
+## ' @param stoptime temporarary addition
 ##' @export
 addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                      sigma.add=NULL, declutter=FALSE, mn=NULL, numIntervals=NULL,
                      inference.type = c("rows", "pre-multiply")){
+                     ## stoptime){
 
     ## Basic checks
     if(obj$ic.stop){assert_that(obj$ic_flag=="normal")}
@@ -243,11 +263,13 @@ addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 
     ## Get randomized p-value
     vlist <- make_all_segment_contrasts(obj, numSteps)
+    ## vlist <- make_all_segment_contrasts(obj, stoptime) ## Temporary addition
     vlist <- filter_vlist(vlist, loc)
 
     ## Obtain p-values
     if(type=="plain"){
         poly.nonfudged = polyhedra.fl(obj, numSteps)
+        ## poly.nonfudged = polyhedra.fl(obj, stoptime) ## Temporary addition
         poly.combined = combine(poly.nonfudged, obj$ic_poly)
         pvs = sapply(vlist, function(v){
             pv = poly.pval2(y=obj$y, poly=poly.combined, v=v, sigma=sigma, bits=5000)$pv

@@ -1,22 +1,24 @@
-##' Wrapper for running FL.
+##' Wrapper for running FL. Unclear whether keeping this in the actual package
+##' code is prudent, or whether this and addpv.fl should be moved to simulation
+##' code; it directly calls genlassoinf::dualpathSvd2() which will not disappear
+##' in the foreseeable future, so it is viable to just keep it here. One other
+##' option is to /add/ the addpv.genlassoinf() functionality to the generalized
+##' lasso framework. This is perhaps a good idea because of the same reason
+##' addpv.OOO() functions are prudent; it allows the embedding of the p-values
+##' into the same object, to /encapsulate/ all results. One important point is
+##' to make the /default/ option for addpv to be good.
 ##' @param sigma.add is important
 ##' @return list of information regarding the fitted algorithm. The list
 ##'     component \code{y} is the data used for actual fitting; \code{y.orig} is
 ##'     the pre-noise original data; \code{y.addnoise} (if not null) is the
 ##'     added noise.
 ##' @export
-fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, maxSteps=NULL, numIntervals=NULL){
+fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, numIntervals=NULL,...){
 
     ## Basic checks
-    if(ic.stop){
-        ## warning("|numSteps| option will be ignored and replaced with maxSteps.")
-        assert_that(!is.null(maxSteps))
-        numSteps = maxSteps
-    }    
     if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
     if(numSteps <= 0) step("numSteps must be at least 1.")
     if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
-    
 
     y.orig = y
     if(!is.null(sigma.add)){
@@ -24,7 +26,7 @@ fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, maxSteps=NULL, numInt
         y = y + y.addnoise
     }
     obj = genlassoinf::dualpathSvd2(y, maxsteps=numSteps,
-                                    D=genlassoinf::makeDmat(length(y), ord=0))
+                                    D=genlassoinf::makeDmat(length(y), ord=0),...)
     obj$numSteps = numSteps
     obj$y.orig = y.orig
 
