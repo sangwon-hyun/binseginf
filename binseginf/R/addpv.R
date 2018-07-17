@@ -48,7 +48,8 @@ checks_addpv_bsfs <- function(obj, type, inference.type){
 addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                        sigma.add=NULL, declutter=FALSE, min.num.things=30,
                        max.numIS=2000, mn=NULL, only.test.nulls=FALSE,
-                       bootsub=FALSE, nboot=10000){
+                       bootsub=FALSE, nboot=10000,
+                       v2=FALSE){
 
     ## Basic checks
     type = match.arg(type)
@@ -63,7 +64,16 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
     if(type=="plain"){
         if(bootsub){
             poly.nonfudged = polyhedra(obj, y=obj$y)
-            pvs = poly_pval_bootsub_large_for_vlist(obj$y, poly.nonfudged$gamma, vlist, nboot, sigma)
+
+            ## Experimental
+            if(v2){
+                numSteps = cv.bsfs(obj$y, 10) ## This is expensive!
+                cv.obj = bsfs(y, numSteps=numSteps)
+                adjustmean = get_piecewise_mean(obj$y, sort(abs(cv.obj$cp)))
+            } else {
+                adjustmean = mean(y)
+            }
+                pvs = poly_pval_bootsub_for_vlist(obj$y, poly.nonfudged$gamma, vlist, nboot, sigma, adjustmean)
         } else {
             pvs = sapply(vlist, function(v){
                 poly_pval_premultiply(y=obj$y, v=v, obj=obj, sigma=sigma)

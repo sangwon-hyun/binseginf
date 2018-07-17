@@ -385,7 +385,10 @@ piecewise_mean <- function(y,cp){
   segments = lapply(1:(length(cp)+1), function(ii){ v=c(0,cp,length(y));(v[ii]+1):(v[ii+1]) })
   segment.means = sapply(segments, function(mysegment){mean(y[mysegment])})
   cleanmn = rep(NA,length(y))
-  lapply(1:length(segments), function(ii){cleanmn[segments[[ii]]] <<- segment.means[ii]})
+  ## lapply(1:length(segments), function(ii){cleanmn[segments[[ii]]] <<- segment.means[ii]})
+  for(ii in 1:length(segments)){
+      cleanmn[segments[[ii]]] <- segment.means[ii]
+  }
   return(cleanmn)
 }
 
@@ -701,3 +704,24 @@ expect_uniform <- function(vec){
 lapl <- function(n,samp=NULL){ rexp(n,rate=sqrt(2)) * sample(c(-1,1),n,replace=TRUE)}
 
 
+
+
+##' Train a binseg changepoint model size using cross validation.
+cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
+    testerrors = matrix(nrow=max.numSteps,ncol=numsplit)
+    testinds = lapply(1:numsplit, function(ii)seq(from=ii, to=length(y), by=numsplit))
+    for(numSteps in 1:max.numSteps){
+
+        ## Cycle through each partition of the data and calculate test error
+        for(jj in 1:numsplit){
+            leaveout = testinds[[jj]]
+            testData <- y[leaveout]
+            trainData <- y[-leaveout]
+            obj = bsfs(trainData, numSteps)
+            testcp = round(obj$cp / length(trainData) * length(testData))
+            testerrors[numSteps,jj] = mean((testData - piecewise_mean(trainData, testcp))^2)
+        }
+    }
+    errors = apply(testerrors,1,mean)
+    return(list(k=which.min(errors), errors=testerrors))
+}
