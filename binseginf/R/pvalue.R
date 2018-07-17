@@ -309,7 +309,7 @@ poly_pval_from_inner_products <- function(Gy,Gv, v,y,sigma,u,bits=1000, warn=TRU
     vec = (u - Gy + rho*vy) / rho
     vlo = suppressWarnings(max(vec[rho>0]))
     vup = suppressWarnings(min(vec[rho<0]))
-    vy = max(min(vy, vup),vlo) ##This is the only difference. Should it be here? Yes
+    vy = max(min(vy, vup),vlo)
 
     z = Rmpfr::mpfr(vy/sd, precBits=bits)
     a = Rmpfr::mpfr(vlo/sd, precBits=bits)
@@ -322,8 +322,6 @@ poly_pval_from_inner_products <- function(Gy,Gv, v,y,sigma,u,bits=1000, warn=TRU
     numer = as.numeric((Rmpfr::pnorm(b)-Rmpfr::pnorm(z)))
     denom = as.numeric((Rmpfr::pnorm(b)-Rmpfr::pnorm(a)))
     pv = as.numeric(numer/denom)
-    return(list(denom=denom, numer=numer, pv = pv, vlo=vlo, vty=vy, vup=vup,
+    return(list(denom=denom, numer=numer, pv = pv, vlo=vlo, vty=vy, vy=vy, vup=vup,
                 sigma=sigma))
 }
-
-

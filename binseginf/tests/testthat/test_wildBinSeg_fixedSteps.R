@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 test_that("Reduction of inference procedure into collecting Gy and Gv correctly works",{
 
     n=60
@@ -20,17 +19,24 @@ test_that("Reduction of inference procedure into collecting Gy and Gv correctly 
     ## poly = polyhedra(obj=g$gamma, u=g$u)
 
     ## See if there is speedup
-    g1 = wildBinSeg_fixedSteps(y, numIntervals=numIntervals, numSteps=numSteps, cumsum.y=cumsum.y, cumsum.v=cumsum.v, inference.type="pre-multiply")
-    g1 = wildBinSeg_fixedSteps(y, numIntervals=numIntervals, numSteps=numSteps, cumsum.y=cumsum.y, cumsum.v=cumsum.v, inference.type="rows")
-    microbenchmark({g2=wildBinSeg_fixedSteps(y, numIntervals=numIntervals, numSteps=numSteps, cumsum.y=cumsum.y, cumsum.v=cumsum.v, inference.type="pre-multiply")}, times=100)
-    microbenchmark({g1=wildBinSeg_fixedSteps(y, numIntervals=numIntervals, numSteps=numSteps, cumsum.y=cumsum.y, cumsum.v=cumsum.v, inference.type="rows")}, times=100)
+    g1 = wildBinSeg_fixedSteps(y, numIntervals=numIntervals, numSteps=numSteps,
+                               cumsum.y=cumsum.y, cumsum.v=cumsum.v, inference.type="pre-multiply")
+    g1 = wildBinSeg_fixedSteps(y, numIntervals=numIntervals, numSteps=numSteps,
+                               cumsum.y=cumsum.y, cumsum.v=cumsum.v, inference.type="rows")
+    microbenchmark({g2=wildBinSeg_fixedSteps(y, numIntervals=numIntervals, numSteps=numSteps,
+                                             cumsum.y=cumsum.y, cumsum.v=cumsum.v, inference.type="pre-multiply")}, times=100)
+    microbenchmark({g1=wildBinSeg_fixedSteps(y, numIntervals=numIntervals,
+                                             numSteps=numSteps,
+                                             cumsum.y=cumsum.y,
+                                             cumsum.v=cumsum.v,
+                                             inference.type="rows")}, times=100)
 
 
 
 test_that("WBS.FT gives uniform p-values",{
-=======
-test_that("WBS has uniform null p-values and power when signal is present.",{
->>>>>>> Stashed changes
+## =======
+## test_that("WBS has uniform null p-values and power when signal is present.",{
+## >>>>>>> Stashed changes
 
     mysim = function(n, lev){
 

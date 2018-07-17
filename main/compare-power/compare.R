@@ -1,19 +1,29 @@
 ## Synopsis: Simulation code to compare each method's power. To be run from compare-run.R
-dosim <- function(lev, nsim, mc.cores=1){
-    cat("lev=", lev, fill=TRUE)
+dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1, numSteps=4, filename=NULL, sigma.add=0.2){
+    cat("lev=", lev, " and ichunk", ichunk, fill=TRUE)
     outputdir = "../output"
     onesim <- function(isim){
+        set.seed(isim)
 
         ## Generate data
-        n = 200
-        mn = fourjump(lev=lev, n=n)
+        ## n = 200
+        mn = meanfun(lev=lev, n=n)
         y = mn + rnorm(n, 0, 1)
         results = list()
 
 
+        ## ## One attempt at /unifying/ the code
+        ## obj = alg(y, numSteps=numSteps, numIntervals=numIntervals, sigma.add=sigma.add)
+        ## obj1 = addpv(obj, sigma=1, mn=mn)
+        ## if(!change) ##don't run obj2
+        ## obj2 = addpv(obj, sigma=1, mn=mn, with.decluttering)
+        ## results$bsfs_plain= obj$pvs
+        ## results$bsfs_plain_zero = (obj$means==0)
+        ## }, error=function(err){ print('error occurred during plain bsfs')})
+
         ## Plain BS inference
         tryCatch({
-        obj = bsfs(y, numSteps=4)
+        obj = bsfs(y, numSteps=numSteps)
         obj = addpv(obj, sigma=1, mn=mn)
         results$bsfs_plain= obj$pvs
         results$bsfs_plain_zero = (obj$means==0)
@@ -21,15 +31,15 @@ dosim <- function(lev, nsim, mc.cores=1){
         
         ## Noisy BS inference
         tryCatch({
-        obj = bsfs(y, numSteps=4, sigma.add=0.2)
-        obj = addpv(obj, sigma=1, sigma.add=0.2, type="addnoise", mn=mn)
+        obj = bsfs(y, numSteps=numSteps, sigma.add=sigma.add)
+        obj = addpv(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
         results$bsfs_addnoise = obj$pvs
         results$bsfs_addnoise_zero = (obj$means==0)
         }, error=function(err){ print('error occurred during noisy bsfs')})
         
         ## Plain WBS inference
         tryCatch({
-        obj = wbsfs(y, numSteps=4, numIntervals=length(y))
+        obj = wbsfs(y, numSteps=numSteps, numIntervals=length(y))
         obj = addpv(obj, sigma=1, type="plain", mn=mn)
         results$wbsfs_plain = obj$pvs
         results$wbsfs_plain_zero = (obj$means==0)
@@ -37,7 +47,7 @@ dosim <- function(lev, nsim, mc.cores=1){
         
         ## Marginalized WBS inference
         tryCatch({
-        obj = wbsfs(y, numSteps=4, numIntervals=length(y))
+        obj = wbsfs(y, numSteps=numSteps, numIntervals=length(y))
         obj = addpv(obj, sigma=1, type="rand", mn=mn)
         results$wbsfs_marg = obj$pvs
         results$wbsfs_marg_zero = (obj$means==0)
@@ -45,7 +55,7 @@ dosim <- function(lev, nsim, mc.cores=1){
         
         ## Plain CBS inference
         tryCatch({
-        obj = cbsfs(y, numSteps=2)
+        obj = cbsfs(y, numSteps=numSteps/2)
         obj = addpv(obj, sigma=1, type="plain", mn=mn)
         results$cbsfs_plain = obj$pvs
         results$cbsfs_plain_zero = (obj$means==0)
@@ -53,15 +63,15 @@ dosim <- function(lev, nsim, mc.cores=1){
         
         ## Noisy CBS inference
         tryCatch({
-        obj = cbsfs(y, numSteps=2, sigma.add=0.2)
-        obj = addpv(obj, sigma=1, type="addnoise", mn=mn, sigma.add=0.2)
+        obj = cbsfs(y, numSteps=numSteps/2, sigma.add=sigma.add)
+        obj = addpv(obj, sigma=1, type="addnoise", mn=mn, sigma.add=sigma.add)
         results$cbsfs_addnoise = obj$pvs
         results$cbsfs_addnoise_zero = (obj$means==0)
         }, error=function(err){ print('error occurred during noisy cbsfs')})
         
         ## Plain FL inference 
         tryCatch({
-        obj = fl(y, numSteps=4)
+        obj = fl(y, numSteps=numSteps)
         obj = addpv_fl(obj, sigma=1, type="plain", mn=mn)
         results$fl_plain = obj$pvs
         results$fl_plain_zero = (obj$means==0)
@@ -69,26 +79,38 @@ dosim <- function(lev, nsim, mc.cores=1){
         
         ## Noisy FL inference
         tryCatch({
-        obj = fl(y, numSteps=1, sigma.add=0.2)
-        obj = addpv_fl(obj, sigma=1, sigma.add=0.1, type="addnoise", mn=mn)
+        obj = fl(y, numSteps=numSteps, sigma.add=sigma.add) 
+        obj = addpv_fl(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
         results$fl_addnoise = obj$pvs
         results$fl_addnoise_zero = (obj$means==0)
-        }, error=function(err){ print('error occurred during noisy fl')})
+        }, error=function(err){ print(paste0('error occurred during noisy fl isim=', isim)) })
 
-        ## IC-stopped FL inference (not written yet)
+        ## ## IC-stopped FL inference (with decluttering? not written yet)
+        ## tryCatch({
+        ## obj = fl(y, numSteps=numSteps, sigma.add=sigma.add, ic.stop=TRUE) 
+        ## obj = addpv_fl(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
+        ## results$fl_ic_addnoise = obj$pvs
+        ## results$fl_ic_addnoise_zero = (obj$means==0)
+        ## print('fl')
+        ## }, error=function(err){ print('error occurred during noisy fl')})
+        ##
         
         return(results)
     }
 
     ## Run the actual simulations
     start.time = Sys.time()
-    results.list = mclapply(1:nsim, function(isim){
-        printprogress(isim, nsim, start.time=start.time)
-        onesim(isim)
-    }, mc.cores=mc.cores, mc.preschedule=TRUE) ## If you use mc.preschedule=FALSE, it will use different cores!
+    results.list = Mclapply(nsim, onesim, mc.cores, Sys.time())
 
-    filename = paste0("compare-power-lev", lev, ".Rdata")
+    ## Save or return
+    ## if(is.null(filename)) filename = paste0("compare-power-fourjump-lev-",
+    ##                                          myfractions(lev), ".Rdata")
+    if(is.null(filename)){ filename = paste0("compare-power-fourjump-lev-",
+                                             myfractions(lev), "-ichunk-", ichunk, ".Rdata")}
+    print(filename)
     save(results.list, file=file.path(outputdir, filename))
     ## return(results.list)
 }
 
+## nsim=80;nchunk=1
+## a = dosim(lev=1, ichunk=1, n=20, nsim=nsim/nchunk, mc.cores=8)

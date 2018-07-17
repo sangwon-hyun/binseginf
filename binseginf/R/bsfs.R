@@ -8,16 +8,23 @@
 #' @param sigma.add is the amount (standard deviation) of i.i.d. Gaussian noise
 #'     added to the data.
 #'
-#' @return a bsfs object
+#' @return a bsfs object, which is a list of information regarding the fitted
+#'     algorithm. The list component \code{y} is the data used for actual
+#'     fitting; \code{y.orig} is the pre-noise original data; \code{y.addnoise}
+#'     (if not null) is the added noise.
 #' @export
-bsfs <- function(y, numSteps, sigma.add=NULL){
-  if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
-  if(numSteps <= 0) step("numSteps must be at least 1.")
+bsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL){
 
-  if(!is.null(sigma.add)){
-      y.addnoise = rnorm(length(y), 0, sigma.add)
-      y = y + y.addnoise
-  }
+    ## Basic checks
+    if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
+    if(numSteps <= 0) step("numSteps must be at least 1.")
+    if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
+
+    y.orig = y
+    if(!is.null(sigma.add)){
+        y.addnoise = rnorm(length(y), 0, sigma.add)
+        y = y + y.addnoise
+    }
 
   #initialization
   n <- length(y); tree <- .create_node(1, n)
@@ -48,7 +55,7 @@ bsfs <- function(y, numSteps, sigma.add=NULL){
   cp.sign <- sign(as.numeric(sapply(leaves, function(x){
       data.tree::FindNode(tree, x)$cusum})))
   obj <- structure(list(tree = tree, y.fit = y.fit, numSteps = numSteps, cp = cp,
-                        cp.sign=cp.sign, y=y, noisy=FALSE), class = "bsfs")
+                        cp.sign=cp.sign, y=y, y.orig=y.orig, noisy=FALSE), class = "bsfs")
 
   if(!is.null(sigma.add)){
       obj$sigma.add = sigma.add

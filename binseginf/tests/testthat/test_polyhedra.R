@@ -1,9 +1,8 @@
 context("Test polyhedra")
 
 
-test_that("polyhedra forms a correct class", {
+test_that("polyhedra() forms a correct class", {
   res <- polyhedra(matrix(1:25,5,5), rep(1,5))
-
   expect_true(class(res) == "polyhedra")
 })
 
@@ -11,11 +10,8 @@ test_that("polyhedra forms a correct class", {
 
 test_that("is_valid.polyhedra works", {
   res <- polyhedra(matrix(1:25,5,5), rep(1,5))
-
   expect_true(is_valid(res))
-
   res$u <- rep(1,4)
-
   expect_error(is_valid(res))
 })
 
@@ -37,4 +33,9 @@ test_that("combine.polyhedra works on lists containing empty polyhedra", {
 })
 
 
-
+test_that("combine.polyhedra works with NULL valued objects", {
+        
+    a = polyhedra(matrix(1:10,ncol=2), u=rep(1,5))
+    b = combine(a,NULL)
+    expect_equal(b, a)
+})

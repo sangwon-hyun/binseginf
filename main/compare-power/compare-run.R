@@ -1,5 +1,5 @@
 ## Synopsis: Script to run the entire set of experiments. Run by ``Rscript
-## ../compare/compare-run.R 1 2 3 4 5 6 7 8 9 10 11 12'', from the directory
+## ../main/compare-power/compare-run.R 1 2 3 4 5 6 7 8 9 10 11 12'', from the directory
 ## binseginf/binseginf
 
 ## Setting
@@ -11,10 +11,13 @@ nsims = c(3000,3000,3000, seq(from=3000,to=1000,length=5),
 
 args = commandArgs(trailingOnly=TRUE)
 ii.list = as.numeric(args)
+nchunk=10
 for(ii in ii.list){
     lev = levs[ii]
     nsim = nsims[ii]
-    dosim(lev = lev, nsim, mc.cores=8)
+    for(ichunk in 1:nchunk){
+        dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=8)
+    }
 }
 
 

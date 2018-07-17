@@ -1,4 +1,4 @@
-##' Conducts post-parseselection inference procedure for additive noise binary
+##' Conducts post-selection inference procedure for additive noise binary
 ##' segmentation inference -- segment test inference for all detected
 ##' changepoints -- for a given n-lengthed data vector y, with or without IC
 ##' stopping.
