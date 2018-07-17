@@ -129,7 +129,9 @@ partition_TG <- function(y, poly, v, sigma, nullcontrast=0, bits=50, reduce,corr
 ##' @param main label to plot as main title.
 ##' @param cols colors if |pp| is a list of numeric vectors.
 ##' @export
-qqunif <- function(pp, main=NULL, plot.it=TRUE, cols=NULL, type=c("p","l"),...){
+qqunif <- function(pp, main=NULL, plot.it=TRUE, cols=NULL, type=c("p","l"),
+                   legend.location="bottomright",
+                   ...){
 
     type = match.arg(type)
     if(type=="l"){
@@ -169,7 +171,7 @@ qqunif <- function(pp, main=NULL, plot.it=TRUE, cols=NULL, type=c("p","l"),...){
             }
         }
         if(length(names(allpoints))>0){
-            legend("bottomright",legend=names(pp),col=cols,lty = rep(lty, length(pp)),
+            legend(legend.location,legend=names(pp),col=cols,lty = rep(lty, length(pp)),
                    pch=rep(pch,length(pp)))
         }
         return(invisible(allpoints))
