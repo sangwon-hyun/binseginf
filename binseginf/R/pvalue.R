@@ -283,6 +283,31 @@ poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v
     return(p)
 }
 
+## ##' Experimenting with bootsub v2
+## poly_pval_bootsub_for_vlist_v2 <- function(y,G,vlist,nboot,sigma,adjustmean=mean(y)){
+##     if(!is.null(vlist)){
+##         pvs = sapply(vlist, function(v){
+##             poly_pval_bootsub_v2(y, G, v, nboot, sigma, adjustmean)
+##         })
+##     }
+## }
+
+## ##' Experimenting with bootsub v2
+## poly_pval_bootsub_v2 <- function(y, G, vlist, nboot, sigma){
+
+##     y.centered = y - adjustmean
+##     obj = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
+##     Vlo = obj$vlo
+##     Vup = obj$vup
+##     vty = sum(v*y)
+##     p = poly_pval_bootsub_inner(Vlo, Vup, vty, v, y, nboot=nboot,
+##                                 bootmat=bootmat,
+##                                 bootmat.times.v=bootmat.times.v,
+##                                 adjustmean=adjustmean)
+##     return(p)
+## }
+
+
 
 ##' If a list of contrast vectors are supplied, use this.
 poly_pval_bootsub_large_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=mean(y)){
@@ -393,4 +418,18 @@ poly_pval_from_inner_products <- function(Gy, Gv, v,y,sigma,u,bits=1000, warn=TR
     pv = as.numeric(numer/denom)
     return(list(denom=denom, numer=numer, pv = pv, vlo=vlo, vty=vy, vy=vy, vup=vup,
                 sigma=sigma))
+}
+
+
+
+##' One-sided z-test regarding $v^T\mu$, using $v^Ty$.
+##' @param y data vector
+##' @param v contrast vector
+##' @param sigma noise standard deviation
+##' @export
+ztest <- function(y, v, sigma=1){
+    sigma.v = sigma * sqrt(sum(v * v))
+    vty = sum(v * y)
+    pv = 1 - pnorm(vty, mean=0, sd = sigma.v)
+    return(pv)
 }

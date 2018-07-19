@@ -155,7 +155,7 @@ qqunif <- function(pp, main=NULL, plot.it=TRUE, cols=NULL, type=c("p","l"),
             
         xy <- stats::qqplot(x=pp,
                      y=seq(from=0,to=1,length=length(pp)), plot.it=FALSE, pch=16, type=type)
-        if(plot.it) myplotter(xy, main)
+        if(plot.it) myplotter(xy, main,...)
         return(invisible(xy))
 
     ## Else, if a list of p-values is given, plot all of them
@@ -163,16 +163,16 @@ qqunif <- function(pp, main=NULL, plot.it=TRUE, cols=NULL, type=c("p","l"),
         assert_that(!is.null(cols))
         allpoints = lapply(pp, function(pvs){qqunif(pvs, plot.it=FALSE)})
         if(plot.it){
-            myplotter(allpoints[[1]], main, col=cols[1],pch=16, type=type)
+            myplotter(allpoints[[1]], main, col=cols[1], pch=16, type=type,...)
             if(length(allpoints)>1){
                 for(ii in 2:length(allpoints)){
-                    points(allpoints[[ii]], col = cols[ii], pch=16,type=type)
+                    points(allpoints[[ii]], col = cols[ii], pch=16,type=type,...)
                 }
             }
         }
         if(length(names(allpoints))>0){
             legend(legend.location,legend=names(pp),col=cols,lty = rep(lty, length(pp)),
-                   pch=rep(pch,length(pp)))
+                   pch=rep(pch,length(pp)),...)
         }
         return(invisible(allpoints))
     }
@@ -727,3 +727,4 @@ cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
     errors = apply(testerrors,1,mean)
     return(list(k=which.min(errors), errors=testerrors))
 }
+
