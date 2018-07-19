@@ -305,6 +305,7 @@ poly_pval_bootsub_large <- function(y, G, v, nboot=10000, sigma=1, adjustmean=me
 
     ## Basic checks
     mboot = 10000
+    nrep.max = 1000000
     if(nboot < mboot)  stop("Use poly_pval_bootsub() instead of .._large().")
     
     ## Get TG quantities
@@ -331,7 +332,7 @@ poly_pval_bootsub_large <- function(y, G, v, nboot=10000, sigma=1, adjustmean=me
                                     bootmat.times.v=unlist(bootmat.times.v.list),
                                     adjustmean=adjustmean)
         ## if(!is.nan(p) & stable(p, p.so.far)) done=TRUE
-        if(!is.nan(p)) done=TRUE
+        if(!is.nan(p) | nrep>nrep.max) done=TRUE
         p.so.far = c(p.so.far, p)
     }
     return(p)
