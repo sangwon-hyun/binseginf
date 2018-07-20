@@ -347,9 +347,10 @@ poly_pval_bootsub_large <- function(y, G, v, nboot=10000, sigma=1, adjustmean=me
     while(!done){
         for(irep in nrep.so.far+(1:nrep)){
             n = length(y)
-            yboot = rep(NA, n * mboot)
-            yboot = y[sample(n, size=n * mboot, replace=TRUE)]
-            bootmat = matrix(yboot, nrow=mboot)
+            n = length(y)
+            bootmat = t(sapply(1:nboot, function(iboot){
+                y.centered[sample(n, size=n, replace=TRUE)]
+            }))
             bootmat.times.v.list[[irep]] = as.numeric(bootmat %*% v)
         }
         p = poly_pval_bootsub_inner(Vlo=out$vlo, Vup=out$vup, vty=sum(v*y), v, y, nboot=nboot,
