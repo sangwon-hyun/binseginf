@@ -11,7 +11,7 @@ twojump <- function(lev,n){c(rep(0,n/3),rep(lev,n/3), rep(0,n/3))}
 
 ##' Functions to generate two-jump mean
 ##' @export
-twonarrowjump <- function(lev,n){stopifnot(n%%20==0);c(rep(0,n-n/20),rep(lev,n/10), rep(0,n-n/20))}
+twonarrowjump <- function(lev,n){stopifnot(n%%20==0);c(rep(0,n/2-n/20),rep(lev,n/10), rep(0,n/2-n/20))}
 
 ##' Function to generate four-jump mean
 ##' @export
