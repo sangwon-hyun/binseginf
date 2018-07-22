@@ -260,8 +260,9 @@ poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootma
 
     ## Calculate the requisite quantities
     vtr = as.numeric(bootmat.times.v)
-    numer = sum(vtr > as.numeric(vty) & vtr < as.numeric(Vup))
-    denom = sum(vtr > as.numeric(Vlo) & vtr < as.numeric(Vup))
+    pad = 1E-4 * n^(-0.25)
+    numer = sum(vtr > as.numeric(vty) & vtr < as.numeric(Vup)) + pad
+    denom = sum(vtr > as.numeric(Vlo) & vtr < as.numeric(Vup)) + pad
     if(!weight){  p = numer/denom; return(p) }
     if(weight){  w = denom ; return(w) }
 }
