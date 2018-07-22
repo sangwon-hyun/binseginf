@@ -349,7 +349,6 @@ poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*100000, sigma, adjust
     done = FALSE
     while(!done){
         for(irep in nrep.so.far+(1:nrep)){
-            print(irep)
             n = length(y)
             bootmat = t(sapply(1:nboot.base, function(iboot){
                 y.centered[sample(n, size=n, replace=TRUE)]
