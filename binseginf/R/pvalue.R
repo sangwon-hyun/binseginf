@@ -319,19 +319,21 @@ poly_pval_bootsub_large_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=m
     }
 }
 
-##' For large |nboot|, Calculating TG p-value from bootstrapped residuals.
+##' For large |nboot|, calculating TG p-value from bootstrapped residuals by
+##' chunking into 10000 replicates each.
 ##' @param y data vector.
 ##' @param G Polyhedron gamma matrix.
 ##' @param v contrast vector
 ##' @param vlist A list of contrast vectors. If supplied, then v will be
 ##'     ignored.
-##' @param nboot number of bootstraps in total
+##' @param nboot.max The number of bootstraps replicates in total.
 ##' @export
-poly_pval_bootsub_large <- function(y, G, v, nboot=10000, sigma=1, adjustmean=mean(y)){
+poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*100000, sigma, adjustmean=mean(y)){
 
     ## Basic checks
-    mboot = 10000
-    if(nboot < mboot)  stop("Use poly_pval_bootsub() instead of .._large().")
+    nboot = 10*100000
+    nboot.base = 100000 ## The base number of bootstraps to run in every fold
+    if(nboot < nboot.base)  stop("Use poly_pval_bootsub() instead of .._large().")
     
     ## Get TG quantities
     out = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
@@ -339,26 +341,27 @@ poly_pval_bootsub_large <- function(y, G, v, nboot=10000, sigma=1, adjustmean=me
 
     ## Record (bootmat x v) by doing it |nrep| times separately
     bootmat.times.v.list = list()
-    nrep = ceiling(nboot/mboot)
+    nrep = ceiling(nboot/nboot.base)
 
     nrep.so.far = 0
-    p.so.far = 0
-    stable <- function(p, p.so.far){abs(tail(p.so.far,1)-p) < 0.1}
+    p.so.far = -1
+    stable <- function(p, p.so.far){abs(tail(p.so.far,1)-p) < 0.05}
     done = FALSE
     while(!done){
         for(irep in nrep.so.far+(1:nrep)){
+            print(irep)
             n = length(y)
-            n = length(y)
-            bootmat = t(sapply(1:nboot, function(iboot){
+            bootmat = t(sapply(1:nboot.base, function(iboot){
                 y.centered[sample(n, size=n, replace=TRUE)]
             }))
             bootmat.times.v.list[[irep]] = as.numeric(bootmat %*% v)
         }
-        p = poly_pval_bootsub_inner(Vlo=out$vlo, Vup=out$vup, vty=sum(v*y), v, y, nboot=nboot,
-                                    bootmat.times.v=unlist(bootmat.times.v.list),
+        all.vty = unlist(bootmat.times.v.list)
+        p = poly_pval_bootsub_inner(Vlo=out$vlo, Vup=out$vup, vty=sum(v*y), v, y, nboot=nboot.base,
+                                    bootmat.times.v=all.vty,
                                     adjustmean=adjustmean)
         ## if(!is.nan(p) & stable(p, p.so.far)) done=TRUE
-        if(!is.nan(p)) done=TRUE
+        if((!is.nan(p) & stable(p,p.so.far)) | length(all.vty) > nboot.max) done=TRUE
         p.so.far = c(p.so.far, p)
     }
     return(p)
