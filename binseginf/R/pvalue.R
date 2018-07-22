@@ -243,7 +243,7 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, re
 ##'     p-value.
 ##' @return p-value or weight, depending on \code{weight} input.
 poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootmat=NULL,
-                                    weight=FALSE, bootmat.times.v=NULL, adjustmean){
+                                    weight=FALSE, bootmat.times.v=NULL, adjustmean, pad=FALSE){
     y.centered = y - adjustmean
 
     ## Calculate bootstrapped v^T(y^*-\bar y).
@@ -260,9 +260,9 @@ poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootma
 
     ## Calculate the requisite quantities
     vtr = as.numeric(bootmat.times.v)
-    pad = 1E-4 * n^(-0.25)
-    numer = sum(vtr > as.numeric(vty) & vtr < as.numeric(Vup)) + pad
-    denom = sum(vtr > as.numeric(Vlo) & vtr < as.numeric(Vup)) + pad
+    padding = (if(pad)1E-4 * n^(-0.25) else 0)
+    numer = sum(vtr > as.numeric(vty) & vtr < as.numeric(Vup)) + padding
+    denom = sum(vtr > as.numeric(Vlo) & vtr < as.numeric(Vup)) + padding
     if(!weight){  p = numer/denom; return(p) }
     if(weight){  w = denom ; return(w) }
 }
@@ -270,7 +270,7 @@ poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootma
 ##' Calculating TG p-value from bootstrapped residuals
 ##' @export
 poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v=NULL,
-                              sigma, adjustmean=mean(y)){
+                              sigma, adjustmean=mean(y), pad=FALSE){
 
     y.centered = y - adjustmean
     obj = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
@@ -280,7 +280,7 @@ poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v
     p = poly_pval_bootsub_inner(Vlo, Vup, vty, v, y, nboot=nboot,
                                 bootmat=bootmat,
                                 bootmat.times.v=bootmat.times.v,
-                                adjustmean=adjustmean)
+                                adjustmean=adjustmean, pad=pad)
     return(p)
 }
 
