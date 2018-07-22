@@ -328,7 +328,7 @@ poly_pval_bootsub_large_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=m
 ##'     ignored.
 ##' @param nboot.max The number of bootstraps replicates in total.
 ##' @export
-poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*100000, sigma, adjustmean=mean(y)){
+poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*100000, sigma, adjustmean=mean(y), pad=FALSE){
 
     ## Basic checks
     nboot = 10*100000
@@ -359,7 +359,7 @@ poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*100000, sigma, adjust
         all.vty = unlist(bootmat.times.v.list)
         p = poly_pval_bootsub_inner(Vlo=out$vlo, Vup=out$vup, vty=sum(v*y), v, y, nboot=nboot.base,
                                     bootmat.times.v=all.vty,
-                                    adjustmean=adjustmean)
+                                    adjustmean=adjustmean, pad=pad)
         ## if(!is.nan(p) & stable(p, p.so.far)) done=TRUE
         if((!is.nan(p) & stable(p,p.so.far)) | length(all.vty) > nboot.max) done=TRUE
         p.so.far = c(p.so.far, p)
