@@ -244,12 +244,12 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, re
 ##' @return p-value or weight, depending on \code{weight} input.
 poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootmat=NULL,
                                     weight=FALSE, bootmat.times.v=NULL, adjustmean, pad=FALSE){
-    y.centered = y - adjustmean
 
-    ## Calculate bootstrapped v^T(y^*-\bar y).
+    ## if needed, calculate bootstrapped v^T(y^*-\bar y).
     if(is.null(bootmat.times.v)){
         if(is.null(bootmat)){
             assert_that(!is.null(y))
+            y.centered = y - adjustmean
             n = length(y)
             bootmat = t(sapply(1:nboot, function(iboot){
                 y.centered[sample(n, size=n, replace=TRUE)]
@@ -319,8 +319,22 @@ poly_pval_bootsub_large_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=m
     }
 }
 
+
+##' Helper function for deleting shorter segments.
+ridlong<- function(y.centered, adjustmean){
+    n = length(y.centered)
+    stopifnot(n == length(adjustmean))
+    difference = adjustmean[2:n]-adjustmean[1:(n-1)]
+    cp.in.adjustmean = which(abs(difference) > 1E-10)
+    segments = make_segment_inds(cp.in.adjustmean, n)
+    na.segments = unlist(segments[sapply(segments, length) <= n/4])
+    if(!is.null(na.segments)) y.centered = y.centered[-na.segments]
+    return(y.centered)
+} 
+
 ##' For large |nboot|, calculating TG p-value from bootstrapped residuals by
-##' chunking into 10000 replicates each.
+##' chunking into 10000 replicates each. TODO In the future, we want to do /not/
+##' repeat the bootstrap for each v, but do it in batch.
 ##' @param y data vector.
 ##' @param G Polyhedron gamma matrix.
 ##' @param v contrast vector
@@ -328,44 +342,53 @@ poly_pval_bootsub_large_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=m
 ##'     ignored.
 ##' @param nboot.max The number of bootstraps replicates in total.
 ##' @export
-poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*100000, sigma, adjustmean=mean(y), pad=FALSE){
+poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*100000, sigma, adjustmean=mean(y), pad=FALSE, vlist=NULL, ridlong=FALSE){
 
     ## Basic checks
     nboot = 10*100000
     nboot.base = 100000 ## The base number of bootstraps to run in every fold
     if(nboot < nboot.base)  stop("Use poly_pval_bootsub() instead of .._large().")
+    n = length(y)
     
     ## Get TG quantities
     out = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
     y.centered = y - adjustmean
+
+    ## Process y.centered to eliminate smaller segments, if needed.
+    if(ridlong){
+        y.centered = ridlong(y.centered, adjustmean)
+        print(y.centered)
+        if(length(y.centered)==0) return(NULL)
+    }
 
     ## Record (bootmat x v) by doing it |nrep| times separately
     bootmat.times.v.list = list()
     nrep = ceiling(nboot/nboot.base)
 
     nrep.so.far = 0
-    p.so.far = -1
+    p.so.far = -1 ## This is just a fake starter value
     stable <- function(p, p.so.far){abs(tail(p.so.far,1)-p) < 0.05}
     done = FALSE
     while(!done){
         for(irep in nrep.so.far+(1:nrep)){
-            n = length(y)
             bootmat = t(sapply(1:nboot.base, function(iboot){
-                y.centered[sample(n, size=n, replace=TRUE)]
+                y.centered[sample(length(y.centered), size=n, replace=TRUE)]
             }))
+
             bootmat.times.v.list[[irep]] = as.numeric(bootmat %*% v)
         }
         all.vty = unlist(bootmat.times.v.list)
-        p = poly_pval_bootsub_inner(Vlo=out$vlo, Vup=out$vup, vty=sum(v*y), v, y, nboot=nboot.base,
+        p = poly_pval_bootsub_inner(Vlo=out$vlo, Vup=out$vup, vty=sum(v*y), v,
+                                    y, nboot=nboot.base,
                                     bootmat.times.v=all.vty,
                                     adjustmean=adjustmean, pad=pad)
         ## if(!is.nan(p) & stable(p, p.so.far)) done=TRUE
         if((!is.nan(p) & stable(p,p.so.far)) | length(all.vty) > nboot.max) done=TRUE
         p.so.far = c(p.so.far, p)
+        print(p.so.far)
     }
     return(p)
 }
-
 
 pval_plugin = poly_pval_bootsub_inner
 pval_plugin_wrapper = poly_pval_bootsub

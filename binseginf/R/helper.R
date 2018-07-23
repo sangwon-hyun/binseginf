@@ -144,7 +144,7 @@ qqunif <- function(pp, main=NULL, plot.it=TRUE, cols=NULL, type=c("p","l"),
 
     ## Internal helper
     myplotter <- function(xy,main,...){
-            graphics::plot(xy, axes=FALSE, ylim=c(0,1), xlim=c(0,1),xlab="expected",ylab="observed",...)
+            graphics::plot(xy, axes=FALSE, ylim=c(0,1), xlim=c(0,1), xlab="expected",ylab="observed",...)
             graphics::axis(2); graphics::axis(1)
             graphics::abline(0,1)
             if(!is.null(main)) graphics::title(main=main)
@@ -380,11 +380,12 @@ prune_of_1_length_segments <- function(Tcurr,Scurr,Ecurr){
 ##' @return Piecewise constant vector of data whose entries are sample means of
 ##'     segments.
 ##' @export
-piecewise_mean <- function(y,cp){
+piecewise_mean <- function(y, cp){
   stopifnot(all(1<=cp & cp<=length(y)))
   ## stopifnot(all.equal(sort(cp),cp))
   cp = sort(cp)
-  segments = lapply(1:(length(cp)+1), function(ii){ v=c(0,cp,length(y));(v[ii]+1):(v[ii+1]) })
+  ## segments = lapply(1:(length(cp)+1), function(ii){ v=c(0,cp,length(y));(v[ii]+1):(v[ii+1]) })
+  segments = make_segment_inds(cp, length(y))
   segment.means = sapply(segments, function(mysegment){mean(y[mysegment])})
   cleanmn = rep(NA,length(y))
   ## lapply(1:length(segments), function(ii){cleanmn[segments[[ii]]] <<- segment.means[ii]})
@@ -709,6 +710,7 @@ lapl <- function(n,samp=NULL){ rexp(n,rate=sqrt(2)) * sample(c(-1,1),n,replace=T
 
 
 ##' Train a binseg changepoint model size using cross validation.
+##' @export
 cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
     testerrors = matrix(nrow=max.numSteps,ncol=numsplit)
     testinds = lapply(1:numsplit, function(ii)seq(from=ii, to=length(y), by=numsplit))
@@ -727,4 +729,13 @@ cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
     errors = apply(testerrors,1,mean)
     return(list(k=which.min(errors), errors=testerrors))
 }
+
+##' Helper to make segment indices. 
+##' @param cp Changepoints.
+##' @param n Data length.
+make_segment_inds <- function(cp,n){
+    lapply(1:(length(cp)+1),
+           function(ii){ v=c(0,cp,n);(v[ii]+1):(v[ii+1]) })
+}
+
 
