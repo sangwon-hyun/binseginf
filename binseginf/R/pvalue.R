@@ -342,11 +342,11 @@ ridlong<- function(y.centered, adjustmean){
 ##'     ignored.
 ##' @param nboot.max The number of bootstraps replicates in total.
 ##' @export
-poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*100000, sigma, adjustmean=mean(y), pad=FALSE, vlist=NULL, ridlong=FALSE){
+poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*10000, sigma, adjustmean=mean(y), pad=FALSE, vlist=NULL, ridlong=FALSE, stable.thresh = 0.01){
 
     ## Basic checks
-    nboot = 10*100000
-    nboot.base = 100000 ## The base number of bootstraps to run in every fold
+    nboot.base = 10000 ## The base number of bootstraps to run in every fold
+    nboot = 10*10000
     if(nboot < nboot.base)  stop("Use poly_pval_bootsub() instead of .._large().")
     n = length(y)
     
@@ -357,7 +357,6 @@ poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*100000, sigma, adjust
     ## Process y.centered to eliminate smaller segments, if needed.
     if(ridlong){
         y.centered = ridlong(y.centered, adjustmean)
-        print(y.centered)
         if(length(y.centered)==0) return(NULL)
     }
 
@@ -367,14 +366,14 @@ poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*100000, sigma, adjust
 
     nrep.so.far = 0
     p.so.far = -1 ## This is just a fake starter value
-    stable <- function(p, p.so.far){abs(tail(p.so.far,1)-p) < 0.05}
+    stable <- function(p, p.so.far){abs(mean(tail(p.so.far,2))-p) < stable.thresh}
+    ## stable <- function(p, p.so.far){abs(linpredict(tail(p.so.far,2))-p) < stable.thresh}
     done = FALSE
     while(!done){
         for(irep in nrep.so.far+(1:nrep)){
             bootmat = t(sapply(1:nboot.base, function(iboot){
                 y.centered[sample(length(y.centered), size=n, replace=TRUE)]
             }))
-
             bootmat.times.v.list[[irep]] = as.numeric(bootmat %*% v)
         }
         all.vty = unlist(bootmat.times.v.list)
@@ -382,10 +381,11 @@ poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*100000, sigma, adjust
                                     y, nboot=nboot.base,
                                     bootmat.times.v=all.vty,
                                     adjustmean=adjustmean, pad=pad)
+        
         ## if(!is.nan(p) & stable(p, p.so.far)) done=TRUE
         if((!is.nan(p) & stable(p,p.so.far)) | length(all.vty) > nboot.max) done=TRUE
         p.so.far = c(p.so.far, p)
-        print(p.so.far)
+        nrep.so.far = nrep.so.far + nrep
     }
     return(p)
 }

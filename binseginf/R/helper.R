@@ -739,3 +739,11 @@ make_segment_inds <- function(cp,n){
 }
 
 
+
+##' Linear prediction of vector |ptail| to the next value.
+linpredict <- function(ptail,p){
+    ind = 1:(length(ptail))
+    g = lm(y~x,data=data.frame(y=ptail,x=ind))
+    y = predict(g, newdata = data.frame(x=length(ptail)+1))
+    return(y)
+}
