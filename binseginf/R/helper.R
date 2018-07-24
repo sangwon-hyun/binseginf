@@ -712,6 +712,7 @@ lapl <- function(n,samp=NULL){ rexp(n,rate=sqrt(2)) * sample(c(-1,1),n,replace=T
 ##' Train a binseg changepoint model size using cross validation.
 ##' @export
 cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
+    if(length(y)%%2 != 0) y = y[-length(y)] ## Just in case y is odd lengthed
     testerrors = matrix(nrow=max.numSteps,ncol=numsplit)
     testinds = lapply(1:numsplit, function(ii)seq(from=ii, to=length(y), by=numsplit))
     for(numSteps in 1:max.numSteps){
@@ -724,7 +725,7 @@ cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
             obj = bsfs(trainData, numSteps)
             testcp = round(obj$cp / length(trainData) * length(testData))
             testerrors[numSteps,jj] = mean((testData - piecewise_mean(trainData, testcp))^2)
-        }
+       }
     }
     errors = apply(testerrors,1,mean)
     return(list(k=which.min(errors), errors=testerrors))
