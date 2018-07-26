@@ -243,13 +243,13 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, re
 ##'     p-value.
 ##' @return p-value or weight, depending on \code{weight} input.
 poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootmat=NULL,
-                                    weight=FALSE, bootmat.times.v=NULL, adjustmean){
-    y.centered = y - adjustmean
+                                    weight=FALSE, bootmat.times.v=NULL, adjustmean, pad=FALSE){
 
-    ## Calculate bootstrapped v^T(y^*-\bar y).
+    ## if needed, calculate bootstrapped v^T(y^*-\bar y).
     if(is.null(bootmat.times.v)){
         if(is.null(bootmat)){
             assert_that(!is.null(y))
+            y.centered = y - adjustmean
             n = length(y)
             bootmat = t(sapply(1:nboot, function(iboot){
                 y.centered[sample(n, size=n, replace=TRUE)]
@@ -260,8 +260,9 @@ poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootma
 
     ## Calculate the requisite quantities
     vtr = as.numeric(bootmat.times.v)
-    numer = sum(vtr > as.numeric(vty) & vtr < as.numeric(Vup))
-    denom = sum(vtr > as.numeric(Vlo) & vtr < as.numeric(Vup))
+    padding = (if(pad)1E-4 * n^(-0.25) else 0)
+    numer = sum(vtr > as.numeric(vty) & vtr < as.numeric(Vup)) + padding
+    denom = sum(vtr > as.numeric(Vlo) & vtr < as.numeric(Vup)) + padding
     if(!weight){  p = numer/denom; return(p) }
     if(weight){  w = denom ; return(w) }
 }
@@ -269,7 +270,7 @@ poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootma
 ##' Calculating TG p-value from bootstrapped residuals
 ##' @export
 poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v=NULL,
-                              sigma, adjustmean=mean(y)){
+                              sigma, adjustmean=mean(y), pad=FALSE){
 
     y.centered = y - adjustmean
     obj = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
@@ -279,9 +280,34 @@ poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v
     p = poly_pval_bootsub_inner(Vlo, Vup, vty, v, y, nboot=nboot,
                                 bootmat=bootmat,
                                 bootmat.times.v=bootmat.times.v,
-                                adjustmean=adjustmean)
+                                adjustmean=adjustmean, pad=pad)
     return(p)
 }
+
+## ##' Experimenting with bootsub v2
+## poly_pval_bootsub_for_vlist_v2 <- function(y,G,vlist,nboot,sigma,adjustmean=mean(y)){
+##     if(!is.null(vlist)){
+##         pvs = sapply(vlist, function(v){
+##             poly_pval_bootsub_v2(y, G, v, nboot, sigma, adjustmean)
+##         })
+##     }
+## }
+
+## ##' Experimenting with bootsub v2
+## poly_pval_bootsub_v2 <- function(y, G, vlist, nboot, sigma){
+
+##     y.centered = y - adjustmean
+##     obj = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
+##     Vlo = obj$vlo
+##     Vup = obj$vup
+##     vty = sum(v*y)
+##     p = poly_pval_bootsub_inner(Vlo, Vup, vty, v, y, nboot=nboot,
+##                                 bootmat=bootmat,
+##                                 bootmat.times.v=bootmat.times.v,
+##                                 adjustmean=adjustmean)
+##     return(p)
+## }
+
 
 
 ##' If a list of contrast vectors are supplied, use this.
@@ -293,29 +319,51 @@ poly_pval_bootsub_large_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=m
     }
 }
 
-##' For large |nboot|, Calculating TG p-value from bootstrapped residuals.
+
+##' Helper function for deleting shorter segments.
+ridlong<- function(y.centered, adjustmean){
+    n = length(y.centered)
+    stopifnot(n == length(adjustmean))
+    difference = adjustmean[2:n]-adjustmean[1:(n-1)]
+    cp.in.adjustmean = which(abs(difference) > 1E-10)
+    segments = make_segment_inds(cp.in.adjustmean, n)
+    na.segments = unlist(segments[sapply(segments, length) <= n/4])
+    if(!is.null(na.segments)) y.centered = y.centered[-na.segments]
+    return(y.centered)
+} 
+
+##' For large |nboot|, calculating TG p-value from bootstrapped residuals by
+##' chunking into 10000 replicates each. TODO In the future, we want to do /not/
+##' repeat the bootstrap for each v, but do it in batch.
 ##' @param y data vector.
 ##' @param G Polyhedron gamma matrix.
 ##' @param v contrast vector
 ##' @param vlist A list of contrast vectors. If supplied, then v will be
 ##'     ignored.
-##' @param nboot number of bootstraps in total
+##' @param nboot.max The number of bootstraps replicates in total.
 ##' @export
 poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*10000, sigma,
                                     adjustmean=mean(y), pad=FALSE, vlist=NULL,
                                     ridlong=FALSE, stable.thresh=0.01){
-
     ## Basic checks
-    mboot = 10000
-    if(nboot < mboot)  stop("Use poly_pval_bootsub() instead of .._large().")
+    nboot.base = 10000 ## The base number of bootstraps to run in every fold
+    nboot = 10*10000
+    if(nboot < nboot.base)  stop("Use poly_pval_bootsub() instead of .._large().")
+    n = length(y)
     
     ## Get TG quantities
     out = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
     y.centered = y - adjustmean
 
+    ## Process y.centered to eliminate smaller segments, if needed.
+    if(ridlong){
+        y.centered = ridlong(y.centered, adjustmean)
+        if(length(y.centered)==0) return(NULL)
+    }
+
     ## Record (bootmat x v) by doing it |nrep| times separately
     bootmat.times.v.list = list()
-    nrep = ceiling(nboot/mboot)
+    nrep = ceiling(nboot/nboot.base)
 
     nrep.so.far = 0
     p.so.far = -1 ## This is just a fake starter value
@@ -324,24 +372,26 @@ poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*10000, sigma,
     done = FALSE
     while(!done){
         for(irep in nrep.so.far+(1:nrep)){
-            n = length(y)
-            yboot = rep(NA, n * mboot)
-            yboot = y[sample(n, size=n * mboot, replace=TRUE)]
-            bootmat = matrix(yboot, nrow=mboot)
+            bootmat = t(sapply(1:nboot.base, function(iboot){
+                y.centered[sample(length(y.centered), size=n, replace=TRUE)]
+            }))
             bootmat.times.v.list[[irep]] = as.numeric(bootmat %*% v)
         }
-        p = poly_pval_bootsub_inner(Vlo=out$vlo, Vup=out$vup, vty=sum(v*y), v, y, nboot=nboot,
-                                    bootmat.times.v=unlist(bootmat.times.v.list),
-                                    adjustmean=adjustmean)
+        all.vty = unlist(bootmat.times.v.list)
+        p = poly_pval_bootsub_inner(Vlo=out$vlo, Vup=out$vup, vty=sum(v*y), v,
+                                    y, nboot=nboot.base,
+                                    bootmat.times.v=all.vty,
+                                    adjustmean=adjustmean, pad=pad)
+        
         ## if(!is.nan(p) & stable(p, p.so.far)) done=TRUE
         reach.max.nrep = (length(all.vty) > nboot.max)
         pv.is.okay = (!is.nan(p) & stable(p, p.so.far))
         if(pv.is.okay | reach.max.nrep) done=TRUE
         p.so.far = c(p.so.far, p)
+        nrep.so.far = nrep.so.far + nrep
     }
     return(p)
 }
-
 
 pval_plugin = poly_pval_bootsub_inner
 pval_plugin_wrapper = poly_pval_bootsub
@@ -398,4 +448,18 @@ poly_pval_from_inner_products <- function(Gy, Gv, v,y,sigma,u,bits=1000, warn=TR
     pv = as.numeric(numer/denom)
     return(list(denom=denom, numer=numer, pv = pv, vlo=vlo, vty=vy, vy=vy, vup=vup,
                 sigma=sigma))
+}
+
+
+
+##' One-sided z-test regarding $v^T\mu$, using $v^Ty$.
+##' @param y data vector
+##' @param v contrast vector
+##' @param sigma noise standard deviation
+##' @export
+ztest <- function(y, v, sigma=1){
+    sigma.v = sigma * sqrt(sum(v * v))
+    vty = sum(v * y)
+    pv = 1 - pnorm(vty, mean=0, sd = sigma.v)
+    return(pv)
 }
