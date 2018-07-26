@@ -152,10 +152,10 @@ qqunif <- function(pp, main=NULL, plot.it=TRUE, cols=NULL, type=c("p","l"),
 
     ## If single numeric vector, plot it.
     if(class(pp)!="list"){
-            
+        if(is.null(cols)) cols="black"
         xy <- stats::qqplot(x=pp,
-                     y=seq(from=0,to=1,length=length(pp)), plot.it=FALSE, pch=16, type=type)
-        if(plot.it) myplotter(xy, main)
+                     y=seq(from=0,to=1,length=length(pp)), plot.it=FALSE)
+        if(plot.it) myplotter(xy, main, type=type,col=cols,...)
         return(invisible(xy))
 
     ## Else, if a list of p-values is given, plot all of them

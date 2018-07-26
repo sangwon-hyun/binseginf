@@ -57,3 +57,43 @@ test_that("decluttering is done correctly", {
 })
 
 
+
+
+## Quickly test this function
+test_that("z test function is correct.", {
+    nsim = 1000
+    n = 10
+    null.pvs = sapply(1:nsim, function(isim){
+        y = rnorm(n)
+        v = c(rep(2/n, n/2), -rep(2/n, n/2))
+        pv = ztest(y, v)
+        return(pv)
+    })
+    ## qqunif(null.pvs) ## this is uniform
+    expect_true(ks.test(null.pvs, punif)$p > 0.05)
+})
+
+
+
+test_that("Sample splitting function is correct.", {
+    nsim = 1000
+    pvs.list = sapply(1:nsim, function(isim){
+        n = 20
+        mn = onejump(3,n)
+        sigma.gen = 1
+        y = mn + rnorm(n, 0, sigma.gen)
+        pvs <- samplesplit(y, mn=mn, numSteps = 2, only.test.nulls=TRUE)
+        return(pvs)
+    })
+    null.pvs = unlist(pvs.list)
+    expect_true(ks.test(null.pvs, punif)$p > 0.05)
+})
+
+
+test_that("ridlong() function to get rid of smaller segments, works properly.", {
+    len1 = length(ridlong(rnorm(12), twojump(1,12)))
+    expect_error({ridlong(rnorm(12), c(twojump(1,12),3,3))})
+    len2 = ridlong(rnorm(14), c(twojump(1,12),3,3))
+    expect_equal(length(len0), 12)
+    expect_equal(length(len2), 14)
+})

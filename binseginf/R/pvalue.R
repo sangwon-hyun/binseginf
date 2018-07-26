@@ -301,7 +301,9 @@ poly_pval_bootsub_large_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=m
 ##'     ignored.
 ##' @param nboot number of bootstraps in total
 ##' @export
-poly_pval_bootsub_large <- function(y, G, v, nboot=10000, sigma=1, adjustmean=mean(y)){
+poly_pval_bootsub_large <- function(y, G, v, nboot.max=100*10000, sigma,
+                                    adjustmean=mean(y), pad=FALSE, vlist=NULL,
+                                    ridlong=FALSE, stable.thresh=0.01){
 
     ## Basic checks
     mboot = 10000
@@ -316,8 +318,9 @@ poly_pval_bootsub_large <- function(y, G, v, nboot=10000, sigma=1, adjustmean=me
     nrep = ceiling(nboot/mboot)
 
     nrep.so.far = 0
-    p.so.far = 0
-    stable <- function(p, p.so.far){abs(tail(p.so.far,1)-p) < 0.1}
+    p.so.far = -1 ## This is just a fake starter value
+    stable <- function(p, p.so.far){ abs(mean(tail(p.so.far,2))-p) < stable.thresh }
+    ## stable <- function(p, p.so.far){abs(linpredict(tail(p.so.far,2))-p) < stable.thresh}
     done = FALSE
     while(!done){
         for(irep in nrep.so.far+(1:nrep)){
@@ -331,7 +334,9 @@ poly_pval_bootsub_large <- function(y, G, v, nboot=10000, sigma=1, adjustmean=me
                                     bootmat.times.v=unlist(bootmat.times.v.list),
                                     adjustmean=adjustmean)
         ## if(!is.nan(p) & stable(p, p.so.far)) done=TRUE
-        if(!is.nan(p)) done=TRUE
+        reach.max.nrep = (length(all.vty) > nboot.max)
+        pv.is.okay = (!is.nan(p) & stable(p, p.so.far))
+        if(pv.is.okay | reach.max.nrep) done=TRUE
         p.so.far = c(p.so.far, p)
     }
     return(p)

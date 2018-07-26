@@ -216,3 +216,62 @@ test_that(".compute_truncGaus_terms preserves vlo and vup correctly for flasso",
     expect_true(bool1 == bool2)
   }
 })
+
+
+
+test_that("Bootstrap substitution functions are sound.", {
+    
+    ## Generate data.
+    n = 30
+    mn = twojump(10,n)
+    set.seed(0)
+    y = mn + rnorm(n)
+    
+    ## Isolate a particular test contrast (that is strongly nonnull)
+    obj = bsfs(y, numSteps=2)
+    v = make_all_segment_contrasts(obj)[[1]]
+    poly = polyhedra(obj)
+
+    ## See if the bootsub p-values are the same.
+    pv1 = poly_pval_bootsub_large(y=y, v=v, G=poly$gamma, sigma=1)
+    pv2 = poly_pval_bootsub(y=y, v=v, G=poly$gamma, sigma=1, nboot=10000)
+
+    ## See if the bootsub_large pvalues actually stop.
+
+
+
+
+    ## ## Seeing if the number of zeros goes up/down
+    ## get_numzeros = function(nboot){
+    ##     pvs.list = mclapply(1:1000, function(isim){
+    ##         printprogress(isim,1000)
+    ##         ## Generate data.
+    ##         n = 30
+    ##         mn = twojump(10,n)
+    ##         y = mn + rnorm(n)
+            
+    ##         ## Isolate a particular test contrast (that is strongly nonnull)
+    ##         obj = bsfs(y, numSteps=4)
+    ##         vlist = make_all_segment_contrasts(obj)
+    ##         poly = polyhedra(obj)
+       
+    ##         ## See if the bootsub p-values are the same.
+    ##         pvs = sapply(vlist, function(v){
+    ##             return(poly_pval_bootsub(y=y, v=v, G=poly$gamma, sigma=1,
+    ##                                      nboot=nboot))})
+    ##         return(pvs)
+    ##     }, mc.cores=4)
+    ##     return(length(which(unlist(pvs.list)==0)))
+    ## }
+    ## ## nboots = c(200,1000,4000)
+    ## nboots = c(10000,20000,50000)
+    ## zeros2 = c()
+    ## for(ii in 1:3){
+    ##     zeros2[ii] = get_numzeros(nboots[ii])
+    ## }
+    ## plot(c(zeros, zeros2), type='l', lwd=3)
+    
+
+})
+
+
