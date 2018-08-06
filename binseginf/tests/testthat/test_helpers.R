@@ -91,9 +91,19 @@ test_that("Sample splitting function is correct.", {
 
 
 test_that("ridlong() function to get rid of smaller segments, works properly.", {
+
+    ## Some simple test cases
     len1 = length(ridlong(rnorm(12), twojump(1,12)))
     expect_error({ridlong(rnorm(12), c(twojump(1,12),3,3))})
-    len2 = ridlong(rnorm(14), c(twojump(1,12),3,3))
-    expect_equal(length(len0), 12)
-    expect_equal(length(len2), 14)
+    len2 = length(ridlong(rnorm(14), c(twojump(1,12),3,3)))
+    expect_equal(len1, 12)
+    expect_equal(len2, 14)
+})
+
+
+test_that("get_piecewise_mean() function works properly.", {
+    n = 100
+    cp = c(25, 50, 75)
+    pwmean = get_piecewise_mean(rnorm(n), cp)
+    expect_equal(get_cp_from_piecewise_mean(pwmean), cp)
 })

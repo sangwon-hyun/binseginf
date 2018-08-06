@@ -571,17 +571,25 @@ declutter_new <- function(coords, coords.sign=NULL, how.close = 1){
 ##' Return piecewise mean.
 ##' @param y data vector.
 ##' @param cp changepoint vector. Assumed to be sorted.
-##' @import glmgen
 ##' @export
 get_piecewise_mean <- function(y, cp){
-  if(all.equal(sort(cp), cp)!=TRUE) stop ("cp is not sorted!")
-  aug.cp = c(0,cp,length(y))
-  segment.inds = sapply(1:(length(cp)+1),
-                      function(ii){ (aug.cp[ii]+1):aug.cp[ii+1]})
-  mn = rep(NA,length(y))
-  for(ind in segment.inds) mn[ind] <- mean(y[ind])
-  return(mn)
+    if(all.equal(sort(cp), cp)!=TRUE) stop ("cp is not sorted!")
+    aug.cp = c(0,cp,length(y))
+    segment.inds = lapply(1:(length(cp)+1),
+                          function(ii){ (aug.cp[ii]+1):aug.cp[ii+1]})
+    mn = rep(NA,length(y))
+    for(ind in segment.inds) mn[ind] <- mean(y[ind])
+    return(mn)
 }
+
+##' Get changepoint locations from a piecewise constant mean.
+##' @param mn data vector.
+##' @export
+get_cp_from_piecewise_mean <- function(mn, cp){
+    diffs = mn[2:length(mn)] - mn[1:(length(mn)-1)]
+    return(which(abs(diffs) > 1E-10))
+}
+
 
 
 ##' Takes a named list of n-length contrast vectors, and filters them so that
