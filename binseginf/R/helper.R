@@ -574,6 +574,18 @@ declutter_new <- function(coords, coords.sign=NULL, how.close = 1){
 ##' @export
 get_piecewise_mean <- function(y, cp){
     if(all.equal(sort(cp), cp)!=TRUE) stop ("cp is not sorted!")
+    ## y = rnorm(20)
+    ## cp = c(5,10)
+    aug.cp = c(0,cp,length(y))
+    segment.inds = sapply(1:(length(cp)+1),
+                          function(ii){ (aug.cp[ii]+1):aug.cp[ii+1]})
+    mn = rep(NA,length(y))
+    for(ind in segment.inds) mn[ind] <- mean(y[ind])
+    return(mn)
+}
+
+get_piecewise_mean_correct <- function(y, cp){
+    if(all.equal(sort(cp), cp)!=TRUE) stop ("cp is not sorted!")
     aug.cp = c(0,cp,length(y))
     segment.inds = lapply(1:(length(cp)+1),
                           function(ii){ (aug.cp[ii]+1):aug.cp[ii+1]})
@@ -581,6 +593,7 @@ get_piecewise_mean <- function(y, cp){
     for(ind in segment.inds) mn[ind] <- mean(y[ind])
     return(mn)
 }
+
 
 ##' Get changepoint locations from a piecewise constant mean.
 ##' @param mn data vector.
@@ -721,7 +734,7 @@ lapl <- function(n,samp=NULL){ rexp(n,rate=sqrt(2)) * sample(c(-1,1),n,replace=T
 ##' @export
 cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
     if(length(y)%%2 != 0) y = y[-length(y)] ## Just in case y is odd lengthed
-    testerrors = matrix(nrow=max.numSteps,ncol=numsplit)
+    testerrors = matrix(nrow=max.numSteps, ncol=numsplit)
     testinds = lapply(1:numsplit, function(ii)seq(from=ii, to=length(y), by=numsplit))
     for(numSteps in 1:max.numSteps){
 
@@ -735,9 +748,45 @@ cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
             testerrors[numSteps,jj] = mean((testData - piecewise_mean(trainData, testcp))^2)
        }
     }
-    errors = apply(testerrors,1,mean)
+    errors = apply(testerrors, 1, mean)
     return(list(k=which.min(errors), errors=testerrors))
 }
+
+
+
+##' (A copy for debugging) Train a binseg changepoint model size using cross
+##' validation.
+##' @export
+cv2.bsfs <- function(y, max.numSteps=30, numsplit=2){
+    if(length(y)%%2 != 0) y = y[-length(y)] ## Just in case y is odd lengthed
+    testerrors = matrix(nrow=max.numSteps, ncol=numsplit)
+    testinds = lapply(1:numsplit, function(ii)seq(from=ii, to=length(y), by=numsplit))
+    browser()
+    par(mfrow=c(1,3))
+    for(numSteps in 1:max.numSteps){
+        numSteps=3
+        ## Cycle through each partition of the data and calculate test error
+        ## for(jj in 1:numsplit){
+        jj=1
+
+
+            leaveout = testinds[[jj]]
+            testData <- y[leaveout]
+            trainData <- y[-leaveout]
+            obj = bsfs(trainData, numSteps)
+            testcp = round(obj$cp / length(trainData) * length(testData))
+            fittedMean = piecewise_mean(trainData, testcp)
+        plot(trainData)
+        lines(fittedMean)
+
+            testerrors[numSteps,jj] = mean((testData - fittedMean)^2)
+       ## }
+    }
+    errors = apply(testerrors, 1, mean)
+    return(list(k=which.min(errors), errors=testerrors))
+}
+
+
 
 ##' Helper to make segment indices. 
 ##' @param cp Changepoints.

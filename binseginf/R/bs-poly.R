@@ -5,13 +5,25 @@
 #' @param obj bsfs object
 #' @param inference.type type of return -- either the actual polyhedron, or the
 #'     pre-multiplied quantities Gv, Gy and Gw.
+#' @param excessive Experimental feature for adding excessive conditioning for
+#'     CUSUM signs.
+#' @param icpoly \code{polyhedra} class object for IC stopping. Defaults to
+#'     \code{NULL}.
+#' @param new.noise New additive noise, drawn in order for randomization.
+#' @param record.rownums If \code{TRUE}, record the number of rows corresponding
+#'     to each algorithm step in \code{1:obj$numSteps} (or \code{1:numSteps} if
+#'     \code{numSteps} is provided. Only relevant when
+#'     \code{inference.type=='rows'}.
 #' @param ... not used
 #'
-#' @return An object of class polyhedra
+#' @return An object of class polyhedra. Includes \code{nrow.by.step} object,
+#'     which is the number of halfspaces (rows of gamma matrix) corresponding to
+#'     each step, when \code{inference.type=="rows"}.
 #' @export
 polyhedra.bsfs <- function(obj, numSteps = NA,
                            inference.type=c('rows','pre-multiply'),
-                           new.noise=NULL, v=NULL, icpoly=NULL, y=NULL, excessive=FALSE,...){
+                           new.noise=NULL, v=NULL, icpoly=NULL, y=NULL,
+                           excessive=FALSE, record.nrows=FALSE,...){
 
     ## Basic checks
     inference.type = match.arg(inference.type)
@@ -46,15 +58,27 @@ polyhedra.bsfs <- function(obj, numSteps = NA,
         }
     }
     if(inference.type=="rows"){
+
+        ## Collect the number of rows
+        if(record.nrows){
+            nrow.by.step = sapply(gamma.row.lis, nrow)
+            nrow.by.step = cumsum(nrow.by.step)
+            names(nrow.by.step) = paste0("step-", 1:numSteps)
+        } else { nrow.by.step=NULL }
+
         ## Combine the rows and optionally add the ic-poly rows
         mat <- do.call(rbind, gamma.row.lis)
         if(!is.null(icpoly)){
             return(polyhedra(obj = rbind(mat,icpoly$gamma),
-                             u = c(rep(0, nrow(mat)), icpoly$u)))
+                             u = c(rep(0, nrow(mat)), icpoly$u),
+                             nrow.by.step=nrow.by.step))
         } else {
-            return(polyhedra(obj=mat, u=rep(0, nrow(mat))))
+            return(polyhedra(obj=mat,
+                             u=rep(0, nrow(mat)),
+                             nrow.by.step=nrow.by.step))
         }
     } else {
+
         Gy = do.call(c,lapply(premultiply.lis, function(el) el[["new.Gy"]]))
         Gv = do.call(c,lapply(premultiply.lis, function(el) el[["new.Gv"]]))
         Gw = do.call(c,lapply(premultiply.lis, function(el) el[["new.Gw"]]))
@@ -65,8 +89,7 @@ polyhedra.bsfs <- function(obj, numSteps = NA,
             Gv = c(Gv, icpoly$gamma%*%v)
             Gw = c(Gw, icpoly$gamma%*%new.noise)
         }
-
-        return(list(Gv=Gv, Gy=Gy, Gw=Gw, u=rep(0, length(Gv)))) }
+        return(list(Gv=Gv, Gy=Gy, Gw=Gw, u=rep(0, length(Gv)), nrow.by.step=NULL)) }
 }
 
 
@@ -283,12 +306,3 @@ halfspaces <- function(s, b, e, z, thresh, n, y, is.terminal.node=F , verbose=F)
     return(list(V=V,u=u))
 }
 
-## Testing code
-## s = myrow[,"s"];
-##                                    b = myrow[,"b"];
-##                                    e = myrow[,"e"];
-##                                    z = myrow[,"dir"];
-##                                    thresh = obj$thresh;
-##                                    n = n;
-##                                    y = y;
-##                                    is.terminal.node = (!myrow[,"pass"])

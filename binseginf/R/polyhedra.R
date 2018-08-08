@@ -7,7 +7,7 @@
 #' @return object of class polyhedra
 #' @export
 polyhedra.matrix <- function(obj, u, ...){
-  structure(list(gamma = obj, u = u), class = "polyhedra")
+  structure(list(gamma = obj, u = u, ...), class = "polyhedra")
 }
 
 #' Check if polyhedra is valid
@@ -29,7 +29,7 @@ is_valid.polyhedra <- function(obj){
 
 
 #' Generic for functions that combine same-type things.
-#' @param obj object
+#' @param obj \code{polyhedra} class object.
 combine <- function(obj, ...) {UseMethod("combine")}
 
 ##' Combines several polyhedra to a single polyhedron. It is possible to add
@@ -45,9 +45,6 @@ combine.polyhedra <- function(...){
     rownums <- sapply(polyobjs, function(a) nrow(a$gamma))
     nonemptyinds = which(rownums!=0)
     if(length(nonemptyinds)==0){
-        ## emptygamma =
-        ## emptyu  = c()
-        ## newpoly = structure(list(gamma=emptygamma))
         return(NULL)
     } else {
         starts = cumsum(c(1,rownums[-length(rownums)]))[nonemptyinds]
@@ -68,17 +65,18 @@ combine.polyhedra <- function(...){
 
 
 
-## Prints polyhedra
+##' Prints polyhedra
+##' @param obj \code{polyhedra} class object.
 print.polyhedra <- function(mypoly){
     if(nrow(mypoly$gamma)==0 ){ print("Empty polyhedra object!")
     } else if (all(is.na(mypoly$gamma[1,])) & nrow(mypoly$gamma)==1){
         print("Empty polyhedra object!")
     } else {
-    first.n = min(10, nrow(mypoly$gamma), ncol(mypoly$gamma)/2)
-    print(paste("Gamma matrix (first", first.n, " rows&cols) looks like:"))
-    print(signif((mypoly$gamma[1:first.n, (1:min(first.n*2, ncol(mypoly$gamma)))]),3))
-    print(paste("u vector (first", first.n, "entries) looks like:"))
-    print(signif(mypoly$u[1:first.n]))
+        first.n = min(10, nrow(mypoly$gamma), ncol(mypoly$gamma)/2)
+        print(paste("Gamma matrix (first", first.n, " rows&cols) looks like:"))
+        print(signif((mypoly$gamma[1:first.n, (1:min(first.n*2, ncol(mypoly$gamma)))]),3))
+        print(paste("u vector (first", first.n, "entries) looks like:"))
+        print(signif(mypoly$u[1:first.n]))
     }
 }
 
@@ -89,10 +87,12 @@ print.polyhedra <- function(mypoly){
 
 
 ##' Check if y is in polyhedra (generic).
+##' @param obj \code{polyhedra} class object.
 ##' @export
 contained <- function(obj,...){UseMethod("contained")}
 
 ##' Check if y is in polyhedra.
+##' @param obj \code{polyhedra} class object.
 ##' @export
 contained.polyhedra <- function(obj, y){
     all(obj$gamma %*% y >= obj$u)
@@ -111,4 +111,21 @@ make_empty.polyhedra <- function(n){
 ##' generalized lasso dual path algorithm in the |genlassoinf| R package.
 polyhedra.path <- function(obj, numSteps=obj$maxSteps){
     polyhedra(obj = obj$Gobj.naive$G, u = obj$Gobj.naive$u)
+}
+
+
+#' Function generic, for a function to get a snapshot of the polyhedron from a
+#' particular algorithm step.
+#' @param obj \code{polyhedra} class object.
+snapshot <- function(obj, ...) {UseMethod("snapshot")}
+
+##' Gets a snapshot of the polyhedron from a particular algorithm step.
+##' @param obj \code{polyhedra} class object.
+##' @param numSteps Algorithm step you want a snapshot from
+snapshot.polyhedra <- function(obj, numSteps){
+    assert_that("nrow.by.step" %in% names(obj))
+    inds = (1:obj$nrow.by.step[numSteps])
+    return(polyhedra(obj=obj$gamma[inds, ],
+                     u=rep(0, length(inds)),
+                     nrow.by.step=obj$nrow.by.step))
 }

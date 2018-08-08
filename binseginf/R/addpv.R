@@ -8,7 +8,7 @@
 addpv <- function(obj,...) UseMethod("addpv")
 
 ##' Conducts basic checks for addpv.bsfs()
-checks_addpv_bsfs <- function(obj, type, inference.type){
+checks_addpv_bsfs <- function(obj, type){
     assert_that(class(obj)=="bsfs")
     assert_that(is.null(obj$pvs))
     if(type=="addnoise"){
@@ -24,7 +24,9 @@ checks_addpv_bsfs <- function(obj, type, inference.type){
 ##' @param obj object of type bsFs.
 ##' @param loc only test locations in \code{loc}.
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
-##'     \code{"addnoise"}, then \code{sigma.add} needs to be provided.
+##'     \code{"addnoise"}, then \code{sigma.add} needs to be
+##'     provided. Currently, the polyhedron is not formed (due to memory
+##'     concerns) but instead it uses the \code{type=pre-multiply} option.
 ##' @param sigma Noise level (standard deviation) of data.
 ##' @param sigma.add Additive noise. Defaults to NULL, in which case no additive
 ##'     noise randomization inference is done.
@@ -53,8 +55,7 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 
     ## Basic checks
     type = match.arg(type)
-    ## inference.type = match.arg(inference.type)
-    checks_addpv_bsfs(obj, type, inference.type)
+    checks_addpv_bsfs(obj, type)
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
@@ -64,7 +65,6 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
     if(type=="plain"){
         if(bootsub){
             poly.nonfudged = polyhedra(obj, y=obj$y)
-
             ## Experimental
             if(v2){
                 numSteps = cv.bsfs(obj$y, 10) ## This is expensive!
@@ -73,7 +73,8 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
             } else {
                 adjustmean = mean(y)
             }
-                pvs = poly_pval_bootsub_for_vlist(obj$y, poly.nonfudged$gamma, vlist, nboot, sigma, adjustmean)
+            pvs = poly_pval_bootsub_for_vlist(obj$y, poly.nonfudged$gamma,
+                                              vlist, nboot, sigma, adjustmean)
         } else {
             pvs = sapply(vlist, function(v){
                 poly_pval_premultiply(y=obj$y, v=v, obj=obj, sigma=sigma)

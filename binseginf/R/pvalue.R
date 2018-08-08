@@ -235,6 +235,20 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, re
 }
 
 
+
+##' If a list of contrast vectors are supplied, use this.
+poly_pval2_for_vlist <- function(y,poly,vlist,sigma){
+    if(!is.null(vlist)){
+        pvs = sapply(vlist, function(v){
+            poly_pval2(y, poly, v, sigma)$pv
+        })
+    }
+}
+
+
+
+
+
 ##' Calculating TG p-value from bootstrapping centered residuals
 ##' @param y data vector.
 ##' @param bootmat vector whose rows are bootstrapped y's.
@@ -321,7 +335,7 @@ poly_pval_bootsub_large_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=m
 
 
 ##' Helper function for deleting shorter segments.
-ridlong<- function(y.centered, adjustmean){
+ridlong <- function(y.centered, adjustmean){
     n = length(y.centered)
     stopifnot(n == length(adjustmean))
     difference = adjustmean[2:n]-adjustmean[1:(n-1)]

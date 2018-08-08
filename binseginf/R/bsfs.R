@@ -207,3 +207,44 @@ print.bsfs <- function(obj){
         cat("Pvalues of", names(obj$pvs), "are", obj$pvs, fill=TRUE)
     }
 }
+
+## ##' Returns a reduced object. Really a convenience function than a real
+## ##' function, as it is not currently possible to cut the tree
+## obj$tree
+## snapshot.bsfs <- function(obj, numSteps){
+
+##     ## Basic checks
+##     if(is.null(obj$pvs)) stop("Not recommended to use this snapshot of object that hasn't had addpv() applied to it. There's no point!")
+##     if(obj$ic.stop) stop("Can't take a snapshot of an IC-stopped |bsfs| object.")
+##     if(numSteps > obj){ stop("Can't take a snapshot of a higher number of steps than that of the original |bsfs| object.") }
+##     if(numSteps == obj){ return(obj) }
+##     assert_that(numSteps >= 1)
+
+##     ## The code goes here. Basically, reduce everything to be at numSteps
+##     set.seed(0)
+##     y = rnorm(10)
+##     obj = bsfs(y, 3)
+##     obj = addpv(obj, sigma=1)
+##     objects(obj)
+##     numSteps = 1
+##     ## End of temporary
+
+##     ## Extract new things from it.
+##     obj.new$cp = obj$cp[1:numSteps]
+##     obj.new$cp.sign = obj$cp.sign[1:numSteps]
+##     obj$polyhedra
+
+##     ##
+
+
+
+
+##     return(new.obj)
+## }
+
+
+## ## Some tests go here.
+## y = rnorm()
+## obj = bsfs(y, ...)
+## new.obj = snapshot(obj)
+## expect_true(is_valid(new.obj))
