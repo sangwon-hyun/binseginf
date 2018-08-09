@@ -26,7 +26,10 @@ for(ii in ii.list){
 
 
 ## lev = 1
-## nsim = 300
+## nsim = 3000
 ## nchunk = 10
 ## ichunk = 1
+## type = "fl"
 ## dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=1, type=type, filename = "bsfs-dummy.Rdata")
+
+## Rscript ../main/compare-power/compare-run.R wbsfs

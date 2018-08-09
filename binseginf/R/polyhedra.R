@@ -109,8 +109,10 @@ make_empty.polyhedra <- function(n){
 
 ##' Obtains polyhedron from |path| object. A |path| object is created from
 ##' generalized lasso dual path algorithm in the |genlassoinf| R package.
+##' @export
 polyhedra.path <- function(obj, numSteps=obj$maxSteps){
-    polyhedra(obj = obj$Gobj.naive$G, u = obj$Gobj.naive$u)
+    stopifnot(numSteps==obj$maxSteps)
+    polyhedra(obj = obj$Gobj.naive$G, u = obj$Gobj.naive$u, nrow.by.step=obj$nkstep)
 }
 
 

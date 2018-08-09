@@ -112,7 +112,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         if(any(type=="fl")){tryCatch({
             ## Collect largest algorithm information
             obj = fl(y, numSteps=max.numSteps)
-            poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
+            poly.max = polyhedra(obj, numSteps=max.numSteps)
             ## Collect each steps' inferences
             res = inf.by.step(obj, allsteps, poly.max, mn)
             results$fl = res$pvs.by.step
