@@ -69,7 +69,6 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             mwbsfs = mwbsfs_zero = vector("list", length(allsteps))
             names(mwbsfs) = names(mwbsfs_zero) = paste0("step-",allsteps)
             for(ii in 1:length(allsteps)){
-                print(ii)
                 numSteps = allsteps[ii]
                 ## These two lines change, and nothing else
                 obj = wbsfs(y, numSteps=numSteps, numIntervals=length(y))
