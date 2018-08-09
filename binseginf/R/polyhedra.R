@@ -117,11 +117,13 @@ polyhedra.path <- function(obj, numSteps=obj$maxSteps){
 #' Function generic, for a function to get a snapshot of the polyhedron from a
 #' particular algorithm step.
 #' @param obj \code{polyhedra} class object.
+#' @export
 snapshot <- function(obj, ...) {UseMethod("snapshot")}
 
 ##' Gets a snapshot of the polyhedron from a particular algorithm step.
 ##' @param obj \code{polyhedra} class object.
 ##' @param numSteps Algorithm step you want a snapshot from
+##' @export
 snapshot.polyhedra <- function(obj, numSteps){
     assert_that("nrow.by.step" %in% names(obj))
     inds = (1:obj$nrow.by.step[numSteps])
