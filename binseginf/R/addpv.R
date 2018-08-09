@@ -297,11 +297,19 @@ addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 addpv_fl = addpv.fl
 
 ##' Helper to harvest polyhedra from FL object.
-polyhedra.fl <- function(obj, numSteps=NULL){
+polyhedra.fl <- function(obj, numSteps=NULL, record.nrows=TRUE){
     if(is.null(numSteps)) numSteps = obj$maxsteps
     Gobj = genlassoinf::getGammat.naive(obj=obj, y=obj$y,
                                         condition.step=numSteps)
-    poly = polyhedra(obj=Gobj$G, u=Gobj$u)
+    
+    ## Harvest number of rows per step
+    if(record.nrows){
+        nrow.by.step = obj$nkstep
+    } else {
+        nrow.by.step = NULL
+    }
+
+    poly = polyhedra(obj=Gobj$G, u=Gobj$u, nrow.by.step=nrow.by.step)
     return(poly)
 }
 

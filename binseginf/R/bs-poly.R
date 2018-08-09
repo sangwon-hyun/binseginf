@@ -23,7 +23,7 @@
 polyhedra.bsfs <- function(obj, numSteps = NA,
                            inference.type=c('rows','pre-multiply'),
                            new.noise=NULL, v=NULL, icpoly=NULL, y=NULL,
-                           excessive=FALSE, record.nrows=FALSE,...){
+                           excessive=FALSE, record.nrows=TRUE,...){
 
     ## Basic checks
     inference.type = match.arg(inference.type)

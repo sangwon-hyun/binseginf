@@ -4,11 +4,13 @@
 #' (a vector).
 #'
 #' @param obj cbsfs object
+#' @param record.nrows Whether or not to record the row number of the Gamma
+#'     matrix from each step of the algorithm.
 #' @param ... void, not used
 #'
 #' @return a polyhedra
 #' @export
-polyhedra.cbsfs <- function(obj, ...){
+polyhedra.cbsfs <- function(obj, record.nrows=TRUE,...){
   n <- .get_startEnd(obj$tree$name)[2]
   numSteps <- obj$numSteps
   comp_lis <- .list_comparison(obj)
@@ -21,7 +23,15 @@ polyhedra.cbsfs <- function(obj, ...){
   }
 
   mat <- do.call(rbind, gamma_row_lis)
-  polyhedra(obj = mat, u = rep(0, nrow(mat)))
+
+  ## Collect |numrows| by step
+  if(record.nrows){
+      nrow.by.step = sapply(gamma_row_lis, nrow)
+      nrow.by.step = cumsum(nrow.by.step)
+      names(nrow.by.step) = paste0("step-", 1:numSteps)
+  } else { nrow.by.step=NULL }
+
+  polyhedra(obj = mat, u = rep(0, nrow(mat)), nrow.by.step=nrow.by.step)
 }
 
 #' Form contrast vector for circular binary segmentation

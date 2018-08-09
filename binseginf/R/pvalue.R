@@ -230,17 +230,17 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, re
             pv = tnorm.surv(z,0,sd,vlo,vup,bits, correct.ends=correct.ends)
         }
     }
-
+    
   return(list(pv=pv,vlo=vlo,vup=vup))
 }
 
 
 
 ##' If a list of contrast vectors are supplied, use this.
-poly_pval2_for_vlist <- function(y,poly,vlist,sigma){
+poly_pval2_from_vlist <- function(y, poly, vlist, sigma, bits=5000){
     if(!is.null(vlist)){
         pvs = sapply(vlist, function(v){
-            poly_pval2(y, poly, v, sigma)$pv
+            pv = poly.pval2(y, poly, v, sigma, bits=bits)$pv
         })
     }
 }
