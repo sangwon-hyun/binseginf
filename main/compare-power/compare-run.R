@@ -27,5 +27,6 @@ print(type)
 
 lev = 1
 nsim = 300
+nchunk = 10
 ichunk = 1
 dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=1, type=type, filename = "bsfs-dummy.Rdata")
