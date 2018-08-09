@@ -151,8 +151,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
     ##                                          myfractions(lev), ".Rdata")
     if(is.null(filename)){ filename = paste0("compare-power-fourjump-lev-",
                                              myfractions(lev), "-ichunk-", ichunk, ".Rdata")}
-    print(filename)
-    save(results.list, file=file.path(outputdir, filename))
+    ## print(filename)
+    ## save(results.list, file=file.path(outputdir, filename))
     ## return(results.list)
 }
 
