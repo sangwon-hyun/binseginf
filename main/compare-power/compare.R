@@ -8,7 +8,6 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
     cat("lev=", lev, " and ichunk", ichunk, fill=TRUE)
     outputdir = "../output"
     onesim <- function(isim){
-        set.seed(isim)
 
         ## Generate data
         mn = meanfun(lev=lev, n=n)
