@@ -25,7 +25,7 @@ for(ii in ii.list){
 
         ## dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=8, type=type)
         dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=8, type=type,
-              max.numSteps=4, allSteps=c(4), allSteps.cbs=c(2))
+              max.numSteps=4, allsteps=c(4), allsteps.cbs=c(2))
     }
 }
 
