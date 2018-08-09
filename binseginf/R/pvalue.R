@@ -237,6 +237,7 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, re
 
 
 ##' If a list of contrast vectors are supplied, use this.
+##' @export
 poly_pval2_from_vlist <- function(y, poly, vlist, sigma, bits=5000){
     if(!is.null(vlist)){
         pvs = sapply(vlist, function(v){
