@@ -20,7 +20,7 @@ for(ii in ii.list){
     lev = levs[ii]
     nsim = nsims[ii]
     for(ichunk in 1:nchunk){
-        dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=1, type=type)
+        dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=8, type=type)
     }
 }
 
