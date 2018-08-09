@@ -19,7 +19,8 @@ nchunk = 10
 for(ii in ii.list){
     lev = levs[ii]
     nsim = nsims[ii]
-    for(ichunk in 1:nchunk){
+    for(ichunk in 1:(2*nchunk)){
+        ichunk = nchunk + ichunk
         dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=8, type=type)
     }
 }
@@ -29,7 +30,7 @@ for(ii in ii.list){
 ## nsim = 3000
 ## nchunk = 10
 ## ichunk = 1
-## type = "fl"
-## dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=1, type=type, filename = "bsfs-dummy.Rdata")
+## type = "cbsfs"
+## dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=1, type=type, filename = "cbsfs-dummy.Rdata")
 
 ## Rscript ../main/compare-power/compare-run.R wbsfs
