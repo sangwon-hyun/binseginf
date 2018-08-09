@@ -16,9 +16,9 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         results = list()
 
         ## Global settings
-        ## max.numSteps = 10
-        ## allsteps = 2:max.numSteps
-        allsteps = max.numSteps = 10 ## temporary
+        max.numSteps = 10
+        allsteps = 2:max.numSteps
+        ## allsteps = max.numSteps = 10 ## temporary
         allsteps.cbs = 1:(max.numSteps/2)
 
         ## Plain BS inference
@@ -28,8 +28,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
             ## Collect each steps' inferences
             res = inf.by.step(obj, allsteps, poly.max, mn)
-            results$bsfs_plain = res$pvs.by.step
-            results$bsfs_plain_zero = res$zeros.by.step
+            results$bsfs = res$pvs.by.step
+            results$bsfs_zero = res$zeros.by.step
         })}
 
         ## Noisy BS inference (under construction)
@@ -40,8 +40,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                 numSteps = allsteps[ii]
                 ## These two lines change, and nothing else
                 obj = bsfs(y, numSteps=numSteps, sigma.add=sigma.add)
-                obj = addpv(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn,
-                            only.test.nulls=TRUE)
+                obj = addpv(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
                 nbsfs[[ii]] = obj$pvs
                 nbsfs_zero[[ii]] = (obj$means==0)
             }
@@ -57,8 +56,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
             ## Collect each steps' inferences
             res = inf.by.step(obj, allsteps, poly.max, mn)
-            results$wbsfs_plain = res$pvs.by.step
-            results$wbsfs_plain_zero = res$zeros.by.step
+            results$wbsfs = res$pvs.by.step
+            results$wbsfs_zero = res$zeros.by.step
         }, error=function(err){ print('error occurred during plain wbsfs')})}
 
         ## ## Marginalized WBS inference
@@ -87,8 +86,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             poly.max = polyhedra(obj, numSteps=max.numSteps/2, record.nrows=TRUE)
             ## Collect each steps' inferences
             res = inf.by.step(obj, allsteps.cbs, poly.max, mn)
-            results$cbsfs_plain = res$pvs.by.step
-            results$cbsfs_plain_zero = res$zeros.by.step
+            results$cbsfs = res$pvs.by.step
+            results$cbsfs_zero = res$zeros.by.step
         }, error=function(err){ print('error occurred during plain cbsfs')})}
         
         ## ## Noisy CBS inference
@@ -117,8 +116,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
             ## Collect each steps' inferences
             res = inf.by.step(obj, allsteps, poly.max, mn)
-            results$fl_plain = res$pvs.by.step
-            results$fl_plain_zero = res$zeros.by.step
+            results$fl = res$pvs.by.step
+            results$fl_zero = res$zeros.by.step
         }, error=function(err){ print('error occurred during plain fl')})}
         
         ## ## Noisy FL inference
