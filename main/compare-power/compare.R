@@ -1,7 +1,11 @@
 ## Synopsis: Simulation code to compare each method's power. To be run from compare-run.R
 
 dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
-                  numSteps=4, filename=NULL, sigma.add=0.2, type){
+                  numSteps=4, filename=NULL, sigma.add=0.2, type,
+                  max.numSteps = 10,
+                  allsteps = 2:max.numSteps,
+                  allsteps.cbs = 1:(max.numSteps/2)
+                  ){
 
     assert_that(all(type %in% c("bsfs","nbsfs","wbsfs","mwbsfs","cbsfs","ncbsfs","fl","nfl")))
 
@@ -15,10 +19,10 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         results = list()
 
         ## Global settings
-        max.numSteps = 10
-        allsteps = 2:max.numSteps
-        ## allsteps = max.numSteps = 10 ## temporary
-        allsteps.cbs = 1:(max.numSteps/2)
+        ## max.numSteps = 10
+        ## allsteps = 2:max.numSteps
+        ## ## allsteps = max.numSteps = 10 ## temporary
+        ## allsteps.cbs = 1:(max.numSteps/2)
 
         ## Plain BS inference
         if(any(type=="bsfs")){tryCatch({

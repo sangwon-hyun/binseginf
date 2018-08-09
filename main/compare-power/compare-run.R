@@ -19,9 +19,13 @@ nchunk = 10
 for(ii in ii.list){
     lev = levs[ii]
     nsim = nsims[ii]
-    for(ichunk in 1:(2*nchunk)){
-        ichunk = nchunk + ichunk
-        dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=8, type=type)
+    ## for(ichunk in 1:(2*nchunk)){
+    ##     ichunk = nchunk + ichunk
+    for(ichunk in 1:(3*nchunk)){
+
+        ## dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=8, type=type)
+        dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=8, type=type,
+              max.numSteps=4, allSteps=c(4), allSteps.cbs=c(2))
     }
 }
 
