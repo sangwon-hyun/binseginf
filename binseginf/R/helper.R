@@ -736,17 +736,20 @@ cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
     if(length(y)%%2 != 0) y = y[-length(y)] ## Just in case y is odd lengthed
     testerrors = matrix(nrow=max.numSteps, ncol=numsplit)
     testinds = lapply(1:numsplit, function(ii)seq(from=ii, to=length(y), by=numsplit))
-    for(numSteps in 1:max.numSteps){
 
-        ## Cycle through each partition of the data and calculate test error
-        for(jj in 1:numsplit){
-            leaveout = testinds[[jj]]
-            testData <- y[leaveout]
-            trainData <- y[-leaveout]
-            obj = bsfs(trainData, numSteps)
-            testcp = round(obj$cp / length(trainData) * length(testData))
+    ## Cycle through each partition of the data and calculate test error
+    for(jj in 1:numsplit){
+        print(jj)
+        leaveout = testinds[[jj]]
+        testData <- y[leaveout]
+        trainData <- y[-leaveout]
+        obj = bsfs(trainData, max.numSteps)
+        for(numSteps in 1:max.numSteps){
+            printprogress(numSteps, max.numSteps)
+            cp = obj$cp[1:numSteps]
+            testcp = round(cp / length(trainData) * length(testData))
             testerrors[numSteps,jj] = mean((testData - piecewise_mean(trainData, testcp))^2)
-       }
+        }
     }
     errors = apply(testerrors, 1, mean)
     return(list(k=which.min(errors), errors=testerrors))
