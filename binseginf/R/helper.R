@@ -739,13 +739,11 @@ cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
 
     ## Cycle through each partition of the data and calculate test error
     for(jj in 1:numsplit){
-        print(jj)
         leaveout = testinds[[jj]]
         testData <- y[leaveout]
         trainData <- y[-leaveout]
         obj = bsfs(trainData, max.numSteps)
         for(numSteps in 1:max.numSteps){
-            printprogress(numSteps, max.numSteps)
             cp = obj$cp[1:numSteps]
             testcp = round(cp / length(trainData) * length(testData))
             testerrors[numSteps,jj] = mean((testData - piecewise_mean(trainData, testcp))^2)
@@ -754,41 +752,6 @@ cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
     errors = apply(testerrors, 1, mean)
     return(list(k=which.min(errors), errors=testerrors))
 }
-
-
-
-##' (A copy for debugging) Train a binseg changepoint model size using cross
-##' validation.
-##' @export
-cv2.bsfs <- function(y, max.numSteps=30, numsplit=2){
-    if(length(y)%%2 != 0) y = y[-length(y)] ## Just in case y is odd lengthed
-    testerrors = matrix(nrow=max.numSteps, ncol=numsplit)
-    testinds = lapply(1:numsplit, function(ii)seq(from=ii, to=length(y), by=numsplit))
-    browser()
-    par(mfrow=c(1,3))
-    for(numSteps in 1:max.numSteps){
-        numSteps=3
-        ## Cycle through each partition of the data and calculate test error
-        ## for(jj in 1:numsplit){
-        jj=1
-
-
-            leaveout = testinds[[jj]]
-            testData <- y[leaveout]
-            trainData <- y[-leaveout]
-            obj = bsfs(trainData, numSteps)
-            testcp = round(obj$cp / length(trainData) * length(testData))
-            fittedMean = piecewise_mean(trainData, testcp)
-        plot(trainData)
-        lines(fittedMean)
-
-            testerrors[numSteps,jj] = mean((testData - fittedMean)^2)
-       ## }
-    }
-    errors = apply(testerrors, 1, mean)
-    return(list(k=which.min(errors), errors=testerrors))
-}
-
 
 
 ##' Helper to make segment indices. 
