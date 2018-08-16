@@ -159,23 +159,14 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         ## Noisy FL inference (Non-marginalized)
         if(any(type=="nfl")){tryCatch({
             ## Collect largest algorithm information
-            ## browser()
             obj = fl(y=y, y.addnoise=y.addnoise, numSteps=max.numSteps, sigma.add=sigma.add)
             poly.max = polyhedra.path(obj, numSteps=max.numSteps)
-            poly.max2 = polyhedra(obj, numSteps=max.numSteps)
             ## Collect each steps' inferences
-            a = polyhedra(obj)
-
-            snapshot(poly.max, 10)
-            objects(poly.max)
-            poly.max$nrow.by.step
-            dim(poly.max$gamma)
-
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma,
                                       shift=y.addnoise)
             results$nfl = res$pvs.by.step
             results$nfl_zero = res$zeros.by.step
-        }, error=function(err){ print('error occurred during plain fl')})}
+        }, error=function(err){ print('error occurred during noisy fl')})}
 
 
         ## Marginalized noisy FL inference
