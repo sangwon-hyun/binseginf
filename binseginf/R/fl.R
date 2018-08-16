@@ -13,7 +13,7 @@
 ##'     the pre-noise original data; \code{y.addnoise} (if not null) is the
 ##'     added noise.
 ##' @export
-fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, numIntervals=NULL,...){
+fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, numIntervals=NULL, y.addnoise=NULL,...){
 
     ## Basic checks
     if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
@@ -21,10 +21,14 @@ fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, numIntervals=NULL,...
     if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
 
     y.orig = y
+    if(!is.null(y.addnoise) & is.null(sigma.add))  stop("Provide |sigma.add|.")
     if(!is.null(sigma.add)){
-        y.addnoise = rnorm(length(y), 0, sigma.add)
+        if(is.null(y.addnoise)){
+            y.addnoise = rnorm(length(y), 0, sigma.add)
+        }
         y = y + y.addnoise
     }
+
     obj = genlassoinf::dualpathSvd2(y, maxsteps=numSteps,
                                     D=genlassoinf::makeDmat(length(y), ord=0),...)
     obj$numSteps = numSteps
@@ -69,3 +73,5 @@ fl <- function(y, numSteps, sigma.add=NULL, ic.stop=FALSE, numIntervals=NULL,...
 
 ##' Class checker.
 is.fl <- function(x) inherits(x, "fl")
+
+

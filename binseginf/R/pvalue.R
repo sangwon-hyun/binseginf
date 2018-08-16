@@ -103,7 +103,7 @@ poly.pval <- function(y, G, u, v, sigma, bits=NULL) {
 
 
 ##' Temporarily added from selectiveInference package.
-tnorm.surv <- function(z, mean, sd, a, b, bits=NULL, correct.ends=TRUE) {
+tnorm.surv <- function(z, mean, sd, a, b, bits=NULL, correct.ends=TRUE){
 
     if(correct.ends) z = max(min(z,b),a)
 
@@ -194,7 +194,15 @@ ff <- function(z) {
 ##'
 ##' @return List of vup, vlo and pv.
 ##' @export
-poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, reduce=FALSE, correct.ends=FALSE) {
+poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, reduce=FALSE,
+                       correct.ends=FALSE, shift=NULL) {
+
+
+    ## Shift polyhedron by a constant \R^n shift if needed
+    if(!is.null(shift)){
+        stopifnot(length(shift)==length(y))
+        poly$u = poly$u - poly$gamma%*%shift
+    }
 
     z = sum(v*y)
     vv = sum(v^2)
@@ -238,10 +246,10 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, re
 
 ##' If a list of contrast vectors are supplied, use this.
 ##' @export
-poly_pval2_from_vlist <- function(y, poly, vlist, sigma, bits=5000){
+poly_pval2_from_vlist <- function(y, poly, vlist, sigma, shift=NULL, bits=5000){
     if(!is.null(vlist)){
         pvs = sapply(vlist, function(v){
-            pv = poly.pval2(y, poly, v, sigma, bits=bits)$pv
+            pv = poly.pval2(y, poly, v, sigma, shift=shift, bits=bits)$pv
         })
     }
 }
@@ -450,7 +458,7 @@ poly_pval_from_inner_products <- function(Gy, Gv, v,y,sigma,u,bits=1000, warn=TR
     vup = suppressWarnings(min(vec[rho<0]))
     vy = max(min(vy, vup),vlo)
 
-    z = Rmpfr::mpfr(vy/sd, precBits=bits)
+    z = Rmpfr::mpfr( vy/sd, precBits=bits)
     a = Rmpfr::mpfr(vlo/sd, precBits=bits)
     b = Rmpfr::mpfr(vup/sd, precBits=bits)
     
@@ -478,3 +486,70 @@ ztest <- function(y, v, sigma=1){
     pv = 1 - pnorm(vty, mean=0, sd = sigma.v)
     return(pv)
 }
+
+
+
+
+
+##' From polyhedron and data vector and contrast, gets the probability that vtY
+##' is in the polyhedron, conditional on PvperpY. i.e. the probability that Y
+##' stays in the polyhedron, fixing n-1 dimensions of it.
+##' @param y data
+##' @param poly polyhedra object produced form \code{polyhedra(wbs_object)}
+##' @param sigma data noise (standard deviation)
+##' @param nullcontrast the null value of \eqn{v^T\mu}, for \eqn{\mu = E(y)}.
+##' @param v contrast vector
+##'
+##' @return list of two vectors: denominators and numerators, each named
+##'     \code{denom} and \code{numer}.
+partition_TG <- function(y, poly, v, sigma, nullcontrast=0, bits=50, reduce,
+                         correct.ends=FALSE, shift=NULL, ic.poly=NULL, warn=TRUE){
+
+    ## Basic checks
+    stopifnot(length(v)==length(y))
+
+    vy = sum(v*y)
+    vv = sum(v^2)
+    sd = sigma*sqrt(vv)
+
+    ## Shift polyhedron by a constant \R^n shift if needed
+    if(!is.null(shift)){
+        stopifnot(length(shift)==length(y))
+        poly$u = poly$u - poly$gamma%*%shift
+    }
+
+    ## Add stopping component to the polyhedron at this point, if needed
+    if(!is.null(ic.poly)){
+        poly$gamma = rbind(poly$gamma, ic.poly$gamma)
+        poly$u = c(poly$u, ic.poly$u)
+    }
+
+    ## Just in case |poly| doesn't contain |vup| and |vlo|, we manually form it.
+    ## This is because in order to partition the TG statistic, we need to form
+    ## these anyway.
+    pvobj <- poly.pval2(y, poly, v, sigma, correct.ends=correct.ends)
+    vup = pvobj$vup
+    vlo = pvobj$vlo
+    vy = max(min(vy, vup),vlo)
+
+    ## Make it so that vlo<vup is ensured
+
+    ## Calculate a,b,z for TG = (F(b)-F(z))/(F(b)-F(a))
+    z = Rmpfr::mpfr(vy/sd, precBits=bits)
+    a = Rmpfr::mpfr(vlo/sd, precBits=bits)
+    b = Rmpfr::mpfr(vup/sd, precBits=bits)
+    if(!(a<=z &  z<=b) & warn){
+        warning("F(vlo)<vy<F(vup) was violated, in partition_TG()!")
+    }
+
+    ## Separately store and return num&denom of TG
+    numer = as.numeric(Rmpfr::pnorm(b)-Rmpfr::pnorm(z))
+    denom = as.numeric(Rmpfr::pnorm(b)-Rmpfr::pnorm(a))
+
+    ## Form p-value as well.
+    pv = as.numeric(numer/denom)
+    ## if(!(0 <= pv & pv <= 1)) print("pv was not between 0 and 1, in partition_TG()!")
+
+    return(list(denom=denom, numer=numer, pv=pv, vlo=vlo, vy=vy, vup=vup))
+}
+

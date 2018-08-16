@@ -102,6 +102,7 @@ contained.polyhedra <- function(obj, y){
 make_empty <- function(obj,...)
 contained <- function(obj,...){UseMethod("contained")}
 make_empty.polyhedra <- function(n){
+            poly.max = polyhedra(obj, numSteps=max.numSteps)
     emptyrow = rbind(rep(NA,n))[-1,,drop=FALSE]
     return(polyhedra(obj=emptyrow, u=c()))
 }
@@ -132,4 +133,38 @@ snapshot.polyhedra <- function(obj, numSteps){
     return(polyhedra(obj=obj$gamma[inds, ],
                      u=rep(0, length(inds)),
                      nrow.by.step=obj$nrow.by.step))
+}
+
+
+## addpv_fl = addpv.fl
+
+## ##' Helper to harvest polyhedra from FL object.
+## polyhedra.fl <- function(obj, numSteps=NULL, record.nrows=TRUE){
+##     if(is.null(numSteps)) numSteps = obj$maxsteps
+##     Gobj = genlassoinf::getGammat.naive(obj=obj, y=obj$y,
+##                                         condition.step=numSteps)
+    
+##     ## Harvest number of rows per step
+##     if(record.nrows){
+##         nrow.by.step = obj$nkstep
+##     } else {
+##         nrow.by.step = NULL
+##     }
+
+##     poly = polyhedra(obj=Gobj$G, u=Gobj$u, nrow.by.step=nrow.by.step)
+##     return(poly)
+## }
+
+## polyhedra_fl = polyhedra.fl
+
+
+##' Proprietary print object for |path| class object. This is temporary, and
+##' assumes that fused lasso (and not a different form of generalized lasso) is
+##' run.
+print.fl <- function(obj){
+    cat("Detected changepoints using FL with", obj$numSteps, "steps is",
+        obj$cp * obj$cp.sign, fill=TRUE)
+    if(!is.null(obj$pvs)){
+        cat("Pvalues of", names(obj$pvs), "are", obj$pvs, fill=TRUE)
+    }
 }

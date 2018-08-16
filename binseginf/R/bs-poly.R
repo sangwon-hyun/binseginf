@@ -93,7 +93,13 @@ polyhedra.bsfs <- function(obj, numSteps = NA,
 }
 
 
-##' Helper to make a set of rows (or multiplications with v)
+##' Helper to make a set of rows (or multiplications with v), for a winning
+##' location and sign, at a particular step of the binary segmentation
+##' algorithm.
+##' @param vec contains the start, break, and endpoints of this winner.
+##' @param sign.win winning sign of the winner's CUSUM.
+##' @param mat is a 3-column matrix that contains the start, break and endpoint
+##'     of all the losers at that stage.
 ##' @param excessive Experimental feature that /additionally/ (and excessively)
 ##'     conditions on the signs of competitor CUSUMs.
 .gammaRows_from_comparisons <- function(vec, mat, sign.win, n, y=NULL, v=NULL,
