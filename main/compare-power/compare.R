@@ -11,7 +11,9 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
     
     onesim <- function(isim){
         
+        print(isim)
         ## Generate data
+        set.seed(isim) ## Temporary!
         mn = meanfun(lev=lev, n=n)
         y = mn + rnorm(n, 0, 1)
         
@@ -69,6 +71,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         ## Plain (noisy) WBS inference
         if(any(type=="wbsfs")){tryCatch({
             obj = wbsfs(y, numSteps=max.numSteps, numIntervals=length(y))
+            obj$y.orig = y
             poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma)
             results$wbsfs = res$pvs.by.step
