@@ -100,7 +100,6 @@ contained.polyhedra <- function(obj, y){
 
 ##' Make empty polyhedra object
 make_empty <- function(obj,...)
-contained <- function(obj,...){UseMethod("contained")}
 make_empty.polyhedra <- function(n){
             poly.max = polyhedra(obj, numSteps=max.numSteps)
     emptyrow = rbind(rep(NA,n))[-1,,drop=FALSE]
@@ -113,7 +112,7 @@ make_empty.polyhedra <- function(n){
 ##' @export
 polyhedra.path <- function(obj, numSteps=obj$maxSteps){
     stopifnot(numSteps==obj$maxSteps)
-    polyhedra(obj = obj$Gobj.naive$G, u = obj$Gobj.naive$u, nrow.by.step=obj$nkstep)
+    polyhedra(obj=obj$Gobj.naive$G, u=obj$Gobj.naive$u, nrow.by.step=obj$nkstep)
 }
 
 

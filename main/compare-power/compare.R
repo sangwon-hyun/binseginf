@@ -12,6 +12,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
     onesim <- function(isim){
         
         ## Generate data
+        set.seed(isim)
         mn = meanfun(lev=lev, n=n)
         y = mn + rnorm(n, 0, 1)
         
@@ -140,7 +141,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         ## Noisy FL inference (Non-marginalized)
         if(any(type=="nfl")){tryCatch({
             obj = fl(y=y, y.addnoise=y.addnoise, numSteps=max.numSteps, sigma.add=sigma.add)
-            poly.max = polyhedra.path(obj, numSteps=max.numSteps)
+            poly.max = polyhedra(obj, numSteps=max.numSteps)
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma,
                                       shift=y.addnoise)
             results$nfl = res$pvs.by.step
