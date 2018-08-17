@@ -46,6 +46,9 @@ checks_addpv_bsfs <- function(obj, type){
 ##'     along with the |only.test.nulls| option.
 ##' @param only.test.nulls If \code{TRUE}, only test the contrasts whose true
 ##'     mean is zero (i.e. the ones that constitute null tests).
+##' @param max.numIS Maximum number of importance sampling replicates to
+##'     perform.
+##' @param v2 Experimental; doing bootsub version 2.
 ##' @export
 addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                        sigma.add=NULL, declutter=FALSE, min.num.things=30,
@@ -112,10 +115,12 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 ##'     \code{"pre-multiply"}. Use \code{"pre-multiply"} if the polyhedron is
 ##'     too big for memory. There is really no reason to use \code{"rows"} in
 ##'     WBS.
+##' @param max.numIS Maximum number of importance sampling replicates to perform.
 ##' @param mn original mean vector.
 ##' @export
 addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
                         declutter=FALSE, mn=NULL, min.num.things=30, sigma.add=NULL,
+                        max.numIS=5000,
                         inference.type=c("pre-multiply","rows")){
 
     ## Basic checks
@@ -144,7 +149,7 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
                                  sigma=sigma, numIS=10,
                                  cumsum.y=cumsum(obj$y),
                                  cumsum.v=cumsum(v), bits=2000,
-                                 max.numIS=2000,
+                                 max.numIS=max.numIS,
                                  inference.type=inference.type,
                                  min.num.things=min.num.things)$pv
         })
@@ -173,10 +178,12 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
 ##'     \code{"rows"}. Use \code{"pre-multiply"} if the polyhedron is too big
 ##'     for memory. 
 ##' @param mn original mean vector.
+##' @param max.numIS Maximum number of importance sampling replicates to perform.
 ##' @export
 addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                         sigma.add=NULL, declutter=FALSE, mn=NULL,
                         min.num.things=30, numIntervals=NULL,
+                        max.numIS=2000
                         inference.type = c("rows", "pre-multiply")){
 
     ## Basic checks
@@ -209,7 +216,7 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
             pv = randomize_addnoise(y=obj$y, v=v, sigma=sigma, numIS=10,
                                     sigma.add=obj$sigma.add,
                                     orig.fudged.poly=poly.fudged, bits= 5000,
-                                    max.numIS=2000,
+                                    max.numIS=max.numIS,
                                     inference.type=inference.type,
                                     min.num.things=min.num.things)$pv})
     } else {
@@ -238,12 +245,13 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 ##' @param sigma.add Additive noise. Defaults to NULL, in which case no additive
 ##'     noise randomization inference is done.
 ##' @param mn original mean vector.
-## ' @param stoptime temporarary addition
+##' @param max.numIS Maximum number of importance sampling replicates to perform.
 ##' @export
 addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                      sigma.add=NULL, declutter=FALSE, mn=NULL, numIntervals=NULL,
-                     inference.type = c("rows", "pre-multiply")){
-                     ## stoptime){
+                     inference.type = c("rows", "pre-multiply"),
+                     max.numIS=2000
+                     ){
 
     ## Basic checks
     if(obj$ic.stop){assert_that(obj$ic_flag=="normal")}
@@ -264,13 +272,11 @@ addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 
     ## Get randomized p-value
     vlist <- make_all_segment_contrasts(obj, numSteps)
-    ## vlist <- make_all_segment_contrasts(obj, stoptime) ## Temporary addition
     vlist <- filter_vlist(vlist, loc)
 
     ## Obtain p-values
     if(type=="plain"){
         poly.nonfudged = polyhedra.fl(obj, numSteps)
-        ## poly.nonfudged = polyhedra.fl(obj, stoptime) ## Temporary addition
         poly.combined = combine(poly.nonfudged, obj$ic_poly)
         pvs = sapply(vlist, function(v){
             pv = poly.pval2(y=obj$y, poly=poly.combined, v=v, sigma=sigma, bits=5000)$pv
@@ -280,9 +286,9 @@ addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
         pvs = sapply(vlist, function(v){
             pv = randomize_addnoise(y=obj$y.orig, v=v, sigma=sigma, numIS=10,
                                     sigma.add=sigma.add,
-                                    orig.fudged.poly=poly.fudged, bits= 5000,
+                                    orig.fudged.poly=poly.fudged, bits=5000,
                                     inference.type=inference.type,
-                                    max.numIS=2000, min.num.things=30)$pv})
+                                    max.numIS=max.numIS, min.num.things=30)$pv})
     } else {
         stop("|type| argument is wrong!")
     }

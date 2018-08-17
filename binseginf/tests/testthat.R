@@ -1,4 +1,4 @@
 library(testthat)
-library(binsegInf)
+## library(binsegInf)
 
 test_check("binseginf")

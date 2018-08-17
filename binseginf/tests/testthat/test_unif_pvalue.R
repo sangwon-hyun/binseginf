@@ -30,7 +30,7 @@ test_that("Null p-values are uniform under several scenarios.",{
             results$zero = (obj$means==0)
             return(results)
         }
-        results.list = Mclapply(nsim, onesim, mc.cores, Sys.time(), beep=TRUE)
+        results.list = mclapply(1:nsim, onesim, mc.cores=mc.cores)
         return(results.list)
     }
 
@@ -58,106 +58,3 @@ test_that("Null p-values are uniform under several scenarios.",{
 
 
 })
-
-
-
-
-
-
-
-## test_that("Separate test for whether FL null p-values are all uniform", {
-
-##     ## Testing FL in flat mean
-##     onesim <- function(isim){
-##         n = 10
-##         mn = rep(0, n)
-##         y = mn + rnorm(n, 0, 1)
-##         obj = fl(y=y, numSteps=1)
-##         obj = addpv_fl(obj, sigma=1, type="plain", mn=mn)
-##         return(obj$pvs)
-##     }
-##     pvslist = Mclapply(nsim=1000, onesim, 4, Sys.time())
-##     qqunif(unlist(pvslist))
-##     expect_uniform(unlist(pvslist))
-
-##     ## Testing FL in nonflat mean
-##     onesim <- function(isim){
-##         n = 10
-##         mn = c(rep(0, n/2), rep(2, n/2))
-##         y = mn + rnorm(n, 0, 1)
-##         obj = fl(y=y, numSteps=2)
-##         obj = addpv_fl(obj, sigma=1, type="plain", mn=mn)
-##         return(obj$pvs[which(obj$means==0)])
-##     }
-##     pvslist = Mclapply(nsim=4000, onesim, 4, Sys.time())
-##     qqunif(unlist(pvslist))
-##     expect_uniform(unlist(pvslist))
-
-## })
-
-
-## test_that("Uniform null FL p-values without ic stopping.",{
-
-##     dosim <- function(lev, nsim, n=200, meanfun=onejump, mc.cores=1,
-##                       numSteps=4, maxSteps=n/3,
-##                       ic.stop=FALSE){
-##         onesim <- function(isim){
-##             mn = meanfun(lev=lev, n=n)
-##             y = mn + rnorm(n)
-##             results = list()
-##             obj = fl(y=y, maxSteps=maxSteps, numSteps=numSteps, sigma.add=0.2,
-##                      ic.stop=ic.stop)
-##             if(ic.stop){if(obj$ic_flag!="normal") return()}
-##             obj = addpv_fl(obj, sigma=1, sigma.add=0.2, type="addnoise", mn=mn)
-##             results$bsfs_addnoise = obj$pvs
-##             results$bsfs_addnoise_zero = (obj$means==0)
-##             return(results)
-##         }
-##         results.list = Mclapply(nsim, onesim, mc.cores, Sys.time(), beep=TRUE)
-##         return(results.list)
-##     }
-
-##     ## continue here!!
-##     a = dosim(lev=0, nsim=600, n=10, numSteps=1, mc.cores=4)
-##     a = dosim(lev=0, nsim=10000, maxSteps=10, n=20, numSteps=1, mc.cores=8)
-##     save(a, file=file.path("../output", "fix-fl.rdata"))
-##     load(file=file.path("~/desktop/tempoutput/fix-fl.rdata"))
-##     aa = a[sapply(a,length)!=0]
-##     obj = a[[1]]
-##     aa = sapply(a, function(obj){obj[[1]][which(obj[[2]])]})
-##     qqunif(aa)
-
-## })
-
-## test_that("Uniform null BS p-values without ic stopping.",{
-
-##     dosim <- function(lev, nsim, n=200, meanfun=onejump, mc.cores=1,
-##                       numSteps=4, maxSteps=n/3,
-##                       ic.stop=FALSE, sigma.add=0.2){
-##         onesim <- function(isim){
-##             mn = meanfun(lev=lev, n=n)
-##             y = mn + rnorm(n)
-##             results = list()
-##             obj = bsfs(y=y, numSteps=numSteps, sigma.add=sigma.add)
-##             if(ic.stop){if(obj$ic_flag!="normal") return()}
-##             obj = addpv(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
-##             results$pvs = obj$pvs
-##             results$zero = (obj$means==0)
-##             return(results)
-##         }
-##         results.list = Mclapply(nsim, onesim, mc.cores, Sys.time(), beep=TRUE)
-##         return(results.list)
-##     }
-
-##     ## Flat
-##     results = dosim(lev=0, nsim=2000, n=10, numSteps=1, mc.cores=8)
-##     null.pvals = sapply(results, function(a){ a$pvs[a$zero] })
-##     expect_uniform(null.pvals)
-
-
-##     ## Nonflat
-##     results = dosim(lev=2, nsim=2000, n=10, numSteps=2, mc.cores=8)
-##     null.pvals = sapply(results, function(a){ a$pvs[a$zero] })
-##     expect_uniform(null.pvals)
-    
-## })

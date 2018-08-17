@@ -475,7 +475,7 @@ poly_pval_from_inner_products <- function(Gy, Gv, v,y,sigma,u,bits=1000, warn=TR
 
 
 
-##' One-sided z-test regarding $v^T\mu$, using $v^Ty$.
+##' One-sided z-test regarding $v^Tmu$, using $v^Ty$.
 ##' @param y data vector
 ##' @param v contrast vector
 ##' @param sigma noise standard deviation

@@ -20,10 +20,7 @@ bsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL, ic.stop=FALSE, 
     if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
     if(numSteps <= 0) step("numSteps must be at least 1.")
     if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
-
     y.orig = y
-
-    ## This needs to go everywhere (CBS, FL)
     if(!is.null(y.addnoise) & is.null(sigma.add))  stop("Provide |sigma.add|.")
     if(!is.null(sigma.add)){
         if(is.null(y.addnoise)){

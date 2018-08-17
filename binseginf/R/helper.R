@@ -657,14 +657,6 @@ jumps.numeric <- function(obj, tol = 1e-10, ...){
 }
 
 
-##' Experimental: a convenience wrapper to \code{mclapply()} that takes
-##' \code{start.time}.
-Mclapply <- function(nsim, myfun, mc.cores, start.time=NULL){
-    results.list = parallel::mclapply(1:nsim, function(isim){
-        printprogress(isim, nsim, start.time=start.time)
-        myfun(isim)
-    }, mc.cores=mc.cores, mc.preschedule=TRUE)
-}
 
 ##' Helper for tests; checks of \code{vec} is uniform.
 ##' @export

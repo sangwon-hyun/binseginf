@@ -7,34 +7,19 @@ library(binseginf)
 source("../main/compare-power/compare.R")
 levs = c(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4)
 nsims = c(3000,3000,3000, seq(from=3000,to=1000,length=5),
-          round(seq(from=600, to=300, length=4) ))
+          round(seq(from=600, to=300, length=4)))*3
 
 args = commandArgs(trailingOnly=TRUE)
-## ii.list = as.numeric(args)
 type = args
 print(type)
 
 ii.list = 1:length(levs)
-nchunk = 10
+nchunk = 30
 for(ii in ii.list){
     lev = levs[ii]
     nsim = nsims[ii]
-    ## for(ichunk in 1:(2*nchunk)){
-    ##     ichunk = nchunk + ichunk
-    for(ichunk in 1:(3*nchunk)){
-
-        ## dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=8, type=type)
-        dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=8, type=type,
-              max.numSteps=4, allsteps=c(4), allsteps.cbs=c(2))
+    for(ichunk in 1:nchunk){
+        dosim(lev=lev, ichunk=ichunk, nsim=round(nsim/nchunk), mc.cores=8,
+              type=type, outputdir="../output/compare-multistep")
     }
 }
-
-
-## lev = 1
-## nsim = 3000
-## nchunk = 10
-## ichunk = 1
-## type = "cbsfs"
-## dosim(lev=lev, ichunk=ichunk, nsim=nsim/nchunk, mc.cores=1, type=type, filename = "cbsfs-dummy.Rdata")
-
-## Rscript ../main/compare-power/compare-run.R wbsfs

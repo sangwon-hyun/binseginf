@@ -1,7 +1,7 @@
 ## Synopsis: Simulation code to compare each method's power. To be run from compare-run.R
 
 dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
-                  numSteps=4, filename=NULL, sigma = 1, sigma.add=0.2, type,
+                  numSteps=4, filename=NULL, sigma = 1, sigma.add=0.5, type,
                   outputdir = "../output"){
 
     assert_that(all(type %in% c("bsfs","nbsfs", "mbsfs", "wbsfs","mwbsfs",
@@ -20,22 +20,19 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         results = list()
 
         ## Global settings
-        ## max.numSteps = 10
-        ## allsteps = allsteps.plain = 2:max.numSteps
-        ## allsteps.cbs = 1:(max.numSteps/2) ## CBS should take half as many steps!
-        ## allsteps.marg = 4 
-        ## allsteps.cbs.marg = 2
+        max.numSteps = 10
+        allsteps = allsteps.plain = 2:max.numSteps
+        allsteps.cbs = 1:(max.numSteps/2) ## CBS should take half as many steps!
+        allsteps.marg = 4 
+        allsteps.cbs.marg = 2
 
-
-        max.numSteps = 4
-        allsteps = allsteps.plain = 4##2:max.numSteps
+        ## max.numSteps = 4
+        ## allsteps = allsteps.plain = 4
 
         ## Plain BS inference
         if(any(type=="bsfs")){tryCatch({
-            ## Collect largest algorithm information
             obj = bsfs(y, numSteps=max.numSteps)
             poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
-            ## Collect each steps' inferences
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma)
             results$bsfs = res$pvs.by.step
             results$bsfs_zero = res$zeros.by.step
@@ -43,10 +40,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
         ## Plain noisy BS inference (nonmarginalized)
         if(any(type=="nbsfs")){tryCatch({
-            ## Collect largest algorithm information
             obj = bsfs(y=y, y.addnoise=y.addnoise, numSteps=max.numSteps, sigma.add=sigma.add)
             poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
-            ## Collect each steps' inferences
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma,
                                       shift=y.addnoise)
             results$nbsfs = res$pvs.by.step
@@ -74,10 +69,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
  
         ## Plain (noisy) WBS inference
         if(any(type=="wbsfs")){tryCatch({
-            ## Collect largest algorithm information
             obj = wbsfs(y, numSteps=max.numSteps, numIntervals=length(y))
             poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
-            ## Collect each steps' inferences
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma)
             results$wbsfs = res$pvs.by.step
             results$wbsfs_zero = res$zeros.by.step
@@ -89,7 +82,6 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             names(mwbsfs) = names(mwbsfs_zero) = paste0("step-",allsteps.marg)
             for(ii in 1:length(allsteps.marg)){
                 numSteps = allsteps.marg[ii]
-                ## These two lines change, and nothing else
                 obj = wbsfs(y, numSteps=numSteps, numIntervals=length(y))
                 obj = addpv(obj, sigma=1, type="rand", mn=mn)
                 mwbsfs[[ii]] = obj$pvs
@@ -102,10 +94,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         
         ## Plain CBS inference (Non-marginalized)
         if(any(type=="cbsfs")){tryCatch({
-            ## Collect largest algorithm information
             obj = cbsfs(y, numSteps=max.numSteps/2)
             poly.max = polyhedra(obj, numSteps=max.numSteps/2, record.nrows=TRUE)
-            ## Collect each steps' inferences
             res = plain_inf_multistep(obj, allsteps.cbs, poly.max, mn, sigma)
             results$cbsfs = res$pvs.by.step
             results$cbsfs_zero = res$zeros.by.step
@@ -113,15 +103,10 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
         ## Noisy CBS inference
         if(any(type=="ncbsfs")){tryCatch({
-            ## Collect largest algorithm information
             obj = cbsfs(y=y, y.addnoise=y.addnoise, numSteps=max.numSteps/2,
                         sigma.add=sigma.add)
 
             poly.max = polyhedra(obj, numSteps=max.numSteps/2, record.nrows=TRUE)
-            ## allsteps.cbs = process(allsteps.cbs)
-            ## if(max.numSteps == length(obj$cp)) allsteps.cbs
-
-            ## Collect each steps' inferences
             res = plain_inf_multistep(obj, allsteps.cbs, poly.max, mn, sigma,
                                       shift=y.addnoise)
             results$ncbsfs = res$pvs.by.step
@@ -130,12 +115,10 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         
         ## Marginalized noisy CBS inference
         if(any(type=="mcbsfs")){tryCatch({
-            ## Number of steps are really tricky
             mcbsfs = mcbsfs_zero = vector("list", length(allsteps.cbs.marg))
             names(mcbsfs) = names(mcbsfs_zero) = paste0("step-",allsteps.cbs.marg)
             for(ii in 1:length(allsteps.cbs.marg)){
                 numSteps = allsteps.cbs.marg[ii]
-                ## These two lines change, and nothing else
                 obj = cbsfs(y, numSteps=numSteps, sigma.add=sigma.add)
                 obj = addpv(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
                 mcbsfs[[ii]] = obj$pvs
@@ -147,10 +130,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         
         ## Plain FL inference 
         if(any(type=="fl")){tryCatch({
-            ## Collect largest algorithm information
             obj = fl(y, numSteps=max.numSteps)
             poly.max = polyhedra(obj, numSteps=max.numSteps)
-            ## Collect each steps' inferences
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma)
             results$fl = res$pvs.by.step
             results$fl_zero = res$zeros.by.step
@@ -158,16 +139,13 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         
         ## Noisy FL inference (Non-marginalized)
         if(any(type=="nfl")){tryCatch({
-            ## Collect largest algorithm information
             obj = fl(y=y, y.addnoise=y.addnoise, numSteps=max.numSteps, sigma.add=sigma.add)
             poly.max = polyhedra.path(obj, numSteps=max.numSteps)
-            ## Collect each steps' inferences
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma,
                                       shift=y.addnoise)
             results$nfl = res$pvs.by.step
             results$nfl_zero = res$zeros.by.step
         }, error=function(err){ print('error occurred during noisy fl')})}
-
 
         ## Marginalized noisy FL inference
         if(any(type=="mfl")){tryCatch({
@@ -175,7 +153,6 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             names(mfl) = names(mfl_zero) = paste0("step-",allsteps)
             for(ii in 1:length(allsteps)){
                 numSteps = allsteps[ii]
-                ## These two lines change, and nothing else
                 obj = fl(y, numSteps=numSteps, sigma.add=sigma.add)
                 obj = addpv(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
                 mfl[[ii]] = obj$pvs
@@ -194,8 +171,9 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
     results.list = Mclapply(nsim, onesim, mc.cores, Sys.time())
 
     ## Save results
-    if(is.null(filename)){ filename = paste0("compare-power-multistep-lev-",
-                                             myfractions(lev), "-ichunk-", ichunk, ".Rdata")}
+    if(is.null(filename)){ filename = paste0("compare-power-lev-",
+                                             myfractions(lev), "-ichunk-",
+                                             ichunk, "-multistep.Rdata")}
     save(results.list, file=file.path(outputdir, filename))
 }
         
