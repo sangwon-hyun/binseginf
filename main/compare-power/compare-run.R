@@ -13,7 +13,6 @@ args = commandArgs(trailingOnly=TRUE)
 type = c("bsfs","nbsfs", "mbsfs", "wbsfs", "mwbsfs", "cbsfs","ncbsfs", "mbsfs",
          "fl","nfl", "mfl")
 ii.list = as.numeric(args)
-print(ii.list)
 
 nchunk = 30
 for(ii in ii.list){

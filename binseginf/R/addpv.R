@@ -183,7 +183,7 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
 addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
                         sigma.add=NULL, declutter=FALSE, mn=NULL,
                         min.num.things=30, numIntervals=NULL,
-                        max.numIS=2000
+                        max.numIS=2000,
                         inference.type = c("rows", "pre-multiply")){
 
     ## Basic checks

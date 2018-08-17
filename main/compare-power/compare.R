@@ -10,10 +10,9 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
     cat("lev=", lev, " and ichunk", ichunk, fill=TRUE)
     
     onesim <- function(isim){
+        
         ## Generate data
-        ## if(isim==5)browser()
         mn = meanfun(lev=lev, n=n)
-        set.seed(isim)
         y = mn + rnorm(n, 0, 1)
         
         y.addnoise = rnorm(n, 0, sigma.add)
