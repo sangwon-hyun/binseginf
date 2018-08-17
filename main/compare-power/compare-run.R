@@ -1,5 +1,5 @@
 ## Synopsis: Script to run the entire set of experiments. Run by ``Rscript
-## ../main/compare-power/compare-run.R bsfs'', from the directory
+## ../main/compare-power/compare-run.R 1 2 3'', from the directory
 ## binseginf/binseginf
 
 ## Setting
@@ -10,10 +10,11 @@ nsims = c(3000,3000,3000, seq(from=3000,to=1000,length=5),
           round(seq(from=600, to=300, length=4)))*3
 
 args = commandArgs(trailingOnly=TRUE)
-type = args
-print(type)
+type = c("bsfs","nbsfs", "mbsfs", "wbsfs", "mwbsfs", "cbsfs","ncbsfs", "mbsfs",
+         "fl","nfl", "mfl")
+ii.list = as.numeric(args)
+print(ii.list)
 
-ii.list = 1:length(levs)
 nchunk = 30
 for(ii in ii.list){
     lev = levs[ii]
