@@ -1,5 +1,6 @@
 ## Synopsis: Simulation code to compare each method's power. To be run from compare-run.R
 
+
 dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                   numSteps=4, filename=NULL, sigma = 1, sigma.add=0.5, type,
                   outputdir = "../output"){
@@ -172,9 +173,9 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
     results.list = Mclapply(nsim, onesim, mc.cores, Sys.time())
 
     ## Save results
-    if(is.null(filename)){ filename = paste0("compare-power-lev-",
-                                             myfractions(lev), "-ichunk-",
-                                             ichunk, "-multistep.Rdata")}
+    ## if(is.null(filename)){ filename = paste0("compare-power-lev-",
+    ##                                          myfractions(lev), "-ichunk-",
+    ##                                          ichunk, "-multistep-plain.Rdata")}
     save(results.list, file=file.path(outputdir, filename))
 }
         

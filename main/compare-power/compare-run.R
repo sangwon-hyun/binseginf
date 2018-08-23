@@ -10,16 +10,34 @@ nsims = c(3000,3000,3000, seq(from=3000,to=1000,length=5),
           round(seq(from=600, to=300, length=4)))*3
 
 args = commandArgs(trailingOnly=TRUE)
-type = c("bsfs","nbsfs", "mbsfs", "wbsfs", "mwbsfs", "cbsfs","ncbsfs", "mbsfs",
-         "fl","nfl", "mfl")
 ii.list = as.numeric(args)
+## type = c("bsfs","nbsfs", "mbsfs", "wbsfs", "mwbsfs", "cbsfs","ncbsfs", "mcbsfs",
+##          "fl","nfl", "mfl") ## There was a typo here; the second mbsfs needs to be mcbsfs.
+
+## Plain inference
+type = c("bsfs","nbsfs", "wbsfs", "cbsfs","ncbsfs",
+         "fl","nfl")
+
+## Marginalized inferences
+type = c("mbsfs", "mwbsfs", "mcbsfs", "mfl")[1]
+
 
 nchunk = 30
 for(ii in ii.list){
     lev = levs[ii]
     nsim = nsims[ii]
     for(ichunk in 1:nchunk){
+        
+        ## For plain inerence
+        filename = paste0("compare-power-lev-", myfractions(lev), "-ichunk-",
+                          ichunk, "-multistep-plain.Rdata")
+
+        ## For each marginalized inference
+        ## assert_that(length(type)==1)
+        ## filename = paste0("compare-power-lev-", myfractions(lev), "-ichunk-",
+        ##                   ichunk, "-multistep-", type, ".Rdata")
+
         dosim(lev=lev, ichunk=ichunk, nsim=round(nsim/nchunk), mc.cores=8,
-              type=type, outputdir="../output/compare-multistep")
+              type=type, outputdir="../output/compare-multistep", filename=filename)
     }
 }
