@@ -151,10 +151,10 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
         ## Marginalized noisy FL inference
         if(any(type=="mfl")){tryCatch({
-            mfl = mfl_zero = vector("list", length(allsteps))
-            names(mfl) = names(mfl_zero) = paste0("step-",allsteps)
+            mfl = mfl_zero = vector("list", length(allsteps.marg))
+            names(mfl) = names(mfl_zero) = paste0("step-",allsteps.marg)
             for(ii in 1:length(allsteps.marg)){
-                numSteps = allsteps[ii]
+                numSteps = allsteps.marg[ii]
                 obj = fl(y, numSteps=numSteps, sigma.add=sigma.add)
                 obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn)
                 mfl[[ii]] = obj$pvs
