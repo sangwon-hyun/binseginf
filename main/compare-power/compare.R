@@ -14,7 +14,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         ## Generate data
         set.seed(isim)
         mn = meanfun(lev=lev, n=n)
-        y = mn + rnorm(n, 0, 1)
+        y = mn + rnorm(n, 0, sigma)
         
         y.addnoise = rnorm(n, 0, sigma.add)
         results = list()
@@ -57,7 +57,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                 numSteps = allsteps.marg[ii]
                 obj = bsfs(y, numSteps=numSteps, sigma.add=sigma.add,
                            y.addnoise=y.addnoise)
-                obj = addpv(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
+                obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn)
                 mbsfs[[ii]] = obj$pvs
                 mbsfs_zero[[ii]] = (obj$means==0)
             }
@@ -84,7 +84,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             for(ii in 1:length(allsteps.marg)){
                 numSteps = allsteps.marg[ii]
                 obj = wbsfs(y, numSteps=numSteps, numIntervals=length(y))
-                obj = addpv(obj, sigma=1, type="rand", mn=mn)
+                obj = addpv(obj, sigma=sigma, type="rand", mn=mn)
                 mwbsfs[[ii]] = obj$pvs
                 mwbsfs_zero[[ii]] = (obj$means==0)
             }
@@ -121,7 +121,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             for(ii in 1:length(allsteps.cbs.marg)){
                 numSteps = allsteps.cbs.marg[ii]
                 obj = cbsfs(y, numSteps=numSteps, sigma.add=sigma.add)
-                obj = addpv(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
+                obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn)
                 mcbsfs[[ii]] = obj$pvs
                 mcbsfs_zero[[ii]] = (obj$means==0)
             }
@@ -155,7 +155,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             for(ii in 1:length(allsteps.marg)){
                 numSteps = allsteps[ii]
                 obj = fl(y, numSteps=numSteps, sigma.add=sigma.add)
-                obj = addpv(obj, sigma=1, sigma.add=sigma.add, type="addnoise", mn=mn)
+                obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn)
                 mfl[[ii]] = obj$pvs
                 mfl_zero[[ii]] = (obj$means==0)
             }
