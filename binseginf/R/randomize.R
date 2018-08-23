@@ -173,7 +173,7 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
 ##'     \code{Sys.time()}.
 ##' @param bits Number of precision bits to use for the calculation of the
 ##'     Gaussian probabilities (regarding Vup and Vlo and vty).
-##' @param verbose If \code{TRUE}, the importance sampling progress
+##' @param verbose If \code{TRUE}, the importance sampling progress is printed.
 ##' @export 
 randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
                             inference.type=c("rows", "pre-multiply"),

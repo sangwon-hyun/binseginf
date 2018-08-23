@@ -84,15 +84,16 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
             })
         }
     } else if (type=="addnoise") {
+        poly.fudged = polyhedra(obj)
         pvs = sapply(vlist, function(v){
-            pv = randomize_addnoise(y=obj$y.orig, 
-                                    v=v, sigma=sigma, numIS=10,
-                                    sigma.add=sigma.add,
-                                    orig.fudged.obj=obj,
+            ## print(vlist) ## temporary
+            pv = randomize_addnoise(y=obj$y.orig, v=v, sigma=sigma, numIS=10,
+                                    sigma.add=sigma.add, orig.fudged.obj=obj,
+                                    ## verbose=TRUE,##temporary
+                                    orig.fudged.poly=poly.fudged,
                                     max.numIS=max.numIS,
-                                    min.num.things=min.num.things,
-                                    inference.type="pre-multiply",
-                                    )$pv})
+                                    min.num.things=min.num.things, ## inference.type="pre-multiply",
+                                    inference.type="rows",)$pv})
     } else {
         stop("|type| argument is wrong!")
     }
