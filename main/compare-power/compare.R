@@ -6,7 +6,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                   outputdir = "../output"){
 
     assert_that(all(type %in% c("bsfs","nbsfs", "mbsfs", "wbsfs","mwbsfs",
-                                "cbsfs","ncbsfs", "mbsfs", "fl","nfl", "mfl")))
+                                "cbsfs","ncbsfs","mcbsfs", "fl","nfl", "mfl")))
 
     cat("lev=", lev, " and ichunk", ichunk, fill=TRUE)
     
