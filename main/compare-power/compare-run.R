@@ -19,8 +19,10 @@ type = c("bsfs","nbsfs", "wbsfs", "cbsfs","ncbsfs",
          "fl","nfl")
 
 ## Marginalized inferences
-type = c("mbsfs", "mwbsfs", "mcbsfs", "mfl")[1]
+## type = c("mbsfs", "mwbsfs", "mcbsfs", "mfl")[1]
 
+print(type)
+locs = unlist(lapply(c(40,80,120,160), function(loc)loc+c(-2, -1, 0, 1 ,2)))
 
 nchunk = 30
 for(ii in ii.list){
@@ -37,7 +39,7 @@ for(ii in ii.list){
         ## filename = paste0("compare-power-lev-", myfractions(lev), "-ichunk-",
         ##                   ichunk, "-multistep-", type, ".Rdata")
 
-        dosim(lev=lev, ichunk=ichunk, nsim=round(nsim/nchunk), mc.cores=8,
+        dosim(lev=lev, ichunk=ichunk, nsim=round(nsim/nchunk), mc.cores=8, locs=locs,
               type=type, outputdir="../output/compare-multistep", filename=filename)
     }
 }

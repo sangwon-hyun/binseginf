@@ -555,15 +555,15 @@ get_cp_from_piecewise_mean <- function(mn, cp){
 
 
 ##' Takes a named list of n-length contrast vectors, and filters them so that
-##' only the contrasts that are desired i.e. contained in \code{visc}.
-##' @param visc Only test points in visc
+##' only the contrasts that are desired i.e. contained in \code{locs}.
+##' @param locs Only test points in locs
 ##' @param only.test.nulls If TRUE, only test NULLs.
 ##' @export
-filter_vlist <- function(vlist, visc=NULL, only.test.nulls=FALSE, mn=NULL){
+filter_vlist <- function(vlist, locs=NULL, only.test.nulls=FALSE, mn=NULL){
 
     ## Filter by location
-    if(!is.null(visc)){
-        retain = which(abs(as.numeric(names(vlist))) %in% visc)
+    if(!is.null(locs)){
+        retain = which(abs(as.numeric(names(vlist))) %in% locs)
         if(length(retain)==0){
             return(data.frame(pvs=NA, locs=NA))
         }

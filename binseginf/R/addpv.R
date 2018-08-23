@@ -22,7 +22,7 @@ checks_addpv_bsfs <- function(obj, type){
 
 ##' Appends the inference results to an object of class |bsFs|.
 ##' @param obj object of type bsFs.
-##' @param loc only test locations in \code{loc}.
+##' @param locs only test locations in \code{locs}.
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
 ##'     \code{"addnoise"}, then \code{sigma.add} needs to be
 ##'     provided. Currently, the polyhedron is not formed (due to memory
@@ -50,7 +50,7 @@ checks_addpv_bsfs <- function(obj, type){
 ##'     perform.
 ##' @param v2 Experimental; doing bootsub version 2.
 ##' @export
-addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
+addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                        sigma.add=NULL, declutter=FALSE, min.num.things=30,
                        max.numIS=2000, mn=NULL, only.test.nulls=FALSE,
                        bootsub=FALSE, nboot=10000,
@@ -62,7 +62,7 @@ addpv.bsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
-    vlist <- filter_vlist(vlist, loc, only.test.nulls, mn)
+    vlist <- filter_vlist(vlist, locs, only.test.nulls, mn)
 
     ## Obtain p-values
     if(type=="plain"){

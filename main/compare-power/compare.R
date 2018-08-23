@@ -3,7 +3,7 @@
 
 dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                   numSteps=4, filename=NULL, sigma = 1, sigma.add=0.5, type,
-                  outputdir = "../output"){
+                  outputdir = "../output", locs=1:n){
 
     assert_that(all(type %in% c("bsfs","nbsfs", "mbsfs", "wbsfs","mwbsfs",
                                 "cbsfs","ncbsfs","mcbsfs", "fl","nfl", "mfl")))
@@ -34,7 +34,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         if(any(type=="bsfs")){tryCatch({
             obj = bsfs(y, numSteps=max.numSteps)
             poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
-            res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma)
+            res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma, locs=locs)
             results$bsfs = res$pvs.by.step
             results$bsfs_zero = res$zeros.by.step
         })}
@@ -44,7 +44,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             obj = bsfs(y=y, y.addnoise=y.addnoise, numSteps=max.numSteps, sigma.add=sigma.add)
             poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma,
-                                      shift=y.addnoise)
+                                      shift=y.addnoise, locs=locs)
             results$nbsfs = res$pvs.by.step
             results$nbsfs_zero = res$zeros.by.step
             }, error=function(err){ print('error occurred during noisy bsfs')})
@@ -58,7 +58,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                 numSteps = allsteps.marg[ii]
                 obj = bsfs(y, numSteps=numSteps, sigma.add=sigma.add,
                            y.addnoise=y.addnoise)
-                obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn)
+                obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn,
+                            locs=locs)
                 mbsfs[[ii]] = obj$pvs
                 mbsfs_zero[[ii]] = (obj$means==0)
             }
@@ -73,7 +74,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             obj = wbsfs(y, numSteps=max.numSteps, numIntervals=length(y))
             obj$y.orig = y
             poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
-            res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma)
+            res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma, locs=locs)
             results$wbsfs = res$pvs.by.step
             results$wbsfs_zero = res$zeros.by.step
         }, error=function(err){ print('error occurred during plain wbsfs')})}
@@ -85,7 +86,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             for(ii in 1:length(allsteps.marg)){
                 numSteps = allsteps.marg[ii]
                 obj = wbsfs(y, numSteps=numSteps, numIntervals=length(y))
-                obj = addpv(obj, sigma=sigma, type="rand", mn=mn)
+                obj = addpv(obj, sigma=sigma, type="rand", mn=mn, locs=locs)
                 mwbsfs[[ii]] = obj$pvs
                 mwbsfs_zero[[ii]] = (obj$means==0)
             }
@@ -98,7 +99,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         if(any(type=="cbsfs")){tryCatch({
             obj = cbsfs(y, numSteps=max.numSteps/2)
             poly.max = polyhedra(obj, numSteps=max.numSteps/2, record.nrows=TRUE)
-            res = plain_inf_multistep(obj, allsteps.cbs, poly.max, mn, sigma)
+            res = plain_inf_multistep(obj, allsteps.cbs, poly.max, mn, sigma, locs=locs)
             results$cbsfs = res$pvs.by.step
             results$cbsfs_zero = res$zeros.by.step
         }, error=function(err){ print('error occurred during plain cbsfs')})}
@@ -110,7 +111,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
             poly.max = polyhedra(obj, numSteps=max.numSteps/2, record.nrows=TRUE)
             res = plain_inf_multistep(obj, allsteps.cbs, poly.max, mn, sigma,
-                                      shift=y.addnoise)
+                                      shift=y.addnoise, locs=locs)
             results$ncbsfs = res$pvs.by.step
             results$ncbsfs_zero = res$zeros.by.step
         }, error=function(err){ print('error occurred during ncbsfs')})}
@@ -122,7 +123,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             for(ii in 1:length(allsteps.cbs.marg)){
                 numSteps = allsteps.cbs.marg[ii]
                 obj = cbsfs(y, numSteps=numSteps, sigma.add=sigma.add)
-                obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn)
+                obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn,
+                            locs=locs)
                 mcbsfs[[ii]] = obj$pvs
                 mcbsfs_zero[[ii]] = (obj$means==0)
             }
@@ -134,7 +136,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         if(any(type=="fl")){tryCatch({
             obj = fl(y, numSteps=max.numSteps)
             poly.max = polyhedra(obj, numSteps=max.numSteps)
-            res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma)
+            res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma, locs=locs)
             results$fl = res$pvs.by.step
             results$fl_zero = res$zeros.by.step
         }, error=function(err){ print('error occurred during plain fl')})}
@@ -144,7 +146,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             obj = fl(y=y, y.addnoise=y.addnoise, numSteps=max.numSteps, sigma.add=sigma.add)
             poly.max = polyhedra(obj, numSteps=max.numSteps)
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma,
-                                      shift=y.addnoise)
+                                      shift=y.addnoise, locs=locs)
             results$nfl = res$pvs.by.step
             results$nfl_zero = res$zeros.by.step
         }, error=function(err){ print('error occurred during noisy fl')})}
@@ -156,7 +158,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             for(ii in 1:length(allsteps.marg)){
                 numSteps = allsteps.marg[ii]
                 obj = fl(y, numSteps=numSteps, sigma.add=sigma.add)
-                obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn)
+                obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn,
+                            locs=locs)
                 mfl[[ii]] = obj$pvs
                 mfl_zero[[ii]] = (obj$means==0)
             }
@@ -184,18 +187,21 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 ##' Helper for dosim(), in power comparison simulation. Collect information
 ##' (plain saturated p-values, zero-ness of mean) for all steps in |allsteps|.
 ##' @param allsteps All algorithm steps to test.
-plain_inf_multistep <- function(obj, allsteps, poly.max, mn, sigma, shift=NULL){
+plain_inf_multistep <- function(obj, allsteps, poly.max, mn, sigma, shift=NULL,
+                                locs=1:length(mn)){
 
     pvs.by.step = lapply(allsteps, function(numSteps){
+        vlist = filter_vlist(make_all_segment_contrasts(obj, numSteps=numSteps),
+                             locs=locs)
         poly_pval2_from_vlist(y=obj$y.orig,
                               poly=snapshot(poly.max, numSteps),
-                              vlist=make_all_segment_contrasts(obj, numSteps=numSteps),
-                              sigma=sigma,
-                              shift=shift)
-    })
+                              vlist=vlist,
+                              sigma=sigma, shift=shift,
+                              locs=locs)})
 
     zeros.by.step = lapply(allsteps, function(numSteps){
-        vlist = make_all_segment_contrasts(obj, numSteps=numSteps)
+        vlist = filter_vlist(make_all_segment_contrasts(obj, numSteps=numSteps),
+                             locs=locs)
         sapply(vlist, function(v) sum(v*mn)==0 )     })
     names(pvs.by.step) = names(zeros.by.step) = paste0("step-", allsteps)
 

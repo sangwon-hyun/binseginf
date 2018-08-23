@@ -245,11 +245,22 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, re
 
 
 ##' If a list of contrast vectors are supplied, use this.
+##' @param y data vector.
+##' @param poly polyhedra object.
+##' @param vlist list of contrast vectors.
+##' @param sigma data noise level.
+##' @param shift how much additive noise was used in detection.
+##' @param bits numerical precision in Gaussian probability mass calculation,
+##'     for methods from the Rmpfr package.
+##' @param locs Only look at these locations
+##' @return vector of p-values. \code{Inf} are the ones that were not calculated
 ##' @export
-poly_pval2_from_vlist <- function(y, poly, vlist, sigma, shift=NULL, bits=5000){
+poly_pval2_from_vlist <- function(y, poly, vlist, sigma, shift=NULL, bits=5000,
+                                  locs = 1:length(y)){
     if(!is.null(vlist)){
+        cps = abs(as.numeric(names(vlist)))
         pvs = sapply(vlist, function(v){
-            pv = poly.pval2(y, poly, v, sigma, shift=shift, bits=bits)$pv
+            return(poly.pval2(y, poly, v, sigma, shift=shift, bits=bits)$pv)
         })
     }
 }
@@ -306,31 +317,6 @@ poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v
                                 adjustmean=adjustmean, pad=pad)
     return(p)
 }
-
-## ##' Experimenting with bootsub v2
-## poly_pval_bootsub_for_vlist_v2 <- function(y,G,vlist,nboot,sigma,adjustmean=mean(y)){
-##     if(!is.null(vlist)){
-##         pvs = sapply(vlist, function(v){
-##             poly_pval_bootsub_v2(y, G, v, nboot, sigma, adjustmean)
-##         })
-##     }
-## }
-
-## ##' Experimenting with bootsub v2
-## poly_pval_bootsub_v2 <- function(y, G, vlist, nboot, sigma){
-
-##     y.centered = y - adjustmean
-##     obj = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
-##     Vlo = obj$vlo
-##     Vup = obj$vup
-##     vty = sum(v*y)
-##     p = poly_pval_bootsub_inner(Vlo, Vup, vty, v, y, nboot=nboot,
-##                                 bootmat=bootmat,
-##                                 bootmat.times.v=bootmat.times.v,
-##                                 adjustmean=adjustmean)
-##     return(p)
-## }
-
 
 
 ##' If a list of contrast vectors are supplied, use this.
