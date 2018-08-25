@@ -37,6 +37,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma, locs=locs)
             results$bsfs = res$pvs.by.step
             results$bsfs_zero = res$zeros.by.step
+            results$bsfs_cps = obj$cp * obj$cp.sign 
         })}
 
         ## Plain noisy BS inference (nonmarginalized)
@@ -47,6 +48,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                                       shift=y.addnoise, locs=locs)
             results$nbsfs = res$pvs.by.step
             results$nbsfs_zero = res$zeros.by.step
+            results$nbsfs_cps = obj$cp * obj$cp.sign 
             }, error=function(err){ print('error occurred during noisy bsfs')})
         }
 
@@ -65,6 +67,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             }
             results$mbsfs = mbsfs
             results$mbsfs_zero = mbsfs_zero
+            results$mbsfs_cps = obj$cp * obj$cp.sign 
         }, error=function(err){ print('error occurred during noisy mbsfs')})
         }
        
@@ -77,6 +80,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma, locs=locs)
             results$wbsfs = res$pvs.by.step
             results$wbsfs_zero = res$zeros.by.step
+            results$wbsfs_cps = obj$cp * obj$cp.sign 
         }, error=function(err){ print('error occurred during plain wbsfs')})}
 
         ## Marginalized WBS inference
@@ -92,6 +96,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             }
             results$mwbsfs = mwbsfs
             results$mwbsfs_zero = mwbsfs_zero
+            results$mwbsfs_cps = obj$cp * obj$cp.sign 
 
         }, error=function(err){ print('error occurred during marginalized wbsfs')})}
         
@@ -102,6 +107,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             res = plain_inf_multistep(obj, allsteps.cbs, poly.max, mn, sigma, locs=locs)
             results$cbsfs = res$pvs.by.step
             results$cbsfs_zero = res$zeros.by.step
+            results$cbsfs_cps = obj$cp * obj$cp.sign 
         }, error=function(err){ print('error occurred during plain cbsfs')})}
 
         ## Noisy CBS inference
@@ -114,6 +120,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                                       shift=y.addnoise, locs=locs)
             results$ncbsfs = res$pvs.by.step
             results$ncbsfs_zero = res$zeros.by.step
+            results$ncbsfs_cps = obj$cp * obj$cp.sign 
         }, error=function(err){ print('error occurred during ncbsfs')})}
         
         ## Marginalized noisy CBS inference
@@ -130,6 +137,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             }
             results$mcbsfs = mcbsfs
             results$mcbsfs_zero = mcbsfs_zero
+            results$mcbsfs_cps = obj$cp * obj$cp.sign 
         }, error=function(err){ print('error occurred during mcbsfs')})}
         
         ## Plain FL inference 
@@ -139,6 +147,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma, locs=locs)
             results$fl = res$pvs.by.step
             results$fl_zero = res$zeros.by.step
+            results$fl_cps = obj$cp * obj$cp.sign 
         }, error=function(err){ print('error occurred during plain fl')})}
         
         ## Noisy FL inference (Non-marginalized)
@@ -149,6 +158,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                                       shift=y.addnoise, locs=locs)
             results$nfl = res$pvs.by.step
             results$nfl_zero = res$zeros.by.step
+            results$nfl_cps = obj$cp * obj$cp.sign 
         }, error=function(err){ print('error occurred during noisy fl')})}
 
         ## Marginalized noisy FL inference
@@ -165,6 +175,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             }
             results$mfl = mfl
             results$mfl_zero = mfl_zero
+            results$mfl_cps = obj$cp * obj$cp.sign 
 
         }, error=function(err){ print(paste0('error occurred during noisy fl isim=', isim)) })}
         
@@ -196,8 +207,7 @@ plain_inf_multistep <- function(obj, allsteps, poly.max, mn, sigma, shift=NULL,
         poly_pval2_from_vlist(y=obj$y.orig,
                               poly=snapshot(poly.max, numSteps),
                               vlist=vlist,
-                              sigma=sigma, shift=shift,
-                              locs=locs)})
+                              sigma=sigma, shift=shift)})
 
     zeros.by.step = lapply(allsteps, function(numSteps){
         vlist = filter_vlist(make_all_segment_contrasts(obj, numSteps=numSteps),
