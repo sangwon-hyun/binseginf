@@ -37,7 +37,8 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
                                min.num.things=10,
                                mc.cores=1,
                                start.time=NULL,
-                               warn=FALSE
+                               warn=FALSE,
+                               stable.thresh=1E-3
                                ){
 
     ## New: Get many fudged TG statistics.
@@ -117,6 +118,10 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
     parts.so.far = cbind(c(Inf, Inf, Inf, Inf, Inf, Inf))[,-1, drop=FALSE]
     rownames(parts.so.far) = c("pv", "weight", "vlo", "vty", "vup", "sigma")
     numIS.cumulative = things = 0
+    pv.so.far = c(-1)
+    pv_from_parts <- function(parts.so.far){
+        sum(unlist(Map('*', parts.so.far["pv",], parts.so.far["weight",])))/
+                                                sum(unlist(parts.so.far["weight",]))}
     done = FALSE
     while(!done){
         parts = mcmapply(one_IS_addnoise, 1:numIS, numIS.cumulative,
@@ -126,19 +131,26 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
         parts.so.far = cbind(parts.so.far, parts)
 
         ## Handling the problem of p-value being NaN/0/1
-        things = sum((parts.so.far["weight",]>0)&
+        things = sum((parts.so.far["weight",] > 0)&
                      (parts.so.far["pv",] != 1) &
                      (parts.so.far["pv",] != 0))
+        pv.latest = pv_from_parts(parts.so.far)
 
         enough.things = (things >= min.num.things)
         numIS.cumulative = numIS.cumulative + numIS
         reached.limit = numIS.cumulative > max.numIS
+        stable.enough = (stable(pv.latest, pv.so.far, stable.thresh) & things > 10) 
+
+        ## Not used now: Maybe small p-values should just be accepted, for practical reasons
+        ## pvtol = 1E-15 pv.is.really.small = (latest.pv < pvtol)
+
+
         if(reached.limit | enough.things | sigma.add == 0){ done = TRUE }
+        pv.so.far = c(pv.so.far, pv.latest)
     }
 
     ## Calculate randomized TG statistic.
-    pv = sum(unlist(Map('*', parts.so.far["pv",], parts.so.far["weight",])))/
-        sum(unlist(parts.so.far["weight",]))
+    pv = pv_from_parts(parts.so.far)
 
     return(list(things=things, min.num.things=min.num.things,
                 numIS.cumulative=numIS.cumulative, parts.so.far=parts.so.far,
@@ -183,6 +195,7 @@ randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
                             min.num.things=30, verbose=FALSE,
                             mc.cores=1,
                             warn=FALSE,
+                            stable.thresh=1E-3,
                             start.time=NULL){
 
     numIntervals = winning.wbs.obj$numIntervals
@@ -218,6 +231,11 @@ randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
     parts.so.far = cbind(c(Inf,Inf))[,-1,drop=FALSE]
     rownames(parts.so.far) = c("pv", "weight")
     numIS.cumulative=0
+    pv.so.far = c(-1)
+    pv_from_parts <- function(parts.so.far){
+        sum(unlist(Map('*', parts.so.far["pv",], parts.so.far["weight",])))/
+            sum(unlist(parts.so.far["weight",]))}
+
     while(!done){
         numIS.cumulative = numIS.cumulative + numIS
 
@@ -227,15 +245,22 @@ randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
 
         ## Handling issue of p-value being NaN/0/1
         things = sum(parts.so.far["weight",] > 0)
+        pv.latest = pv_from_parts(parts.so.far)
+
+        ## Not used now: Maybe small p-values should just be accepted, for practical reasons
+        ## pvtol = 1E-15 pv.is.really.small = (latest.pv < pvtol)
+
+        ## Check termination of while loop
         enough.things = (things > min.num.things)
         reached.limit = (numIS.cumulative > max.numIS)
+        stable.enough = (stable(pv.latest, pv.so.far, stable.thresh) & things > 10) 
 
-        if( reached.limit | enough.things){ done = TRUE }
+        if( reached.limit | enough.things | stable.enough){ done = TRUE }
+        pv.so.far = c(pv.so.far, pv.latest)
     }
 
     ## Calculate p-value
-    pv = sum(unlist(Map('*', parts.so.far["pv",], parts.so.far["weight",])))/
-        sum(unlist(parts.so.far["weight",]))
+    pv = pv_from_parts(parts.so.far)
 
     ## Return information from this simulation.
     return(list(things=things, min.num.things=min.num.things, numIS.cumulative=numIS.cumulative,
@@ -312,3 +337,13 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
     return(info)
 }
 
+##' Helper to discern whether a sequence of p-values have stabilized, based on
+##' last two p-values in \code{p.so.far}.
+##' @param p new p-value under scrutiny (not included in p.so.far)
+##' @param p.so.far numeric vector of p-values so far.
+##' @return TRUE or FALSE for whether p-values have stabilized or not.
+stable <- function(p, p.so.far, stable.thresh=1E-3){
+    gap = abs(mean(tail(p.so.far,2))-p)
+    if(is.nan(gap)) return(FALSE)
+    return(gap < stable.thresh)
+}
