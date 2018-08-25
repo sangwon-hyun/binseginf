@@ -252,16 +252,15 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, re
 ##' @param shift how much additive noise was used in detection.
 ##' @param bits numerical precision in Gaussian probability mass calculation,
 ##'     for methods from the Rmpfr package.
-##' @param locs Only look at these locations
 ##' @return vector of p-values. \code{Inf} are the ones that were not calculated
 ##' @export
-poly_pval2_from_vlist <- function(y, poly, vlist, sigma, shift=NULL, bits=5000,
-                                  locs = 1:length(y)){
+poly_pval2_from_vlist <- function(y, poly, vlist, sigma, shift=NULL, bits=5000){
     if(!is.null(vlist)){
-        cps = abs(as.numeric(names(vlist)))
         pvs = sapply(vlist, function(v){
             return(poly.pval2(y, poly, v, sigma, shift=shift, bits=bits)$pv)
         })
+    } else {
+        return(c())
     }
 }
 

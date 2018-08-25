@@ -108,7 +108,7 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
 
 ##' Appends the inference results to an object of class |bsFs|.
 ##' @param obj object of type bsFs
-##' @param loc only test locations in \code{loc}.
+##' @param locs only test locations in \code{locs}.
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
 ##'     \code{"addnoise"}, then \code{sigma.add} needs to be provided.
 ##' @param sigma Noise level (standard deviation) of data.
@@ -119,8 +119,8 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
 ##' @param max.numIS Maximum number of importance sampling replicates to perform.
 ##' @param mn original mean vector.
 ##' @export
-addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
-                        declutter=FALSE, mn=NULL, min.num.things=30, sigma.add=NULL,
+addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
+                        declutter=FALSE, mn=NULL, min.num.things = 30, sigma.add=NULL,
                         max.numIS=5000,
                         inference.type=c("pre-multiply","rows")){
 
@@ -133,7 +133,7 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
-    vlist <- filter_vlist(vlist, loc)
+    vlist <- filter_vlist(vlist, locs)
 
     ## Obtain p-value
     if(type=="plain"){
@@ -142,8 +142,6 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
         })
     } else if (type=="rand") {
 
-        vlist <- filter_vlist(make_all_segment_contrasts(obj), loc)
-
         ## Get the p-values
         pvs = sapply(vlist, function(v){
             pv = randomize_wbsfs(v=v, winning.wbs.obj=obj,
@@ -151,6 +149,7 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
                                  cumsum.y=cumsum(obj$y),
                                  cumsum.v=cumsum(v), bits=2000,
                                  max.numIS=max.numIS,
+                                 verbose=TRUE,## temporary
                                  inference.type=inference.type,
                                  min.num.things=min.num.things)$pv
         })
@@ -169,7 +168,7 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
 
 ##' Appends the inference results to an object of class |bsFs|.
 ##' @param obj object of type bsFs
-##' @param loc only test locations in \code{loc}.
+##' @param locs only test locations in \code{locs}.
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
 ##'     \code{"addnoise"}, then \code{sigma.add} needs to be provided.
 ##' @param sigma Noise level (standard deviation) of data.
@@ -181,7 +180,7 @@ addpv.wbsfs <- function(obj, loc=NULL, type=c("plain", "rand"), sigma,
 ##' @param mn original mean vector.
 ##' @param max.numIS Maximum number of importance sampling replicates to perform.
 ##' @export
-addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
+addpv.cbsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                         sigma.add=NULL, declutter=FALSE, mn=NULL,
                         min.num.things=30, numIntervals=NULL,
                         max.numIS=2000,
@@ -202,7 +201,7 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 
     ## Form the test contrasts
     vlist <- make_all_segment_contrasts(obj)
-    vlist <- filter_vlist(vlist, loc)
+    vlist <- filter_vlist(vlist, locs)
 
     ## Obtain p-values
     if(type=="plain"){
@@ -239,7 +238,7 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 ##' information criteria stopping is involved, then only contrasts from the
 ##' stopped model are used.
 ##' @param obj object of |path| type.
-##' @param loc only test locations in \code{loc}.
+##' @param locs only test locations in \code{locs}.
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
 ##'     \code{"addnoise"}, then \code{sigma.add} needs to be provided.
 ##' @param sigma Noise level (standard deviation) of data.
@@ -248,7 +247,7 @@ addpv.cbsfs <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 ##' @param mn original mean vector.
 ##' @param max.numIS Maximum number of importance sampling replicates to perform.
 ##' @export
-addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
+addpv.fl <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                      sigma.add=NULL, declutter=FALSE, mn=NULL, numIntervals=NULL,
                      inference.type = c("rows", "pre-multiply"),
                      max.numIS=2000
@@ -273,7 +272,7 @@ addpv.fl <- function(obj, loc=NULL, type=c("plain", "addnoise"), sigma,
 
     ## Get randomized p-value
     vlist <- make_all_segment_contrasts(obj, numSteps)
-    vlist <- filter_vlist(vlist, loc)
+    vlist <- filter_vlist(vlist, locs)
 
     ## Obtain p-values
     if(type=="plain"){
