@@ -168,7 +168,8 @@ print.wbsfs <- function(obj){
     if(obj$mimic) cat("Mimicked object!", fill=TRUE)
     cat("Detected changepoints using WBS with", obj$numSteps, "steps is", obj$cp * obj$cp.sign, fill=TRUE)
     if(!is.null(obj$pvs)){
-        cat("Pvalues of", obj$cp * obj$cp.sign, "are", obj$pvs, fill=TRUE)
+        ## cat("Pvalues of", obj$cp * obj$cp.sign, "are", obj$pvs, fill=TRUE)
+        cat("Pvalues of", names(obj$pvs), "are", obj$pvs, fill=TRUE)
     }
 }
 

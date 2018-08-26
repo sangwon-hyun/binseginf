@@ -254,6 +254,6 @@ print.cbsfs <- function(obj){
     cat("Detected changepoints using CBS with", obj$numSteps, "steps is",
         obj$cp * obj$cp.sign, fill=TRUE)
     if(!is.null(obj$pvs)){
-        cat("Pvalues of", obj$cp * obj$cp.sign, "are", obj$pvs, fill=TRUE)
+        cat("Pvalues of", names(obj$pvs), "are", obj$pvs, fill=TRUE)
     }
 }
