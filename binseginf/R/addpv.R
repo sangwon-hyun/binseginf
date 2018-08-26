@@ -130,8 +130,12 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
     if(!is.null(sigma.add)) warning("You provided |sigma.add| but this will not be used.")
 
     ## Form the test contrasts
+    print('there')
+    print(locs)
     vlist <- make_all_segment_contrasts(obj)
     vlist <- filter_vlist(vlist, locs)
+    print('there')
+    print(vlist)
 
     ## Obtain p-value
     if(type=="plain"){
@@ -142,6 +146,7 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
 
         ## Get the p-values
         pvs = sapply(vlist, function(v){
+            print(v)
             pv = randomize_wbsfs(v=v, winning.wbs.obj=obj,
                                  sigma=sigma,
                                  cumsum.y=cumsum(obj$y),
@@ -211,7 +216,7 @@ addpv.cbsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
     } else if (type=="addnoise") {
         poly.fudged = polyhedra(obj)
         pvs = sapply(vlist, function(v){
-            pv = randomize_addnoise(y=obj$y, v=v, sigma=sigma, numIS=numIS,
+            pv = randomize_addnoise(y=obj$y, v=v, sigma=sigma,
                                     sigma.add=obj$sigma.add,
                                     orig.fudged.poly=poly.fudged, bits= 5000,
                                     max.numIS=max.numIS,
