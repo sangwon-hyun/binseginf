@@ -239,11 +239,11 @@ randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
             sum(unlist(parts.so.far["weight",]))}
 
     while(!done){
-        numIS.cumulative = numIS.cumulative + numIS
 
         ## Collect parts and combine with preexisting
         parts = mcmapply(one_IS_wbs, 1:numIS , numIS.cumulative, mc.cores=mc.cores)
         parts.so.far = cbind(parts.so.far, parts)
+        numIS.cumulative = numIS.cumulative + numIS
 
         ## Handling issue of p-value being NaN/0/1
         things = sum(parts.so.far["weight",] > 0)
@@ -253,7 +253,7 @@ randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
         ## pvtol = 1E-15 pv.is.really.small = (latest.pv < pvtol)
 
         ## Check termination of while loop
-        enough.things = (things > min.num.things)
+        enough.things = (things >= min.num.things)
         reached.limit = (numIS.cumulative > max.numIS)
         stable.enough = (stable(pv.latest, pv.so.far, stable.thresh) & things > 10) 
 
