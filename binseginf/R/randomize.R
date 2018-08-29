@@ -57,7 +57,7 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
     ## Helper function
     one_IS_addnoise = function(isim, numIS.cumulative, investigate){
         if(verbose) {printprogress(isim+numIS.cumulative, numIS+numIS.cumulative,
-                                  "importance sampling replicate",
+                                  paste0("importance sampling replicate (with ", things, " valid draws so far):"),
                                   start.time = start.time)}
 
         new.noise = rnorm(length(y),0,sigma.add)
@@ -107,7 +107,8 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
         }
         if(pv.new > 1 | pv.new < 0)  browser() ## Not sure why this would happen, but anyway!
         if(weight.new < 0 | weight.new > 1){
-            weight.new=0 ## Nomass problem is to be caught here.
+            weight.new = 0 ## Nomass problem is to be caught here.  But nomass
+            ## problem probably doesn't happen for additive noise.
         }
         info = cbind(pv=pv.new, weight=weight.new, vlo=obj.new$vlo,
                      vty=obj.new$vy, vup=obj.new$vup, sigma=sigma)
@@ -131,9 +132,9 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
         parts.so.far = cbind(parts.so.far, parts)
 
         ## Handling the problem of p-value being NaN/0/1
-        things = sum((parts.so.far["weight",] > 0)&
-                     (parts.so.far["pv",] != 1) &
-                     (parts.so.far["pv",] != 0))
+        things = sum((parts.so.far["weight",] > 0) &
+                     (parts.so.far["pv",] != 1)) ## &
+                     ## (parts.so.far["pv",] != 0)) ## Temporarily excluded b/c it seems extraneous.
         pv.latest = pv_from_parts(parts.so.far)
 
         enough.things = (things >= min.num.things)
@@ -200,6 +201,7 @@ randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
 
     numIntervals = winning.wbs.obj$numIntervals
     numSteps = winning.wbs.obj$numSteps
+    things = 0
 
     ## Basic checks
     if(inference.type=="pre-multiply" & (is.null(cumsum.y) | is.null(cumsum.v)) ){
@@ -208,9 +210,9 @@ randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
 
     ## Helper function (bundler) for a single importance sampling replicate
     one_IS_wbs = function(isim, numIS.cumulative){
-        if(verbose) printprogress(isim+numIS.cumulative, numIS+numIS.cumulative,
-                                  "importance sampling replicate",
-                                  start.time = start.time)
+        if(verbose) {printprogress(isim+numIS.cumulative, numIS+numIS.cumulative,
+                                  paste0("importance sampling replicate (with ", things, " valid draws so far):"),
+                                  start.time = start.time)}
 
 
         rerun_wbs(v=v, winning.wbs.obj=winning.wbs.obj,

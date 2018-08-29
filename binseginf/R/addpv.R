@@ -54,6 +54,7 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                        sigma.add=NULL, declutter=FALSE, min.num.things=30,
                        max.numIS=2000, mn=NULL, only.test.nulls=FALSE,
                        bootsub=FALSE, nboot=10000,
+                       verbose=FALSE,
                        v2=FALSE){
 
     ## Basic checks
@@ -85,13 +86,17 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
         }
     } else if (type=="addnoise") {
         poly.fudged = polyhedra(obj)
-        pvs = sapply(vlist, function(v){
+        pvs =sapply(1:length(vlist), function(iv){
+            v = vlist[[iv]]
+            if(verbose) printprogress(iv, length(vlist), "p-values being formed", fill=TRUE)
             pv = randomize_addnoise(y=obj$y.orig, v=v, sigma=sigma,
                                     sigma.add=sigma.add, orig.fudged.obj=obj,
                                     orig.fudged.poly=poly.fudged,
                                     max.numIS=max.numIS,
                                     min.num.things=min.num.things,
-                                    inference.type="rows",)$pv})
+                                    verbose=verbose,
+                                    inference.type="rows")$pv})
+            if(verbose) cat(fill=TRUE)
     } else {
         stop("|type| argument is wrong!")
     }
@@ -120,6 +125,7 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
 addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
                         declutter=FALSE, mn=NULL, min.num.things = 30, sigma.add=NULL,
                         max.numIS=5000,
+                        verbose=FALSE,
                         inference.type=c("pre-multiply","rows")){
 
     ## Basic checks
@@ -135,13 +141,31 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
 
     ## Obtain p-value
     if(type=="plain"){
-        pvs = sapply(vlist, function(v){
-            pv = poly.pval2(y=obj$y, poly=polyhedra(obj=obj$gamma, u=obj$u), v=v, sigma=sigma, bits=5000)$pv
-        })
+
+        ## This is usually only to be done when data size is too big for storage
+        ## of Gamma.
+        if(inference.type=="pre-multiply"){
+            pvs = sapply(vlist, function(v){
+                obj.new = wbsfs(obj$y, numSteps=obj$numSteps, intervals=obj$intervals,
+                                inference.type="pre-multiply", cumsum.y = cumsum(obj$y),
+                                cumsum.v = cumsum(v))
+                pvobj = poly_pval_from_inner_products(Gy=obj.new$Gy, Gv=obj.new$Gv, v=v,
+                                                      y=obj.new$y, sigma=sigma, u=obj.new$u, bits=5000)
+                return(pvobj$pv)
+            })
+        } else {
+            pvs = sapply(vlist, function(v){
+                pv = poly.pval2(y=obj$y, poly=polyhedra(obj=obj$gamma,
+                                                        u=obj$u),
+                                v=v, sigma=sigma, bits=5000)$pv
+            })
+        }
     } else if (type=="rand") {
 
         ## Get the p-values
-        pvs = sapply(vlist, function(v){
+        pvs = sapply(1:length(vlist), function(iv){
+            v = vlist[[iv]]
+            if(verbose) printprogress(iv, length(vlist), "p-values being formed", fill=TRUE)
             pv = randomize_wbsfs(v=v, winning.wbs.obj=obj,
                                  sigma=sigma,
                                  cumsum.y=cumsum(obj$y),
@@ -149,7 +173,9 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
                                  max.numIS=max.numIS,
                                  numIS=10,
                                  inference.type=inference.type,
+                                 verbose=verbose,
                                  min.num.things=min.num.things)$pv
+            if(verbose) cat(fill=TRUE)
         })
 
     } else {
@@ -247,9 +273,9 @@ addpv.cbsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
 ##' @export
 addpv.fl <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                      sigma.add=NULL, declutter=FALSE, mn=NULL, numIntervals=NULL,
+                     min.num.things=30,
                      inference.type = c("rows", "pre-multiply"),
-                     max.numIS=2000
-                     ){
+                     max.numIS=2000){
 
     ## Basic checks
     if(obj$ic.stop){assert_that(obj$ic_flag=="normal")}
@@ -286,7 +312,7 @@ addpv.fl <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                                     sigma.add=sigma.add,
                                     orig.fudged.poly=poly.fudged, bits=5000,
                                     inference.type=inference.type,
-                                    max.numIS=max.numIS, min.num.things=30)$pv})
+                                    max.numIS=max.numIS, min.num.things=min.num.things)$pv})
     } else {
         stop("|type| argument is wrong!")
     }
