@@ -176,7 +176,9 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
                                  verbose=verbose,
                                  min.num.things=min.num.things)$pv
             if(verbose) cat(fill=TRUE)
+            return(pv)
         })
+        names(pvs) = names(vlist)
 
     } else {
         stop("|type| argument is wrong!")
