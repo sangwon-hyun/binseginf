@@ -85,7 +85,7 @@ pvalue <- function(y, polyhedra, contrast, sigma = 1, null_mean = 0,
 
 
 
-##' Temporarily added from selectiveInference package.
+##' Added from selectiveInference package.
 ##' @export
 poly.pval <- function(y, G, u, v, sigma, bits=NULL) {
   z = sum(v*y)
@@ -102,58 +102,63 @@ poly.pval <- function(y, G, u, v, sigma, bits=NULL) {
 }
 
 
-##' Temporarily added from selectiveInference package.
+##' Added from selectiveInference package.
 tnorm.surv <- function(z, mean, sd, a, b, bits=NULL, correct.ends=TRUE){
 
     if(correct.ends) z = max(min(z,b),a)
 
-  # Check silly boundary cases
-  p = numeric(length(mean))
-  p[mean==-Inf] = 0
-  p[mean==Inf] = 1
-
-  # Try the multi precision floating point calculation first
-  o = is.finite(mean)
-  mm = mean[o]
-  pp = mpfr.tnorm.surv(z,mm,sd,a,b,bits)
-
-  # If there are any NAs, then settle for an approximation
-  oo = is.na(pp)
-  ## if(any(oo))browser()
-  if (any(oo)) pp[oo] = bryc.tnorm.surv(z,mm[oo],sd,a,b)
-
-  p[o] = pp
-  return(p)
+    # Check silly boundary cases
+    p = numeric(length(mean))
+    p[mean==-Inf] = 0
+    p[mean==Inf] = 1
+  
+    # Try the multi precision floating point calculation first
+    o = is.finite(mean)
+    mm = mean[o]
+    pp = mpfr.tnorm.surv(z,mm,sd,a,b,bits)
+  
+    # If there are any NAs, then settle for an approximation
+    oo = is.na(pp)
+    ## if(any(oo))browser()
+    if (any(oo)) pp[oo] = bryc.tnorm.surv(z,mm[oo],sd,a,b)
+  
+    p[o] = pp
+    return(p)
 }
+
 
 
 ##' Temporarily added from selectiveInference package.
 ##' Returns Prob(Z>z | Z in [a,b]), where mean can be a vector, using
 ##' multi precision floating point calculations thanks to the Rmpfr package
 mpfr.tnorm.surv <- function(z, mean=0, sd=1, a, b, bits=NULL) {
-  # If bits is not NULL, then we are supposed to be using Rmpf
-  # (note that this was fail if Rmpfr is not installed; but
-  # by the time this function is being executed, this should
-  # have been properly checked at a higher level; and if Rmpfr
-  # is not installed, bits would have been previously set to NULL)
-  if (!is.null(bits)) {
-    z = Rmpfr::mpfr((z-mean)/sd, precBits=bits)
-    a = Rmpfr::mpfr((a-mean)/sd, precBits=bits)
-    b = Rmpfr::mpfr((b-mean)/sd, precBits=bits)
-    return(as.numeric((Rmpfr::pnorm(b)-Rmpfr::pnorm(z))/
-                      (Rmpfr::pnorm(b)-Rmpfr::pnorm(a))))
-  }
+    # If bits is not NULL, then we are supposed to be using Rmpf
+    # (note that this was fail if Rmpfr is not installed; but
+    # by the time this function is being executed, this should
+    # have been properly checked at a higher level; and if Rmpfr
+    # is not installed, bits would have been previously set to NULL)
+    if (!is.null(bits)) {
+      z = Rmpfr::mpfr((z-mean)/sd, precBits=bits)
+      a = Rmpfr::mpfr((a-mean)/sd, precBits=bits)
+      b = Rmpfr::mpfr((b-mean)/sd, precBits=bits)
+      return(as.numeric((Rmpfr::pnorm(b)-Rmpfr::pnorm(z))/
+                        (Rmpfr::pnorm(b)-Rmpfr::pnorm(a))))
+    }
 
-  # Else, just use standard floating point calculations
-  z = (z-mean)/sd
-  a = (a-mean)/sd
-  b = (b-mean)/sd
-  return((stats::pnorm(b)-stats::pnorm(z))/(stats::pnorm(b)-stats::pnorm(a)))
+    # Else, just use standard floating point calculations
+    z = (z-mean)/sd
+    a = (a-mean)/sd
+    b = (b-mean)/sd
+    numer = (stats::pnorm(b)-stats::pnorm(z))
+    denom = (stats::pnorm(b)-stats::pnorm(a))
+    pv = numer/denom
+    return(pv)
 }
 
 
 
-
+##' A numerical approximation, to be used as a substitute for
+##' \code{mpfr.tnorm.surv()}.
 bryc.tnorm.surv <- function(z, mean=0, sd=1, a, b) {
   z = (z-mean)/sd
   a = (a-mean)/sd
@@ -194,8 +199,8 @@ ff <- function(z) {
 ##'
 ##' @return List of vup, vlo and pv.
 ##' @export
-poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, reduce=FALSE,
-                       correct.ends=FALSE, shift=NULL) {
+poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL,
+                       shift=NULL) {
 
 
     ## Shift polyhedron by a constant \R^n shift if needed
@@ -207,39 +212,16 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, re
     z = sum(v*y)
     vv = sum(v^2)
     sd = sigma*sqrt(vv)
-
-    ## If vup&vlo are both present in poly, simply calculate and return the pv
-    poly.vup.vlo.are.present = (!is.null(poly$vup) & !is.null(poly$vlo))
-    vup.vlo.are.present = (!is.null(vup) & !is.null(vlo))
-    if(poly.vup.vlo.are.present & vup.vlo.are.present){
-        stop("Don't provide vup and vlo in both polyhedron and as plain arguments!!'")
-    }
-    if(poly.vup.vlo.are.present | vup.vlo.are.present){
-        if(poly.vup.vlo.are.present){
-            vlo = poly$vlo
-            vup = poly$vup
-        }
-        pv = tnorm.surv(z,0,sd,vlo,vup,bits, correct.ends=correct.ends)
-
-    } else {
-        if(!reduce){
-            G = poly$gamma
-            u = poly$u
-            Gv = G %*% v
-            Gv[which(abs(Gv)<1E-15)] = 0
-            rho = Gv / vv
-            vec = (u - G %*% y + rho*z) / rho
-            vlo = suppressWarnings(max(vec[rho>0]))
-            vup = suppressWarnings(min(vec[rho<0]))
-            pv = tnorm.surv(z,0,sd,vlo,vup,bits, correct.ends=correct.ends)
-        } else {
-            ## if(is.null(vlo) | is.null(vup))stop("provide vup&vlo!")
-            ## pv = tnorm.surv(z,0,sd,poly$vlo,poly$vup,bits, correct.ends=correct.ends)
-            pv = tnorm.surv(z,0,sd,vlo,vup,bits, correct.ends=correct.ends)
-        }
-    }
+    Gv = poly$gamma %*% v
+    Gy = poly$gamma %*% y
+    Gv[which(abs(Gv)<1E-15)] = 0
+    rho = Gv / vv
+    vec = (poly$u - Gy + rho*z) / rho
+    vlo = suppressWarnings(max(vec[rho>0]))
+    vup = suppressWarnings(min(vec[rho<0]))
+    pv = tnorm.surv(z,0,sd,vlo,vup,bits, correct.ends=TRUE)
     
-  return(list(pv=pv,vlo=vlo,vup=vup))
+    return(list(pv=pv,vlo=vlo,vup=vup))
 }
 
 
@@ -476,9 +458,8 @@ ztest <- function(y, v, sigma=1){
 
 
 
-##' From polyhedron and data vector and contrast, gets the probability that vtY
-##' is in the polyhedron, conditional on PvperpY. i.e. the probability that Y
-##' stays in the polyhedron, fixing n-1 dimensions of it.
+##' From polyhedron and data vector and contrast, gets the probability of vtY
+##' larger than v^Ty , conditional on the orthogonal projection on v.
 ##' @param y data
 ##' @param poly polyhedra object produced form \code{polyhedra(wbs_object)}
 ##' @param sigma data noise (standard deviation)
@@ -509,15 +490,13 @@ partition_TG <- function(y, poly, v, sigma, nullcontrast=0, bits=50, reduce,
         poly$u = c(poly$u, ic.poly$u)
     }
 
-    ## Just in case |poly| doesn't contain |vup| and |vlo|, we manually form it.
-    ## This is because in order to partition the TG statistic, we need to form
-    ## these anyway.
     pvobj <- poly.pval2(y, poly, v, sigma, correct.ends=correct.ends)
     vup = pvobj$vup
     vlo = pvobj$vlo
     vy = max(min(vy, vup),vlo)
-
-    ## Make it so that vlo<vup is ensured
+    
+    ## Make it so that vlo<vup is ensured (maybe not here..)
+    if(vlo >= vup) stop("vlo < vup must hold.")
 
     ## Calculate a,b,z for TG = (F(b)-F(z))/(F(b)-F(a))
     z = Rmpfr::mpfr(vy/sd, precBits=bits)

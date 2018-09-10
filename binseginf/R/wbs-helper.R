@@ -278,32 +278,6 @@ unsigned_contrast <- function(s,b,e,n=NULL,y){
 }
 
 
-##' Helper function to /manually/ make contrasts.
-##' @param test.bps Breakpoint location to test.
-##' @param adj.bps Directly adjacent breakpoint locations.
-##' @param sn Sign (direction) of proposed breakpoint at |test.bps|; use +1 or -1.
-##' @param n length of data.
-##' @examples
-##' make_contrast(20,c(1,40),+1,60)
-##' @export
-make_contrast <- function(test.bp, adj.bps, sn, n){
-
-    ## Basic checks
-    stopifnot(all(c(test.bp, adj.bps) %in% 0:n))
-    stopifnot(min(adj.bps)<=test.bp)
-    stopifnot(max(adj.bps)>=test.bp)
-    stopifnot(length(sn)==1)
-    stopifnot(sn %in% c(-1,1))
-
-    ## Make contrast
-    d = rep(0,n)
-    d[(min(adj.bps)):(test.bp)] = -1/(test.bp-min(adj.bps)+1)
-    d[(test.bp+1):(max(adj.bps))] = +1/(max(adj.bps)-test.bp)
-    return(sn*d)
-}
-make_segment_contrast = make_contrast
-
-
 ## Checking if intervals is correct.
 .is_valid_intervals <- function(intervals){
    return(all(names(intervals) %in% c("starts","ends","intervals","se")))

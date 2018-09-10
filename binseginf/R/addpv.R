@@ -15,10 +15,12 @@ checks_addpv_bsfs <- function(obj, type){
         assert_that(obj$noisy)
         assert_that(!is.null(obj$sigma.add))
     }
+    if(obj$ic.stop) stop("ic stopping is not coded for bsfs yet!")
     if(!is.null(obj$sigma.add) & type=="plain"){
         stop("Original algorithm was run with additive noise! Can't do plain inference.")
     }
 }
+
 
 ##' Appends the inference results to an object of class |bsFs|.
 ##' @param obj object of type bsFs.
@@ -36,7 +38,7 @@ checks_addpv_bsfs <- function(obj, type){
 ##'     ' for users.). The use of \code{"pre-multiply"} was originally built for
 ##'     ' WBS. It actually prevents \code{polyhedra.wbsfs()} from having to form
 ##'     ' the entire WBS polyhedron in the first place. It also makes importance
-##'     ' sampling faster the \code{type="rows"} option for WBS (thanks to
+##'     ' sampling faster than the \code{type="rows"} option for WBS (thanks to
 ##'     manual ' speedups we've made), but slower for all other segmentation
 ##'     methods ' since there are no such manual tweaks for speedup. The most
 ##'     crucial ' difference for the user is perhaps that, when the size of the
@@ -55,6 +57,7 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                        max.numIS=2000, mn=NULL, only.test.nulls=FALSE,
                        bootsub=FALSE, nboot=10000,
                        verbose=FALSE,
+                       vlist=NULL,
                        v2=FALSE){
 
     ## Basic checks
@@ -62,17 +65,17 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
     checks_addpv_bsfs(obj, type)
 
     ## Form the test contrasts
-    vlist <- make_all_segment_contrasts(obj)
-    vlist <- filter_vlist(vlist, locs, only.test.nulls, mn)
-
+    if(is.null(vlist)){
+        vlist <- make_all_segment_contrasts(obj)
+        vlist <- filter_vlist(vlist, locs, only.test.nulls, mn)
+    }
     ## Obtain p-values
     if(type=="plain"){
         if(bootsub){
             poly.nonfudged = polyhedra(obj, y=obj$y)
-            ## Experimental
+            ## Experimental bootstrap substitution (v2) feature
             if(v2){
-                numSteps = cv.bsfs(obj$y, 10) ## This is expensive!
-                cv.obj = bsfs(y, numSteps=numSteps)
+                cv.obj = bsfs(y, numSteps=cv.bsfs(obj$y, 10))
                 adjustmean = get_piecewise_mean(obj$y, sort(abs(cv.obj$cp)))
             } else {
                 adjustmean = mean(y)
@@ -90,7 +93,7 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
             v = vlist[[iv]]
             if(verbose) printprogress(iv, length(vlist), "p-values being formed", fill=TRUE)
             pv = randomize_addnoise(y=obj$y.orig, v=v, sigma=sigma,
-                                    sigma.add=sigma.add, orig.fudged.obj=obj,
+                                    sigma.add= sigma.add, orig.fudged.obj=obj,
                                     orig.fudged.poly=poly.fudged,
                                     max.numIS=max.numIS,
                                     min.num.things=min.num.things,
@@ -126,6 +129,7 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
                         declutter=FALSE, mn=NULL, min.num.things = 30, sigma.add=NULL,
                         max.numIS=5000,
                         verbose=FALSE,
+                        vlist=NULL,
                         inference.type=c("pre-multiply","rows")){
 
     ## Basic checks
@@ -136,8 +140,10 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
     if(!is.null(sigma.add)) warning("You provided |sigma.add| but this will not be used.")
 
     ## Form the test contrasts
-    vlist <- make_all_segment_contrasts(obj)
-    vlist <- filter_vlist(vlist, locs)
+    if(is.null(vlist)){
+        vlist <- make_all_segment_contrasts(obj)
+        vlist <- filter_vlist(vlist, locs)
+    }
 
     ## Obtain p-value
     if(type=="plain"){
@@ -209,6 +215,7 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
 addpv.cbsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                         sigma.add=NULL, declutter=FALSE, mn=NULL,
                         min.num.things=30, numIntervals=NULL,
+                        vlist=NULL,
                         max.numIS=2000,
                         inference.type = c("rows", "pre-multiply")){
 
@@ -226,8 +233,10 @@ addpv.cbsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
     }
 
     ## Form the test contrasts
-    vlist <- make_all_segment_contrasts(obj)
-    vlist <- filter_vlist(vlist, locs)
+    if(is.null(vlist)){
+        vlist <- make_all_segment_contrasts(obj)
+        vlist <- filter_vlist(vlist, locs)
+    }
 
     ## Obtain p-values
     if(type=="plain"){
@@ -274,47 +283,47 @@ addpv.cbsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
 ##' @param max.numIS Maximum number of importance sampling replicates to perform.
 ##' @export
 addpv.fl <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
-                     sigma.add=NULL, declutter=FALSE, mn=NULL, numIntervals=NULL,
+                     sigma.add=NULL, declutter=FALSE, mn=NULL, vlist=NULL,
                      min.num.things=30,
-                     inference.type = c("rows", "pre-multiply"),
-                     max.numIS=2000){
+                     inference.type = c("rows", "pre-multiply"), max.numIS=2000){
 
     ## Basic checks
     if(obj$ic.stop){assert_that(obj$ic_flag=="normal")}
     assert_that(is.null(obj$pvs))
     type = match.arg(type)
     if(type=="addnoise"){
-        assert_that(!is.null(obj$noisy))
-        assert_that(obj$noisy)
-        assert_that(!is.null(obj$sigma.add))
+        assert_that(!is.null(obj$noisy) & obj$noisy & !is.null(obj$sigma.add))
     }
-    if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
     if(!is.null(obj$sigma.add) & type=="plain"){
         stop("Original algorithm was run with additive noise! Can't do plain inference.")
     }
-
-    ## The number of algorithm steps to use
     numSteps = (if(obj$ic.stop)obj$stoptime + obj$consec else obj$numSteps )
 
-    ## Get randomized p-value
-    vlist <- make_all_segment_contrasts(obj, numSteps)
-    vlist <- filter_vlist(vlist, locs)
+    ## Form the test contrasts
+    if(is.null(vlist)){
+        vlist <- make_all_segment_contrasts(obj, numSteps)
+        vlist <- filter_vlist(vlist, locs)
+    }
 
     ## Obtain p-values
     if(type=="plain"){
-        poly.nonfudged = polyhedra.fl(obj, numSteps)
+        poly.nonfudged = polyhedra.path(obj, numSteps) ## polyhedra.fl?
         poly.combined = combine(poly.nonfudged, obj$ic_poly)
         pvs = sapply(vlist, function(v){
             pv = poly.pval2(y=obj$y, poly=poly.combined, v=v, sigma=sigma, bits=5000)$pv
         })
     } else if (type=="addnoise") {
         poly.fudged = polyhedra(obj, numSteps)
+        v = vlist[[1]]
         pvs = sapply(vlist, function(v){
             pv = randomize_addnoise(y=obj$y.orig, v=v, sigma=sigma,
                                     sigma.add=sigma.add,
                                     orig.fudged.poly=poly.fudged, bits=5000,
+                                    ic.poly=obj$ic_poly,
                                     inference.type=inference.type,
-                                    max.numIS=max.numIS, min.num.things=min.num.things)$pv})
+                                    max.numIS=max.numIS,
+                                    min.num.things=min.num.things)$pv
+        })
     } else {
         stop("|type| argument is wrong!")
     }
