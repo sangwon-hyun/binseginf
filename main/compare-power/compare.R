@@ -22,7 +22,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
     onesim <- function(isim){
         
         ## Generate data
-        set.seed(isim)
+        ## set.seed(isim)
         mn = meanfun(lev=lev, n=n)
         y = mn + rnorm(n, 0, sigma)
         
