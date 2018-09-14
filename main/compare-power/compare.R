@@ -3,10 +3,19 @@
 
 dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                   numSteps=4, filename=NULL, sigma = 1, sigma.add=0.5, type,
-                  outputdir = "../output", locs=1:n){
+                  outputdir = "../output", locs=1:n,
+
+                  ## Additional settings
+                  max.numSteps = 10,
+                  allsteps=2:max.numSteps,
+                  allsteps.cbs=1:(max.numSteps/2), ## CBS should take half as many steps!
+                  allsteps.marg=4,
+                  allsteps.cbs.marg=(allsteps.marg/2)## CBS should take half as many steps!
+                  ){
 
     assert_that(all(type %in% c("bsfs","nbsfs", "mbsfs", "wbsfs","mwbsfs",
-                                "cbsfs","ncbsfs","mcbsfs", "fl","nfl", "mfl")))
+                                "cbsfs","ncbsfs","mcbsfs", "fl","nfl", "mfl")),
+                msg="|type| error")
 
     cat("lev=", lev, " and ichunk", ichunk, fill=TRUE)
     
@@ -20,12 +29,6 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         y.addnoise = rnorm(n, 0, sigma.add)
         results = list()
 
-        ## Global settings
-        max.numSteps = 10
-        allsteps = allsteps.plain = 2:max.numSteps
-        allsteps.cbs = 1:(max.numSteps/2) ## CBS should take half as many steps!
-        allsteps.marg = 4 
-        allsteps.cbs.marg = 2
 
         ## max.numSteps = 4
         ## allsteps = allsteps.plain = 4
@@ -149,6 +152,16 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             results$fl_zero = res$zeros.by.step
             results$fl_cps = obj$cp * obj$cp.sign 
         }, error=function(err){ print('error occurred during plain fl')})}
+
+        ## ## Plain FL inference with improvements: under construction!!
+        ## if(any(type=="fl")){tryCatch({
+        ##     obj = fl(y, numSteps=max.numSteps)
+        ##     poly.max = polyhedra(obj, numSteps=max.numSteps)
+        ##     res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma, locs=locs)
+        ##     results$fl = res$pvs.by.step
+        ##     results$fl_zero = res$zeros.by.step
+        ##     results$fl_cps = obj$cp * obj$cp.sign 
+        ## }, error=function(err){ print('error occurred during plain fl')})}
         
         ## Noisy FL inference (Non-marginalized)
         if(any(type=="nfl")){tryCatch({
