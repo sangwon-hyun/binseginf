@@ -103,9 +103,9 @@ poly.pval <- function(y, G, u, v, sigma, bits=NULL) {
 
 
 ##' Added from selectiveInference package.
-tnorm.surv <- function(z, mean, sd, a, b, bits=NULL, correct.ends=TRUE){
+tnorm.surv <- function(z, mean, sd, a, b, bits=NULL){
 
-    if(correct.ends) z = max(min(z,b),a)
+    z = max(min(z,b),a)
 
     # Check silly boundary cases
     p = numeric(length(mean))
@@ -219,9 +219,10 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL,
     vec = (poly$u - Gy + rho*z) / rho
     vlo = suppressWarnings(max(vec[rho>0]))
     vup = suppressWarnings(min(vec[rho<0]))
-    pv = tnorm.surv(z,0,sd,vlo,vup,bits, correct.ends=TRUE)
+    pv = tnorm.surv(z,0,sd,vlo,vup,bits)
+    if(vlo < vup){ flag="go" } else { flag="vlo-vup-reversed" }
     
-    return(list(pv=pv,vlo=vlo,vup=vup))
+    return(list(pv=pv,vlo=vlo,vup=vup, flag=flag))
 }
 
 
@@ -469,7 +470,7 @@ ztest <- function(y, v, sigma=1){
 ##' @return list of two vectors: denominators and numerators, each named
 ##'     \code{denom} and \code{numer}.
 partition_TG <- function(y, poly, v, sigma, nullcontrast=0, bits=50, reduce,
-                         correct.ends=FALSE, shift=NULL, ic.poly=NULL, warn=TRUE){
+                         shift=NULL, ic.poly=NULL, warn=TRUE){
 
     ## Basic checks
     stopifnot(length(v)==length(y))
@@ -490,13 +491,14 @@ partition_TG <- function(y, poly, v, sigma, nullcontrast=0, bits=50, reduce,
         poly$u = c(poly$u, ic.poly$u)
     }
 
-    pvobj <- poly.pval2(y, poly, v, sigma, correct.ends=correct.ends)
+    pvobj <- poly.pval2(y, poly, v, sigma)
     vup = pvobj$vup
     vlo = pvobj$vlo
     vy = max(min(vy, vup),vlo)
     
     ## Make it so that vlo<vup is ensured (maybe not here..)
-    if(vlo >= vup) stop("vlo < vup must hold.")
+    ## if(vlo >= vup) stop("vlo < vup must hold.")
+    ## if(vlo >= vup) return("vlo < vup must hold.")
 
     ## Calculate a,b,z for TG = (F(b)-F(z))/(F(b)-F(a))
     z = Rmpfr::mpfr(vy/sd, precBits=bits)
@@ -514,6 +516,7 @@ partition_TG <- function(y, poly, v, sigma, nullcontrast=0, bits=50, reduce,
     pv = as.numeric(numer/denom)
     ## if(!(0 <= pv & pv <= 1)) print("pv was not between 0 and 1, in partition_TG()!")
 
-    return(list(denom=denom, numer=numer, pv=pv, vlo=vlo, vy=vy, vup=vup))
+    return(list(denom=denom, numer=numer, pv=pv, vlo=vlo, vy=vy, vup=vup,
+                flag=pvobj$flag))
 }
 

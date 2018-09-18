@@ -106,10 +106,7 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
             return(emptyrow)
         }
         if(pv.new > 1 | pv.new < 0)  browser() ## Not sure why this would happen, but anyway!
-        if(weight.new < 0 | weight.new > 1){
-            weight.new = 0 ## Nomass problem is to be caught here.  But nomass
-            ## problem probably doesn't happen for additive noise.
-        }
+        if(weight.new < 0 | weight.new > 1){ weight.new = 0 } ## Nomass problem is to be caught here. 
         info = cbind(pv=pv.new, weight=weight.new, vlo=obj.new$vlo,
                      vty=obj.new$vy, vup=obj.new$vup, sigma=sigma)
         return(info)
@@ -135,12 +132,13 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
         things = sum((parts.so.far["weight",] > 0) &
                      (parts.so.far["pv",] != 1)) ## &
                      ## (parts.so.far["pv",] != 0)) ## Temporarily excluded b/c it seems extraneous.
+
         pv.latest = pv_from_parts(parts.so.far)
 
         enough.things = (things >= min.num.things)
         numIS.cumulative = numIS.cumulative + numIS
         reached.limit = numIS.cumulative > max.numIS
-        stable.enough = (stable(pv.latest, pv.so.far, stable.thresh) & things > 10) 
+        stable.enough = (stable(pv.latest, pv.so.far, stable.thresh) & (things > 10) )
 
         ## Not used now: Maybe small p-values should just be accepted, for practical reasons
         ## pvtol = 1E-15 pv.is.really.small = (latest.pv < pvtol)

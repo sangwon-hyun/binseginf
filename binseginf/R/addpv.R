@@ -68,6 +68,7 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
     if(is.null(vlist)){
         vlist <- make_all_segment_contrasts(obj)
         vlist <- filter_vlist(vlist, locs, only.test.nulls, mn)
+        if(length(vlist)==0) return(list())
     }
     ## Obtain p-values
     if(type=="plain"){
@@ -143,6 +144,7 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
     if(is.null(vlist)){
         vlist <- make_all_segment_contrasts(obj)
         vlist <- filter_vlist(vlist, locs)
+        if(length(vlist)==0) return(list())
     }
 
     ## Obtain p-value
@@ -236,6 +238,7 @@ addpv.cbsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
     if(is.null(vlist)){
         vlist <- make_all_segment_contrasts(obj)
         vlist <- filter_vlist(vlist, locs)
+        if(length(vlist)==0) return(list())
     }
 
     ## Obtain p-values
@@ -303,6 +306,7 @@ addpv.fl <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
     if(is.null(vlist)){
         vlist <- make_all_segment_contrasts(obj, numSteps)
         vlist <- filter_vlist(vlist, locs)
+        if(length(vlist)==0) return(list())
     }
 
     ## Obtain p-values
