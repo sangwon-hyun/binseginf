@@ -7,11 +7,13 @@
 la()
 source("../main/compare-power/compare.R")
 
-levs = c(0, 1/4, 1/2, 1, 2, 4)
-nchunk = 30
-nsims = nchunk * c(300, 150, 125, 100, 75, 50)
+## levs = c(1/4, 2, 1/2, 1, 4, 0)
+order = c(6,1,2,3,4,5)
+levs = c(0, 1/4, 1/2, 1, 2, 4)[order]
+nchunk = 10 ## Eventually aim for 30, but do 10 or 15 at a time.
+nsims = nchunk * c(300, 150, 125, 100, 75, 50)[order]
 
-mc.cores = 4
+mc.cores = 8
 args = commandArgs(trailingOnly=TRUE)
 
 ## Type can be "plain", or any one of ("mfl", "mbs", "mcbsfs", "mwbs").
