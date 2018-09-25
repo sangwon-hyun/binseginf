@@ -712,3 +712,95 @@ linpredict <- function(ptail,p){
     y = predict(g, newdata = data.frame(x=length(ptail)+1))
     return(y)
 }
+
+
+##' Helper function to take all neighboring-to-each-other clusters, and
+##' declutter them by removing all but middle value of centroids. The sign is
+##' only returned if the signs all agree.
+##' @param coords (not necessarily sorted) Coordinates.
+##' @param coords.sign Accompanying signs.
+##' @param how.close how close you want the cluster members to be.
+##' @return List containing |cp| and |cp.sign|, which are lists containing the
+##'     de-cluttered changepoints and signs. Additionally, the list contains the
+##'     raw, uncluttered versions |cp.raw| and |cp.sign.raw|.
+##' @export
+declutter <- function(coords, coords.sign, how.close = 1){
+
+    ## Preprocess
+    unsorted.coords = coords
+    unsorted.coords.sign = coords.sign
+    ord = order(unsorted.coords)
+    coords = unsorted.coords[ord]
+    coords.sign = unsorted.coords.sign[ord]
+
+    ## Define a helper to identify centroid cluster.
+    get.center <- function(members){
+        mn = mean(members)
+        stay = max(members[members<=mn])
+        return(stay)
+    }
+
+    ## error checking
+    if(length(coords)<=1){
+      if(length(coords)==0) cat('\n',"attempting to declutter", length(coords), "coordinates",'\n')
+      return(coords)
+    }
+
+    ## get the clique memberships
+    adjacent.diffs = abs(coords[1:(length(coords)-1)] - coords[2:length(coords)])
+
+    cliq.num = 1
+    cliq.vec = rep(NA,length(coords))
+    for(ii in 1:length(adjacent.diffs)){
+      if(adjacent.diffs[ii] <= how.close){  ## used to be ==1
+        cliq.vec[ii] = cliq.vec[ii+1] = cliq.num
+      } else {
+        cliq.num = cliq.num+1
+      }
+    }
+    unique.cliq.nums = unique(cliq.vec[!is.na(cliq.vec)])
+
+    ## Get membership
+    members.list = list()
+    if(length(unique.cliq.nums)!=0){
+        for(ii in 1:length(unique.cliq.nums)){
+            cliq.num = unique.cliq.nums[ii]
+            members.list[[ii]] = which(cliq.vec == cliq.num)
+        }
+    }
+
+    ## Add back all others
+    all.other = 1:length(unsorted.coords)
+    all.other= all.other[!(all.other%in%unlist(members.list))]
+    members.list = c(members.list,
+                     lapply(all.other, function(a)a))
+
+    ## Determine one or two-sidedness
+    signs.list = lapply(members.list, function(members)coords.sign[members])
+    one.sided = which(sapply(signs.list, function(signs) all(signs==signs[1])))
+    if(length(one.sided)==0){
+        two.sided = (1:length(members.list))
+    } else {
+        two.sided = (1:length(members.list))[-one.sided]
+    }
+    clustered.signs.list = list()
+    for(ii in one.sided){
+        clustered.signs.list[[ii]] = signs.list[[ii]][1]
+    }
+    clustered.signs.list[two.sided] = NA
+
+    ## Likewise, get centers
+    clustered.members.list = lapply(members.list, get_center)
+    clustered.coords.list = lapply(clustered.members.list, function(members){ coords[members]})
+
+    ## Also prepare uncluttered output
+    unclustered.coords.list = lapply(members.list, function(members){coords[members]})
+    unclustered.signs.list = signs.list
+
+    output = list(cp = clustered.coords.list,
+                  cp.sign = clustered.signs.list,
+                  cp.raw = unclustered.coords.list,
+                  cp.sign.raw = unclustered.signs.list)
+    
+    return(output)
+}
