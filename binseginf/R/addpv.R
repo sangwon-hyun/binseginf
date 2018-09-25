@@ -251,8 +251,8 @@ addpv.cbsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
     } else if (type=="addnoise") {
         poly.fudged = polyhedra(obj)
         pvs = sapply(vlist, function(v){
-            pv = randomize_addnoise(y=obj$y, v=v, sigma=sigma,
-                                    sigma.add=obj$sigma.add,
+            pv = randomize_addnoise(y=obj$y.orig, v=v, sigma=sigma,
+                                    sigma.add=sigma.add,
                                     orig.fudged.poly=poly.fudged, bits= 5000,
                                     max.numIS=max.numIS,
                                     inference.type=inference.type,
@@ -318,7 +318,6 @@ addpv.fl <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
         })
     } else if (type=="addnoise") {
         poly.fudged = polyhedra(obj, numSteps)
-        v = vlist[[1]]
         pvs = sapply(vlist, function(v){
             pv = randomize_addnoise(y=obj$y.orig, v=v, sigma=sigma,
                                     sigma.add=sigma.add,
