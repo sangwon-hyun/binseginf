@@ -1,6 +1,4 @@
 ## Synopsis: Simulation code to compare each method's power. To be run from compare-run.R
-
-
 dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                   numSteps=4, filename=NULL, sigma = 1, sigma.add=0.5, type,
                   outputdir = "../output", locs=1:n,
@@ -10,11 +8,19 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                   allsteps=2:max.numSteps,
                   allsteps.cbs=1:(max.numSteps/2), ## CBS should take half as many steps!
                   allsteps.marg=4,
-                  allsteps.cbs.marg=(allsteps.marg/2)## CBS should take half as many steps!
+                  allsteps.cbs.marg=(allsteps.marg/2),## CBS should take half as many steps!
+
+                  ## For decluttering
+                  how.close=2,
+                  seed.set=FALSE
+
+                  ##Temporary, for MFL
+                  max.numIS.fl=2000
+
                   ){
 
     assert_that(all(type %in% c("bsfs","nbsfs", "mbsfs", "wbsfs","mwbsfs",
-                                "cbsfs","ncbsfs","mcbsfs", "fl","nfl", "mfl")),
+                                "cbsfs","ncbsfs","mcbsfs", "fl","nfl", "mfl","dfl")),
                 msg="|type| error")
 
     cat("lev=", lev, " and ichunk", ichunk, fill=TRUE)
@@ -22,7 +28,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
     onesim <- function(isim){
         
         ## Generate data
-        ## set.seed(isim)
+        if(seed.set) set.seed(isim)
         mn = meanfun(lev=lev, n=n)
         y = mn + rnorm(n, 0, sigma)
         
@@ -182,7 +188,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                 numSteps = allsteps.marg[ii]
                 obj = fl(y, numSteps=numSteps, sigma.add=sigma.add)
                 obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn,
-                            locs=locs)
+                            locs=locs, max.numIS=max.numIS.fl)
                 mfl[[ii]] = obj$pvs
                 mfl_zero[[ii]] = (obj$means==0)
             }
@@ -191,6 +197,19 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             results$mfl_cps = obj$cp * obj$cp.sign 
 
         }, error=function(err){ print(paste0('error occurred during noisy fl isim=', isim)) })}
+
+        ## "D"ecluttered plain FL inference
+        if(any(type=="dfl")){tryCatch({
+            obj = fl(y, numSteps=max.numSteps)
+            poly.max = polyhedra(obj, numSteps=max.numSteps)
+            res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma,
+                                      locs=locs, declutter=TRUE,
+                                      how.close=how.close)
+            results$fl = res$pvs.by.step
+            results$fl_zero = res$zeros.by.step
+            results$fl_cps = obj$cp * obj$cp.sign 
+
+        }, error=function(err){ print(paste0('error occurred during decluttered fl isim=', isim)) })}
         
         return(results)
         }
@@ -207,26 +226,53 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 }
         
 
+convert_pv_to_two_sided_test <- function(pv){
+    return(2 * min(pv, 1-pv))
+}
 
 ##' Helper for dosim(), in power comparison simulation. Collect information
 ##' (plain saturated p-values, zero-ness of mean) for all steps in |allsteps|.
 ##' @param allsteps All algorithm steps to test.
 plain_inf_multistep <- function(obj, allsteps, poly.max, mn, sigma, shift=NULL,
-                                locs=1:length(mn)){
+                                locs=1:length(mn), declutter=FALSE, how.close=2){
+    pvs.by.step = zeros.by.step = list()
+    for(istep in 1:length(allsteps)){
+        numSteps = allsteps[istep]
+ 
+         if(declutter){
+             out = declutter(obj$cp[1:numSteps],
+                             obj$cp.sign[1:numSteps],
+                             how.close=how.close)
+             cp.clean = unlist(out$cp)
+             cp.sign.clean = unlist(out$cp.sign)
+ 
+             ## Handle the two-sided test cases.
+             which.two.sided = which(is.na(cp.sign.clean))
+             cp.sign.clean[which.two.sided] = 1
+ 
+             ## Make contrasts
+             vlist = make_all_segment_contrasts_from_cp(cp = cp.clean,
+                                                        cp.sign=cp.sign.clean,
+                                                        n=length(obj$y))
+         } else {
+             vlist = make_all_segment_contrasts(obj, numSteps=numSteps)
+         }
+         vlist = filter_vlist(vlist, locs=locs)
+ 
+        ## Store inference results
+        pvs = poly_pval2_from_vlist(y=obj$y.orig,
+                                    poly=snapshot(poly.max, numSteps),
+                                    vlist=vlist, sigma=sigma, shift=shift)
+        if(declutter){
+            if(length(which.two.sided)>0){
+                pvs[which.two.sided] = sapply(pvs[which.two.sided], convert_pv_to_two_sided_test)
+            }
+        }
+        pvs.by.step[[istep]] = pvs
+        zeros.by.step[[istep]] = sapply(vlist, function(v) sum(v*mn)==0)
+    }
 
-    pvs.by.step = lapply(allsteps, function(numSteps){
-        vlist = filter_vlist(make_all_segment_contrasts(obj, numSteps=numSteps),
-                             locs=locs)
-        poly_pval2_from_vlist(y=obj$y.orig,
-                              poly=snapshot(poly.max, numSteps),
-                              vlist=vlist,
-                              sigma=sigma, shift=shift)})
-
-    zeros.by.step = lapply(allsteps, function(numSteps){
-        vlist = filter_vlist(make_all_segment_contrasts(obj, numSteps=numSteps),
-                             locs=locs)
-        sapply(vlist, function(v) sum(v*mn)==0 )     })
     names(pvs.by.step) = names(zeros.by.step) = paste0("step-", allsteps)
-
     return(list(pvs.by.step=pvs.by.step, zeros.by.step=zeros.by.step))
 }
+
