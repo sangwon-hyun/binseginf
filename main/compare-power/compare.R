@@ -12,7 +12,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
                   ## For decluttering
                   how.close=2,
-                  seed.set=FALSE
+                  seed.set=FALSE,
 
                   ##Temporary, for MFL
                   max.numIS.fl=2000
