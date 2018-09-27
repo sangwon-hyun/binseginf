@@ -734,7 +734,7 @@ declutter <- function(coords, coords.sign, how.close = 1){
     coords.sign = unsorted.coords.sign[ord]
 
     ## Define a helper to identify centroid cluster.
-    get.center <- function(members){
+    get_center <- function(members){
         mn = mean(members)
         stay = max(members[members<=mn])
         return(stay)
@@ -790,8 +790,8 @@ declutter <- function(coords, coords.sign, how.close = 1){
     clustered.signs.list[two.sided] = NA
 
     ## Likewise, get centers
-    clustered.members.list = lapply(members.list, get_center)
-    clustered.coords.list = lapply(clustered.members.list, function(members){ coords[members]})
+    clustered.members.list = unlist(lapply(members.list, get_center))
+    clustered.coords.list = unlist(lapply(clustered.members.list, function(members){ coords[members]}))
 
     ## Also prepare uncluttered output
     unclustered.coords.list = lapply(members.list, function(members){coords[members]})
