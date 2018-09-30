@@ -15,12 +15,18 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                   seed.set=FALSE,
 
                   ##Temporary, for MFL
-                  max.numIS.fl=2000
+                  max.numIS.fl=2000,
+                  min.num.things.fl=30
 
                   ){
 
     assert_that(all(type %in% c("bsfs","nbsfs", "mbsfs", "wbsfs","mwbsfs",
-                                "cbsfs","ncbsfs","mcbsfs", "fl","nfl", "mfl","dfl")),
+                                "cbsfs","ncbsfs","mcbsfs", "fl","nfl", "mfl",
+                                "dfl", "dbsfs" ## Temporarily added as separate
+                                               ## things, but should actually be
+                                               ## absorbed into plain inference
+                                               ## eventually.
+                                )),
                 msg="|type| error")
 
     cat("lev=", lev, " and ichunk", ichunk, fill=TRUE)
@@ -60,6 +66,21 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             results$nbsfs_cps = obj$cp * obj$cp.sign 
             }, error=function(err){ print('error occurred during noisy bsfs')})
         }
+
+        ## "D"ecluttered plain BS inference
+        if(any(type=="dbsfs")){tryCatch({
+            obj = bsfs(y, numSteps=max.numSteps)
+            ## poly.max = polyhedra(obj, numSteps=max.numSteps)
+            poly.max = polyhedra(obj, numSteps=max.numSteps, record.nrows=TRUE)
+            res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma,
+                                      locs=locs, declutter=TRUE,
+                                      how.close=how.close)
+            results$dbsfs = res$pvs.by.step
+            results$dbsfs_zero = res$zeros.by.step
+            results$dbsfs_cps = obj$cp * obj$cp.sign 
+
+        }, error=function(err){ print(paste0('error occurred during decluttered bsfs isim=', isim)) })}
+
 
         ## Marginalized noisy BS inference
         if(any(type=="mbsfs")){tryCatch({
@@ -188,7 +209,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                 numSteps = allsteps.marg[ii]
                 obj = fl(y, numSteps=numSteps, sigma.add=sigma.add)
                 obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn,
-                            locs=locs, max.numIS=max.numIS.fl)
+                            locs=locs, max.numIS=max.numIS.fl,
+                            min.num.things=min.num.things.fl)
                 mfl[[ii]] = obj$pvs
                 mfl_zero[[ii]] = (obj$means==0)
             }
@@ -205,9 +227,9 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             res = plain_inf_multistep(obj, allsteps, poly.max, mn, sigma,
                                       locs=locs, declutter=TRUE,
                                       how.close=how.close)
-            results$fl = res$pvs.by.step
-            results$fl_zero = res$zeros.by.step
-            results$fl_cps = obj$cp * obj$cp.sign 
+            results$dfl = res$pvs.by.step
+            results$dfl_zero = res$zeros.by.step
+            results$dfl_cps = obj$cp * obj$cp.sign 
 
         }, error=function(err){ print(paste0('error occurred during decluttered fl isim=', isim)) })}
         
