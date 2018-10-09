@@ -132,6 +132,7 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
                         only.test.nulls=FALSE,
                         verbose=FALSE,
                         vlist=NULL,
+                        mc.cores=1,
                         inference.type=c("pre-multiply","rows")){
 
     ## Basic checks
@@ -183,6 +184,7 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
                                  numIS=10,
                                  inference.type=inference.type,
                                  verbose=verbose,
+                                 mc.cores=mc.cores,
                                  min.num.things=min.num.things)$pv
             if(verbose) cat(fill=TRUE)
             return(pv)
