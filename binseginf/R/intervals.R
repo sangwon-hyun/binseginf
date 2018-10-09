@@ -5,11 +5,12 @@
 ##' @param distance minimum distance between s and e, i.e. e is at least
 ##'     s+distance.
 ##' @param maxlength maximum distance between s and e, i.e. (e-s <= maxlength)
+##' @param precuts precut locations. Defaults to NULL.
 ##' @return creates an all-NA matrix of dimension nrow x 3. The first two
 ##'     columns must be the numeric (no check yet), but the last column can be
 ##'     of any type you want. Initializes to numeric.
 ##' @export
-intervals <- function(numIntervals, n, comprehensive=FALSE, existing=NULL, distance=0, maxlength=n-1) {
+intervals <- function(numIntervals, n, comprehensive=FALSE, existing=NULL, distance=0, maxlength=n-1, precuts=NULL) {
 
     ## Basic checks
     if(!is.null(existing)){
@@ -35,7 +36,8 @@ intervals <- function(numIntervals, n, comprehensive=FALSE, existing=NULL, dista
             y = sample(n, size=numIntervals*fac, replace=TRUE)
             too.close = which(unlist(Map(function(a,b){b-a<=distance}, x, y)))
             too.long = which(unlist(Map(function(a,b){b-a>maxlength}, x, y)))
-            eliminate = c(too.close, too.long)
+            crosses = which.cross.precuts(x, y, precuts) ## new, crossing
+            eliminate = c(too.close, too.long, crosses) ## crosses was added
             x.all = c(x.all, x[-eliminate])
             y.all = c(y.all, y[-eliminate])
             ## If |existing| matrix is supplied, then exclude these from consideration.
@@ -248,4 +250,17 @@ plot.intervals <- function(obj){
     for(ii in 1:numIntervals){
         graphics::lines(x=c(obj$starts[ii], obj$ends[ii]), y = c(ii,ii))
     }
+}
+
+
+##' Function to find which of the intervals (x[ii]:y[ii]) intersect (cross) with
+##' any elements of |precuts|.
+which.cross.precuts <- function(x,y,precuts=NULL){
+    if(is.null(precuts))return(NULL)
+    not.in.cuts = which(unlist(Map(function(a,b){
+        cross = sapply(precuts, function(cut){
+            any(a <= cut & cut < b)
+        })
+        return(any(cross))
+    }, x, y)))
 }

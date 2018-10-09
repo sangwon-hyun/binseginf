@@ -20,23 +20,22 @@ wbsfs <- function(y, numSteps, numIntervals=NULL,
                                   stop.time=numSteps,
                   ic.poly = NULL,
                   sigma.add=NULL,
-                                  v=NULL){
+                  v=NULL,
+                  precuts=NULL){
     inference.type = match.arg(inference.type)
+    n = length(y)
 
     ## Basic checks
-    n = length(y)
-    assert_that(!is.null(numIntervals) | !is.null(intervals),
-                msg="Must provide either |numIntervals| or |intervals|.")
-    if(mimic & is.null(wbs.obj))stop("When mimic=TRUE, provide a wbs object.")
-    if(!mimic & !is.null(wbs.obj))stop("Even though mimic==FALSE, you're providing a wbs object.")
-    if(!is.null(sigma.add)) warning("You provided |sigma.add| but this will not be used.")
+    wbsfs_checks(y, numIntervals, intervals, mimic, wbs.obj, sigma.add)
 
     ## Calculate all cusums for all intervals
     if(is.null(intervals)){
         intervals = intervals(numIntervals=numIntervals, n= n,
-                              comprehensive=comprehensive)
+                              comprehensive=comprehensive,
+                              precuts=precuts)
     }
     intervals = addcusum(intervals=intervals, y=y)
+
 
     ## Make empty array to store selection events
     results = matrix(NA, nrow=numSteps, ncol = 6)
@@ -157,6 +156,7 @@ wbsfs <- function(y, numSteps, numIntervals=NULL,
                           intervals=intervals,
                           numIntervals=intervals$numIntervals,
                           inference.type=inference.type,
+                          precuts=precuts, ## new!
                           y=y), class="wbsfs"))
 }
 
@@ -177,6 +177,7 @@ print.wbsfs <- function(obj){
 is_valid.wbsfs <- function(obj){
     return(all(names(obj) %in% c("results", "gamma", "u", "cp", "cp.sign", "y",
                                  "numSteps", "mimic", "rows.list","intervals",
+                                 "precuts",
                                  "numIntervals", "Gy", "Gv", "info.list","inference.type")))
 }
 
@@ -191,4 +192,12 @@ is_valid.wbsfs <- function(obj){
     return(mylist)
 }
 
+## Basic checks for wbsfs.
+wbsfs_checks <- function(y, numIntervals, intervals, mimic, wbs.obj, sigma.add){
+    assert_that(!is.null(numIntervals) | !is.null(intervals),
+                msg="Must provide either |numIntervals| or |intervals|.")
+    if(mimic & is.null(wbs.obj))stop("When mimic=TRUE, provide a wbs object.")
+    if(!mimic & !is.null(wbs.obj))stop("Even though mimic==FALSE, you're providing a wbs object.")
+    if(!is.null(sigma.add)) warning("You provided |sigma.add| but this will not be used.")
+}
 

@@ -129,6 +129,7 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
 addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
                         declutter=FALSE, mn=NULL, min.num.things = 30, sigma.add=NULL,
                         max.numIS=5000,
+                        only.test.nulls=FALSE,
                         verbose=FALSE,
                         vlist=NULL,
                         inference.type=c("pre-multiply","rows")){
@@ -143,7 +144,7 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
     ## Form the test contrasts
     if(is.null(vlist)){
         vlist <- make_all_segment_contrasts(obj)
-        vlist <- filter_vlist(vlist, locs)
+        vlist <- filter_vlist(vlist, locs, only.test.nulls, mn)
         if(length(vlist)==0) return(list())
     }
 
@@ -325,6 +326,7 @@ addpv.fl <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                                     ic.poly=obj$ic_poly,
                                     inference.type=inference.type,
                                     max.numIS=max.numIS,
+                                    verbose=TRUE,## temporary
                                     min.num.things=min.num.things)$pv
         })
     } else {

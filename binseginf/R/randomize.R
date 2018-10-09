@@ -289,18 +289,20 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
     stopifnot(n==length(winning.wbs.obj$y))
     winning_se = rbind(winning.wbs.obj$results[1:stop.time, c("max.s", "max.e")])
     colnames(winning_se) = c("s", "e")
-    intervals.new = intervals(numIntervals=numIntervals-stop.time, n=n, existing=winning_se)
+    intervals.new = intervals(numIntervals=numIntervals-stop.time, n=n, existing=winning_se,
+                              precuts=winning.wbs.obj$precuts ## New addition!
+                              )
     intervals.new = add2(intervals=intervals.new,
                          winning.wbs.obj=winning.wbs.obj,
                          stop.time=stop.time)
 
     ## Create new halfspaces (through |mimic| option)
     if(inference.type=="rows"){
-        g.new = wbsfs(y=winning.wbs.obj$y, numSteps= numSteps,
-                                      intervals= intervals.new, mimic=TRUE,
-                                      wbs.obj=winning.wbs.obj,
-                                      inference.type=inference.type)
-        poly.new = polyhedra(obj=g.new$gamma, u=g.new$u)
+        obj.new = wbsfs(y=winning.wbs.obj$y, numSteps= numSteps,
+                        intervals= intervals.new, mimic=TRUE,
+                        wbs.obj=winning.wbs.obj,
+                        inference.type=inference.type)
+        poly.new = polyhedra(obj=obj.new$gamma, u=obj.new$u)
 
         ## Partition TG to denom and numer
         pvobj = partition_TG(y=winning.wbs.obj$y, poly.new, v=v, sigma=sigma,
@@ -311,7 +313,7 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
 
 
     } else {
-        g.new = wbsfs(y=winning.wbs.obj$y, numSteps= numSteps,
+        obj.new = wbsfs(y=winning.wbs.obj$y, numSteps= numSteps,
                       intervals= intervals.new, mimic=TRUE,
                       wbs.obj=winning.wbs.obj,
                       cumsum.y=cumsum.y,
@@ -320,8 +322,8 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
                       stop.time=stop.time,
                       ic.poly=ic.poly,
                       v=v)
-        pvobj = poly_pval_from_inner_products(Gy=g.new$Gy, Gv=g.new$Gv, v=v,
-                                              y=g.new$y, sigma=sigma, u=g.new$u,
+        pvobj = poly_pval_from_inner_products(Gy=obj.new$Gy, Gv=obj.new$Gv, v=v,
+                                              y=obj.new$y, sigma=sigma, u=obj.new$u,
                                               bits=bits, warn=warn)
 
         pv = pvobj$pv

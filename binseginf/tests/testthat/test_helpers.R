@@ -107,3 +107,34 @@ test_that("get_piecewise_mean() function works properly.", {
     pwmean = get_piecewise_mean(rnorm(n), cp)
     expect_equal(get_cp_from_piecewise_mean(pwmean), cp)
 })
+
+
+
+test_that("which.cross.precuts() function works properly.", {
+
+    ## Test case
+    n = 10
+    nsim = 10
+    for(isim in 1:nsim){
+        set.seed(isim)
+        print(isim)
+        precuts = sample(1:n, size=3)##c(2,4)
+        x = sample(n, 10, replace=TRUE)
+        y = sample(n, 10, replace=TRUE)
+        ii = which(y>x)
+        if(length(ii)>0){
+            x = x[ii]
+            y = y[ii]
+        
+            ## Run the function
+            jj = which.cross.precuts(x,y,precuts)
+        
+            for(cut in precuts){
+                expect_false(any(cbind(x[-jj] =< cut & cut < y[-jj])))
+            }
+        }
+    }
+
+    ## Check default behavior, when precuts==NULL
+    expect_equal(length(which.cross.precuts(x,y,NULL)),0)
+})
