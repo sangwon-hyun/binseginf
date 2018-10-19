@@ -26,7 +26,8 @@ if(Type == "plain"){
     type = c("bsfs", "nbsfs",
              "wbsfs",
              "cbsfs","ncbsfs",
-             "fl", "nfl")
+             "fl", "nfl",
+             "dfl", "dbsfs")
 } else {
     type = Type
 }
@@ -36,7 +37,8 @@ ii.list = (1:length(levs))
 
 ## Number of steps to take
 max.numSteps =  6
-allsteps.marg = 2
+## allsteps.marg = 2
+allsteps.marg = 2:3
 
 ## Some other configurations
 max.numIS.fl = 5000

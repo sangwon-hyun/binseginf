@@ -16,17 +16,19 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
                   ##Temporary, for MFL
                   max.numIS.fl=2000,
-                  min.num.things.fl=30
+                  min.num.things.fl=30,
 
+                  ## multicore option
+                  mc.preschedule=TRUE
                   ){
 
     assert_that(all(type %in% c("bsfs","nbsfs", "mbsfs", "wbsfs","mwbsfs",
                                 "cbsfs","ncbsfs","mcbsfs", "fl","nfl", "mfl",
-                                "dfl", "dbsfs" ## Temporarily added as separate
-                                               ## things, but should actually be
-                                               ## absorbed into plain inference
-                                               ## eventually.
-                                )),
+                                "dfl", "dbsfs", ## Temporarily added as separate
+                                ## things, but should actually be
+                                ## absorbed into plain inference
+                                ## eventually.
+                                "mdfl", "mdbsfs")),
                 msg="|type| error")
 
     cat("lev=", lev, " and ichunk", ichunk, fill=TRUE)
@@ -81,6 +83,26 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
         }, error=function(err){ print(paste0('error occurred during decluttered bsfs isim=', isim)) })}
 
+        if(any(type=="mdbsfs")){tryCatch({
+            mdbsfs = mdbsfs_zero = vector("list", length(allsteps.marg))
+            names(mdbsfs) = names(mdbsfs_zero) = paste0("step-",allsteps.marg)
+            for(ii in 1:length(allsteps.marg)){
+                numSteps = allsteps.marg[ii]
+                obj = bsfs(y, numSteps=numSteps, sigma.add=sigma.add,
+                           y.addnoise=y.addnoise)
+                obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn,
+                            locs=locs, declutter=TRUE)
+                mdbsfs[[ii]] = obj$pvs
+                mdbsfs_zero[[ii]] = (obj$means==0)
+            }
+            results$mdbsfs = mdbsfs
+            results$mdbsfs_zero = mdbsfs_zero
+            results$mdbsfs_cps = obj$cp * obj$cp.sign 
+        }, error=function(err){ print('error occurred during noisy mdbsfs')})
+        }
+       
+ 
+
 
         ## Marginalized noisy BS inference
         if(any(type=="mbsfs")){tryCatch({
@@ -132,8 +154,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
         
         ## Plain CBS inference (Non-marginalized)
         if(any(type=="cbsfs")){tryCatch({
-            obj = cbsfs(y, numSteps=max.numSteps/2)
-            poly.max = polyhedra(obj, numSteps=max.numSteps/2, record.nrows=TRUE)
+            obj = cbsfs(y, numSteps=max(allsteps.cbs))
+            poly.max = polyhedra(obj, numSteps=max(allsteps.cbs), record.nrows=TRUE)
             res = plain_inf_multistep(obj, allsteps.cbs, poly.max, mn, sigma, locs=locs)
             results$cbsfs = res$pvs.by.step
             results$cbsfs_zero = res$zeros.by.step
@@ -142,10 +164,10 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
         ## Noisy CBS inference
         if(any(type=="ncbsfs")){tryCatch({
-            obj = cbsfs(y=y, y.addnoise=y.addnoise, numSteps=max.numSteps/2,
+            obj = cbsfs(y=y, y.addnoise=y.addnoise, numSteps=max(allsteps.cbs),
                         sigma.add=sigma.add)
 
-            poly.max = polyhedra(obj, numSteps=max.numSteps/2, record.nrows=TRUE)
+            poly.max = polyhedra(obj, numSteps=max(allsteps.cbs), record.nrows=TRUE)
             res = plain_inf_multistep(obj, allsteps.cbs, poly.max, mn, sigma,
                                       shift=y.addnoise, locs=locs)
             results$ncbsfs = res$pvs.by.step
@@ -220,6 +242,25 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
         }, error=function(err){ print(paste0('error occurred during noisy fl isim=', isim)) })}
 
+        ## Marginalized noisy decluttered FL inference
+        if(any(type=="mdfl")){tryCatch({
+            mdfl = mdfl_zero = vector("list", length(allsteps.marg))
+            names(mdfl) = names(mdfl_zero) = paste0("step-",allsteps.marg)
+            for(ii in 1:length(allsteps.marg)){
+                numSteps = allsteps.marg[ii]
+                obj = fl(y, numSteps=numSteps, sigma.add=sigma.add)
+                obj = addpv(obj, sigma=sigma, sigma.add=sigma.add, type="addnoise", mn=mn,
+                            locs=locs, max.numIS=max.numIS.fl, declutter=TRUE,
+                            min.num.things=min.num.things.fl)
+                mdfl[[ii]] = obj$pvs
+                mdfl_zero[[ii]] = (obj$means==0)
+            }
+            results$mdfl = mdfl
+            results$mdfl_zero = mdfl_zero
+            results$mdfl_cps = obj$cp * obj$cp.sign 
+
+        }, error=function(err){ print(paste0('error occurred during noisy fl isim=', isim)) })}
+
         ## "D"ecluttered plain FL inference
         if(any(type=="dfl")){tryCatch({
             obj = fl(y, numSteps=max.numSteps)
@@ -238,7 +279,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
     ## Run the actual simulations.
     start.time = Sys.time()
-    results.list = Mclapply(nsim, onesim, mc.cores, Sys.time())
+    results.list = Mclapply(nsim, onesim, mc.cores, Sys.time(), mc.preschedule=mc.preschedule)
 
     ## Save results
     ## if(is.null(filename)){ filename = paste0("compare-power-lev-",
