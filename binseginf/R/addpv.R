@@ -76,7 +76,7 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
             poly.nonfudged = polyhedra(obj, y=obj$y)
             ## Experimental bootstrap substitution (v2) feature
             if(v2){
-                cv.obj = bsfs(y, numSteps=cv.bsfs(obj$y, 10))
+                cv.obj = bsfs(y, numSteps=cv.bsfs(y=obj$y, max.numSteps=10)$k)
                 adjustmean = get_piecewise_mean(obj$y, sort(abs(cv.obj$cp)))
             } else {
                 adjustmean = mean(y)
@@ -100,7 +100,8 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                                     min.num.things=min.num.things,
                                     verbose=verbose,
                                     inference.type="rows")$pv})
-            if(verbose) cat(fill=TRUE)
+        names(pvs) = names(vlist)
+        if(verbose) cat(fill=TRUE)
     } else {
         stop("|type| argument is wrong!")
     }
@@ -129,6 +130,7 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
 addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
                         declutter=FALSE, mn=NULL, min.num.things = 30, sigma.add=NULL,
                         max.numIS=5000,
+                        numIS.base=10,
                         only.test.nulls=FALSE,
                         verbose=FALSE,
                         vlist=NULL,
@@ -181,7 +183,7 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
                                  cumsum.y=cumsum(obj$y),
                                  cumsum.v=cumsum(v), bits=2000,
                                  max.numIS=max.numIS,
-                                 numIS=10,
+                                 numIS=numIS.base,
                                  inference.type=inference.type,
                                  verbose=verbose,
                                  mc.cores=mc.cores,

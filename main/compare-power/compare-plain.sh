@@ -1,5 +1,0 @@
-#!/bin/bash
-# A bash script to run all plain inferences.
-
-# Rscript ../main/compare-power/compare-run.R bsfs nbsfs wbsfs cbsfs ncbsfs fl nfl
-Rscript ../main/compare-power/compare-run.R plain

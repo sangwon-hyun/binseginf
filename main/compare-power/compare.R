@@ -270,6 +270,9 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                                       how.close=how.close)
             results$dfl = res$pvs.by.step
             results$dfl_zero = res$zeros.by.step
+            ## cp.sign = obj$cp.sign 
+            ## if(any(is.na(cp.sign))cp.sign[which(is.na(cp.sign))]=1
+            ##    ## Need to store two-sidedness.
             results$dfl_cps = obj$cp * obj$cp.sign 
 
         }, error=function(err){ print(paste0('error occurred during decluttered fl isim=', isim)) })}

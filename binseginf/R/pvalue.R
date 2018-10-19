@@ -222,7 +222,9 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL,
     pv = tnorm.surv(z,0,sd,vlo,vup,bits)
     if(vlo < vup){ flag="go" } else { flag="vlo-vup-reversed" }
     
-    return(list(pv=pv,vlo=vlo,vup=vup, flag=flag))
+    return(list(pv=pv,vlo=vlo,vup=vup, flag=flag,
+                z=z##temporary
+                ))
 }
 
 
@@ -301,11 +303,21 @@ poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v
 }
 
 
-##' If a list of contrast vectors are supplied, use this.
+##' If a list of contrast vectors are supplied, use this. (large sample size)
 poly_pval_bootsub_large_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=mean(y)){
     if(!is.null(vlist)){
         pvs = sapply(vlist, function(v){
             poly_pval_bootsub_large(y, G, v, nboot, sigma, adjustmean)
+        })
+    }
+}
+
+##' If a list of contrast vectors are supplied, use this!
+poly_pval_bootsub_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=mean(y)){
+    if(!is.null(vlist)){
+        pvs = sapply(vlist, function(v){
+            poly_pval_bootsub(y=y, G=G, v=v, nboot=nboot, sigma=sigma,
+                              adjustmean=adjustmean)
         })
     }
 }
@@ -451,7 +463,7 @@ poly_pval_from_inner_products <- function(Gy, Gv, v,y,sigma,u,bits=1000, warn=TR
 ztest <- function(y, v, sigma=1){
     sigma.v = sigma * sqrt(sum(v * v))
     vty = sum(v * y)
-    pv = 1 - pnorm(vty, mean=0, sd = sigma.v)
+    pv = 1 - Rmpfr::pnorm(vty, mean=0, sd = sigma.v)
     return(pv)
 }
 
