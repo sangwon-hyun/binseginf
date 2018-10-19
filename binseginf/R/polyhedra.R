@@ -99,11 +99,10 @@ contained.polyhedra <- function(obj, y){
 }
 
 ##' Make empty polyhedra object
-make_empty <- function(obj,...)
-make_empty.polyhedra <- function(n){
-            poly.max = polyhedra(obj, numSteps=max.numSteps)
-    emptyrow = rbind(rep(NA,n))[-1,,drop=FALSE]
-    return(polyhedra(obj=emptyrow, u=c()))
+## make_empty <- function(obj,...)
+make_empty_polyhedra <- function(n){
+            emptyrow = rbind(rep(NA,n))[-1,,drop=FALSE]
+            return(polyhedra(obj=emptyrow, u=c()))
 }
 
 

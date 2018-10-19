@@ -1,6 +1,6 @@
 ## Synopsis: [For the new signal] Script to run the entire set of
 ## experiments. Run by ``Rscript ../main/compare-power/compare-run.R 1 2 3'',
-## from the directory binseginf/binseginf
+## from the directory "binseginf/binseginf". This run the middle mutation.
 
 ## Setting
 ## library(binseginf)
@@ -27,7 +27,8 @@ if(Type == "plain"){
              "wbsfs",
              "cbsfs","ncbsfs",
              "fl", "nfl",
-             "dfl", "dbsfs")
+             "dfl", "dbsfs",
+             "ibsfs")
 } else {
     type = Type
 }
@@ -37,6 +38,7 @@ ii.list = (1:length(levs))
 
 ## Number of steps to take
 max.numSteps =  6
+max.numSteps.ic =  10
 ## allsteps.marg = 2
 allsteps.marg = 2:3
 
@@ -79,6 +81,7 @@ for(ii in ii.list){
               ## Things that have changed in the new signal
               meanfun=middle_mutation, 
               max.numSteps=max.numSteps,
+              max.numSteps.ic=max.numSteps.ic,
               allsteps=2:max.numSteps,
               allsteps.cbs=1:(max.numSteps/2), ## CBS should take half as many steps!
               allsteps.marg=allsteps.marg,

@@ -113,7 +113,7 @@ get_ic <- function(cp, y, sigma, consec=2, maxsteps=length(cp), type="bic", verb
         }
         poly = polyhedra(obj = trim(newrows), u = trim(newu))
     } else {
-        poly = make_empty.polyhedra()
+        poly = make_empty_polyhedra()
     }
 
     return(structure(list(ic=ic, consec=consec, resid=resid, pen=pen, RSS=RSS,

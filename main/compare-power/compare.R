@@ -5,6 +5,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
                   ## Additional settings
                   max.numSteps = 10,
+                  max.numSteps.ic = 10,
                   allsteps=2:max.numSteps,
                   allsteps.cbs=1:(max.numSteps/2), ## CBS should take half as many steps!
                   allsteps.marg=4,
@@ -28,6 +29,7 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                                 ## things, but should actually be
                                 ## absorbed into plain inference
                                 ## eventually.
+                                "ibsfs",
                                 "mdfl", "mdbsfs")),
                 msg="|type| error")
 
@@ -83,6 +85,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
 
         }, error=function(err){ print(paste0('error occurred during decluttered bsfs isim=', isim)) })}
 
+
+        ## Marginalized decluttered BS inference
         if(any(type=="mdbsfs")){tryCatch({
             mdbsfs = mdbsfs_zero = vector("list", length(allsteps.marg))
             names(mdbsfs) = names(mdbsfs_zero) = paste0("step-",allsteps.marg)
@@ -122,6 +126,37 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             results$mbsfs_cps = obj$cp * obj$cp.sign 
         }, error=function(err){ print('error occurred during noisy mbsfs')})
         }
+
+
+        ## IC-infused BS inference
+        if(any(type=="ibsfs")){tryCatch({
+
+            ## Add IC stopping
+            obj = bsfs(y, numSteps=max.numSteps.ic)
+            icobj = get_ic(obj$cp, y, sigma, consec=2, maxsteps=length(obj$cp), type="bic")
+            numSteps = icobj$stoptime
+            if(icobj$flag=="didnt.stop"){
+                ## How to handle this.
+                results$bsfs = c() 
+                results$bsfs_zero = c()
+                results$bsfs_cps = c() 
+            } else {
+
+            ## Can we do IC stopping on random data?
+            ## Draw random noise, infuse it
+            ## Do IC stopping there
+            ## Then, do a k-step test on that same data
+            ## But then, 
+            
+            ## IC stopping
+            obj = bsfs(y, numSteps=numSteps)
+            poly.max = polyhedra(obj, numSteps=numSteps, record.nrows=TRUE)
+            res = plain_inf_multistep(obj, numSteps, poly.max, mn, sigma, locs=locs)
+            results$ibsfs = res$pvs.by.step
+            results$ibsfs_zero = res$zeros.by.step
+            results$ibsfs_cps = obj$cp * obj$cp.sign 
+            }
+        })}
        
  
         ## Plain (noisy) WBS inference
