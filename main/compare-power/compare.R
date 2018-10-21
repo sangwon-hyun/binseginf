@@ -135,26 +135,25 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
             obj = bsfs(y, numSteps=max.numSteps.ic)
             icobj = get_ic(obj$cp, y, sigma, consec=2, maxsteps=length(obj$cp), type="bic")
             numSteps = icobj$stoptime
-            if(icobj$flag=="didnt.stop"){
+            if(icobj$flag %in% c("didnt.stop", "zero.stop")){
                 ## How to handle this.
                 results$bsfs = c() 
                 results$bsfs_zero = c()
                 results$bsfs_cps = c() 
             } else {
-
-            ## Can we do IC stopping on random data?
-            ## Draw random noise, infuse it
-            ## Do IC stopping there
-            ## Then, do a k-step test on that same data
-            ## But then, 
-            
-            ## IC stopping
-            obj = bsfs(y, numSteps=numSteps)
-            poly.max = polyhedra(obj, numSteps=numSteps, record.nrows=TRUE)
-            res = plain_inf_multistep(obj, numSteps, poly.max, mn, sigma, locs=locs)
-            results$ibsfs = res$pvs.by.step
-            results$ibsfs_zero = res$zeros.by.step
-            results$ibsfs_cps = obj$cp * obj$cp.sign 
+                ## Can we do IC stopping on random data?
+                ## Draw random noise, infuse it
+                ## Do IC stopping there
+                ## Then, do a k-step test on that same data
+                ## But then, 
+                
+                ## IC stopping
+                obj = bsfs(y, numSteps=numSteps)
+                poly.max = polyhedra(obj, numSteps=numSteps, record.nrows=TRUE)
+                res = plain_inf_multistep(obj, numSteps, poly.max, mn, sigma, locs=locs)
+                results$ibsfs = res$pvs.by.step
+                results$ibsfs_zero = res$zeros.by.step
+                results$ibsfs_cps = obj$cp * obj$cp.sign 
             }
         })}
        

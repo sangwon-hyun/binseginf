@@ -26,8 +26,7 @@ if(Type == "plain"){
     type = c("bsfs", "nbsfs",
              "wbsfs",
              "cbsfs","ncbsfs",
-             "fl", "nfl",
-             "ibsfs")
+             "fl", "nfl")
 } else {
     type = Type
 }
