@@ -27,8 +27,7 @@ if(Type == "plain"){
              "wbsfs",
              "cbsfs","ncbsfs",
              "fl", "nfl",
-             "dfl", "dbsfs",
-             "ibsfs")
+             "dfl", "dbsfs")
 } else {
     type = Type
 }
