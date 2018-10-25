@@ -200,8 +200,10 @@ ff <- function(z) {
 ##' @return List of vup, vlo and pv.
 ##' @export
 poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL,
-                       shift=NULL) {
+                       shift=NULL, ic.poly=NULL) {
 
+    ## Combine polyhedra if necessary.
+    if(!is.null(ic.poly)) poly = combine.polyhedra(poly, ic.poly)
 
     ## Shift polyhedron by a constant \R^n shift if needed
     if(!is.null(shift)){
@@ -239,10 +241,10 @@ poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL,
 ##'     for methods from the Rmpfr package.
 ##' @return vector of p-values. \code{Inf} are the ones that were not calculated
 ##' @export
-poly_pval2_from_vlist <- function(y, poly, vlist, sigma, shift=NULL, bits=5000){
+poly_pval2_from_vlist <- function(y, poly, vlist, sigma, shift=NULL, bits=5000, ic.poly=NULL){
     if(!is.null(vlist)){
         pvs = sapply(vlist, function(v){
-            return(poly.pval2(y, poly, v, sigma, shift=shift, bits=bits)$pv)
+            return(poly.pval2(y, poly, v, sigma, shift=shift, bits=bits,ic.poly=ic.poly)$pv)
         })
     } else {
         return(c())

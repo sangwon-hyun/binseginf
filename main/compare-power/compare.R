@@ -141,16 +141,11 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
                 results$bsfs_zero = c()
                 results$bsfs_cps = c() 
             } else {
-                ## Can we do IC stopping on random data?
-                ## Draw random noise, infuse it
-                ## Do IC stopping there
-                ## Then, do a k-step test on that same data
-                ## But then, 
-                
                 ## IC stopping
                 obj = bsfs(y, numSteps=numSteps)
                 poly.max = polyhedra(obj, numSteps=numSteps, record.nrows=TRUE)
-                res = plain_inf_multistep(obj, numSteps, poly.max, mn, sigma, locs=locs)
+                res = plain_inf_multistep(obj, numSteps, poly.max, mn, sigma,
+                                          locs=locs, ic.poly=icobj$poly)
                 results$ibsfs = res$pvs.by.step
                 results$ibsfs_zero = res$zeros.by.step
                 results$ibsfs_cps = obj$cp * obj$cp.sign 
@@ -322,6 +317,8 @@ dosim <- function(lev, ichunk, nsim, n=200, meanfun=fourjump, mc.cores=1,
     ## if(is.null(filename)){ filename = paste0("compare-power-lev-",
     ##                                          myfractions(lev), "-ichunk-",
     ##                                          ichunk, "-multistep-plain.Rdata")}
+
+    print(file.path(outputdir, filename))
     save(results.list, file=file.path(outputdir, filename))
 }
         
@@ -334,7 +331,8 @@ convert_pv_to_two_sided_test <- function(pv){
 ##' (plain saturated p-values, zero-ness of mean) for all steps in |allsteps|.
 ##' @param allsteps All algorithm steps to test.
 plain_inf_multistep <- function(obj, allsteps, poly.max, mn, sigma, shift=NULL,
-                                locs=1:length(mn), declutter=FALSE, how.close=2){
+                                locs=1:length(mn), declutter=FALSE, how.close=2,
+                                ic.poly=NULL){
     pvs.by.step = zeros.by.step = list()
     for(istep in 1:length(allsteps)){
         numSteps = allsteps[istep]
@@ -362,7 +360,8 @@ plain_inf_multistep <- function(obj, allsteps, poly.max, mn, sigma, shift=NULL,
         ## Store inference results
         pvs = poly_pval2_from_vlist(y=obj$y.orig,
                                     poly=snapshot(poly.max, numSteps),
-                                    vlist=vlist, sigma=sigma, shift=shift)
+                                    vlist=vlist, sigma=sigma, shift=shift,
+                                    ic.poly=ic.poly)
         if(declutter){
             if(length(which.two.sided)>0){
                 pvs[which.two.sided] = sapply(pvs[which.two.sided], convert_pv_to_two_sided_test)
