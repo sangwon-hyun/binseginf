@@ -316,6 +316,7 @@ dosim <- function(nsim, lev, n=10, mc.cores=4, l=1, verbose=TRUE, sigma.add=0.2)
             if(length(pv)==0) next
             pvs.tz[ii] = pv
         }
+        names(pvs.tz) = names(vlist.orig)
         ## pvs.mat = rbind(pvs.orig, pvs.new)
         ## names(pvs.mat) = out$cp * out$cp.sign
         ## names(pvs.rand.orig) = out.noisy$cp * out.noisy$cp.sign
