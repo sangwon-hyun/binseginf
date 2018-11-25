@@ -283,22 +283,19 @@ dosim <- function(nsim, lev, n=10, mc.cores=4, l=1, verbose=TRUE, sigma.add=0.2)
         mn = onejump(lev, n)
         y = mn + rnorm(n)
         out = bsfs(y, 2)
-        out.noisy = bsfs(y, 2, sigma.add=sigma.add)
+        out.noisy = bsfs(y, 2, sigma.add=.5)
     
         ## Original contrasts
         vlist.orig = Map(function(cp,cp.sign){
             spike_contrast(n, cp, cp.sign, l=l)
         }, out$cp, out$cp.sign)
-        names(vlist.orig) = out$cp * out$cp.sign
 
         vlist.noisy = Map(function(cp,cp.sign){
             spike_contrast(n, cp, cp.sign, l=l)
         }, out.noisy$cp, out.noisy$cp.sign)
-        names(vlist.noisy) = out.noisy$cp * out.noisy$cp.sign
         
         ## Calculate TG p-values
         pvs.tg = addpv(out, sigma=1, vlist=vlist.orig)$pvs
-        names(pvs.tg) = 
         ## if(verbose) print("orig done")
         pvs.rand.tg = addpv(out.noisy, sigma=1, type="addnoise", sigma.add=sigma.add, vlist=vlist.noisy)$pvs
         ## if(verbose) print("rand done")
