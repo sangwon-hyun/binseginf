@@ -298,10 +298,7 @@ dosim <- function(nsim, lev, n=10, mc.cores=4, l=1, verbose=TRUE, sigma.add=0.2)
         
         ## Calculate TG p-values
         pvs.tg = addpv(out, sigma=1, vlist=vlist.orig)$pvs
-        names(pvs.tg) = 
-        ## if(verbose) print("orig done")
         pvs.rand.tg = addpv(out.noisy, sigma=1, type="addnoise", sigma.add=sigma.add, vlist=vlist.noisy)$pvs
-        ## if(verbose) print("rand done")
     
         ## Calculate TZ p-values
         pvs.tz = c()
