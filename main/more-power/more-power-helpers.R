@@ -301,6 +301,7 @@ dosim <- function(nsim, lev, n=10, mc.cores=4, l=1, verbose=TRUE, sigma.add=0.2)
         pvs.tg = addpv(out, sigma=1, vlist=vlist.orig)$pvs
         pvs.rand.tg = addpv(out.noisy, sigma=1, type="addnoise", sigma.add=sigma.add, vlist=vlist.noisy)$pvs
         pvs.tg.segment = addpv(out, sigma=1)$pvs
+        pvs.rand.tg.segment = addpv(out, sigma=1, type="addnoise", sigma.add=sigma.add)$pvs
     
         ## Calculate TZ p-values
         pvs.tz = c()
@@ -320,7 +321,7 @@ dosim <- function(nsim, lev, n=10, mc.cores=4, l=1, verbose=TRUE, sigma.add=0.2)
         ## names(pvs.mat) = out$cp * out$cp.sign
         ## names(pvs.rand.orig) = out.noisy$cp * out.noisy$cp.sign
         ## return(list(orig=pvs.orig, orig.rand=pvs.rand.orig, new=pvs.new))
-        return(list(tg=pvs.tg, tg.rand=pvs.rand.tg, tz=pvs.tz, tg.segment=pvs.tg.segment))
+        return(list(tg=pvs.tg, tg.rand=pvs.rand.tg, tz=pvs.tz, tg.segment=pvs.tg.segment, tg.rand.segment=pvs.rand.tg.segment))
         ## return(pvs.mat)
     }, mc.cores=mc.cores)
     return(pvs.list)
