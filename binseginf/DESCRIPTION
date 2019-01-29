@@ -19,7 +19,8 @@ Imports:
     glmgen,
     Matrix,
     pryr,
-    parallel
+    parallel,
+    assertthat
 Suggests:
     testthat
 RoxygenNote: 6.1.1
