@@ -2,7 +2,7 @@
 % Please edit documentation in R/pvalue.R
 \name{ztest}
 \alias{ztest}
-\title{One-sided z-test regarding $v^T\mu$, using $v^Ty$.}
+\title{One-sided z-test regarding $v^Tmu$, using $v^Ty$.}
 \usage{
 ztest(y, v, sigma = 1)
 }
@@ -14,5 +14,5 @@ ztest(y, v, sigma = 1)
 \item{sigma}{noise standard deviation}
 }
 \description{
-One-sided z-test regarding $v^T\mu$, using $v^Ty$.
+One-sided z-test regarding $v^Tmu$, using $v^Ty$.
 }

@@ -85,7 +85,7 @@ pvalue <- function(y, polyhedra, contrast, sigma = 1, null_mean = 0,
 
 
 
-##' Temporarily added from selectiveInference package.
+##' Added from selectiveInference package.
 ##' @export
 poly.pval <- function(y, G, u, v, sigma, bits=NULL) {
   z = sum(v*y)
@@ -102,58 +102,63 @@ poly.pval <- function(y, G, u, v, sigma, bits=NULL) {
 }
 
 
-##' Temporarily added from selectiveInference package.
-tnorm.surv <- function(z, mean, sd, a, b, bits=NULL, correct.ends=TRUE) {
+##' Added from selectiveInference package.
+tnorm.surv <- function(z, mean, sd, a, b, bits=NULL){
 
-    if(correct.ends) z = max(min(z,b),a)
+    z = max(min(z,b),a)
 
-  # Check silly boundary cases
-  p = numeric(length(mean))
-  p[mean==-Inf] = 0
-  p[mean==Inf] = 1
-
-  # Try the multi precision floating point calculation first
-  o = is.finite(mean)
-  mm = mean[o]
-  pp = mpfr.tnorm.surv(z,mm,sd,a,b,bits)
-
-  # If there are any NAs, then settle for an approximation
-  oo = is.na(pp)
-  ## if(any(oo))browser()
-  if (any(oo)) pp[oo] = bryc.tnorm.surv(z,mm[oo],sd,a,b)
-
-  p[o] = pp
-  return(p)
+    # Check silly boundary cases
+    p = numeric(length(mean))
+    p[mean==-Inf] = 0
+    p[mean==Inf] = 1
+  
+    # Try the multi precision floating point calculation first
+    o = is.finite(mean)
+    mm = mean[o]
+    pp = mpfr.tnorm.surv(z,mm,sd,a,b,bits)
+  
+    # If there are any NAs, then settle for an approximation
+    oo = is.na(pp)
+    ## if(any(oo))browser()
+    if (any(oo)) pp[oo] = bryc.tnorm.surv(z,mm[oo],sd,a,b)
+  
+    p[o] = pp
+    return(p)
 }
+
 
 
 ##' Temporarily added from selectiveInference package.
 ##' Returns Prob(Z>z | Z in [a,b]), where mean can be a vector, using
 ##' multi precision floating point calculations thanks to the Rmpfr package
 mpfr.tnorm.surv <- function(z, mean=0, sd=1, a, b, bits=NULL) {
-  # If bits is not NULL, then we are supposed to be using Rmpf
-  # (note that this was fail if Rmpfr is not installed; but
-  # by the time this function is being executed, this should
-  # have been properly checked at a higher level; and if Rmpfr
-  # is not installed, bits would have been previously set to NULL)
-  if (!is.null(bits)) {
-    z = Rmpfr::mpfr((z-mean)/sd, precBits=bits)
-    a = Rmpfr::mpfr((a-mean)/sd, precBits=bits)
-    b = Rmpfr::mpfr((b-mean)/sd, precBits=bits)
-    return(as.numeric((Rmpfr::pnorm(b)-Rmpfr::pnorm(z))/
-                      (Rmpfr::pnorm(b)-Rmpfr::pnorm(a))))
-  }
+    # If bits is not NULL, then we are supposed to be using Rmpf
+    # (note that this was fail if Rmpfr is not installed; but
+    # by the time this function is being executed, this should
+    # have been properly checked at a higher level; and if Rmpfr
+    # is not installed, bits would have been previously set to NULL)
+    if (!is.null(bits)) {
+      z = Rmpfr::mpfr((z-mean)/sd, precBits=bits)
+      a = Rmpfr::mpfr((a-mean)/sd, precBits=bits)
+      b = Rmpfr::mpfr((b-mean)/sd, precBits=bits)
+      return(as.numeric((Rmpfr::pnorm(b)-Rmpfr::pnorm(z))/
+                        (Rmpfr::pnorm(b)-Rmpfr::pnorm(a))))
+    }
 
-  # Else, just use standard floating point calculations
-  z = (z-mean)/sd
-  a = (a-mean)/sd
-  b = (b-mean)/sd
-  return((stats::pnorm(b)-stats::pnorm(z))/(stats::pnorm(b)-stats::pnorm(a)))
+    # Else, just use standard floating point calculations
+    z = (z-mean)/sd
+    a = (a-mean)/sd
+    b = (b-mean)/sd
+    numer = (stats::pnorm(b)-stats::pnorm(z))
+    denom = (stats::pnorm(b)-stats::pnorm(a))
+    pv = numer/denom
+    return(pv)
 }
 
 
 
-
+##' A numerical approximation, to be used as a substitute for
+##' \code{mpfr.tnorm.surv()}.
 bryc.tnorm.surv <- function(z, mean=0, sd=1, a, b) {
   z = (z-mean)/sd
   a = (a-mean)/sd
@@ -194,54 +199,55 @@ ff <- function(z) {
 ##'
 ##' @return List of vup, vlo and pv.
 ##' @export
-poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL, reduce=FALSE, correct.ends=FALSE) {
+poly.pval2 <- function(y, poly=NULL, v, sigma, vup=NULL, vlo=NULL, bits=NULL,
+                       shift=NULL, ic.poly=NULL) {
+
+    ## Combine polyhedra if necessary.
+    if(!is.null(ic.poly)) poly = combine.polyhedra(poly, ic.poly)
+
+    ## Shift polyhedron by a constant \R^n shift if needed
+    if(!is.null(shift)){
+        stopifnot(length(shift)==length(y))
+        poly$u = poly$u - poly$gamma%*%shift
+    }
 
     z = sum(v*y)
     vv = sum(v^2)
     sd = sigma*sqrt(vv)
-
-    ## If vup&vlo are both present in poly, simply calculate and return the pv
-    poly.vup.vlo.are.present = (!is.null(poly$vup) & !is.null(poly$vlo))
-    vup.vlo.are.present = (!is.null(vup) & !is.null(vlo))
-    if(poly.vup.vlo.are.present & vup.vlo.are.present){
-        stop("Don't provide vup and vlo in both polyhedron and as plain arguments!!'")
-    }
-    if(poly.vup.vlo.are.present | vup.vlo.are.present){
-        if(poly.vup.vlo.are.present){
-            vlo = poly$vlo
-            vup = poly$vup
-        }
-        pv = tnorm.surv(z,0,sd,vlo,vup,bits, correct.ends=correct.ends)
-
-    } else {
-        if(!reduce){
-            G = poly$gamma
-            u = poly$u
-            Gv = G %*% v
-            Gv[which(abs(Gv)<1E-15)] = 0
-            rho = Gv / vv
-            vec = (u - G %*% y + rho*z) / rho
-            vlo = suppressWarnings(max(vec[rho>0]))
-            vup = suppressWarnings(min(vec[rho<0]))
-            pv = tnorm.surv(z,0,sd,vlo,vup,bits, correct.ends=correct.ends)
-        } else {
-            ## if(is.null(vlo) | is.null(vup))stop("provide vup&vlo!")
-            ## pv = tnorm.surv(z,0,sd,poly$vlo,poly$vup,bits, correct.ends=correct.ends)
-            pv = tnorm.surv(z,0,sd,vlo,vup,bits, correct.ends=correct.ends)
-        }
-    }
+    Gv = poly$gamma %*% v
+    Gy = poly$gamma %*% y
+    Gv[which(abs(Gv)<1E-15)] = 0
+    rho = Gv / vv
+    vec = (poly$u - Gy + rho*z) / rho
+    vlo = suppressWarnings(max(vec[rho>0]))
+    vup = suppressWarnings(min(vec[rho<0]))
+    pv = tnorm.surv(z,0,sd,vlo,vup,bits)
+    if(vlo < vup){ flag="go" } else { flag="vlo-vup-reversed" }
     
-  return(list(pv=pv,vlo=vlo,vup=vup))
+    return(list(pv=pv,vlo=vlo,vup=vup, flag=flag,
+                z=z##temporary
+                ))
 }
 
 
 
 ##' If a list of contrast vectors are supplied, use this.
-poly_pval2_from_vlist <- function(y, poly, vlist, sigma, bits=5000){
+##' @param y data vector.
+##' @param poly polyhedra object.
+##' @param vlist list of contrast vectors.
+##' @param sigma data noise level.
+##' @param shift how much additive noise was used in detection.
+##' @param bits numerical precision in Gaussian probability mass calculation,
+##'     for methods from the Rmpfr package.
+##' @return vector of p-values. \code{Inf} are the ones that were not calculated
+##' @export
+poly_pval2_from_vlist <- function(y, poly, vlist, sigma, shift=NULL, bits=5000, ic.poly=NULL){
     if(!is.null(vlist)){
         pvs = sapply(vlist, function(v){
-            pv = poly.pval2(y, poly, v, sigma, bits=bits)$pv
+            return(poly.pval2(y, poly, v, sigma, shift=shift, bits=bits,ic.poly=ic.poly)$pv)
         })
+    } else {
+        return(c())
     }
 }
 
@@ -298,37 +304,22 @@ poly_pval_bootsub <- function(y, G, v, nboot=1000, bootmat=NULL, bootmat.times.v
     return(p)
 }
 
-## ##' Experimenting with bootsub v2
-## poly_pval_bootsub_for_vlist_v2 <- function(y,G,vlist,nboot,sigma,adjustmean=mean(y)){
-##     if(!is.null(vlist)){
-##         pvs = sapply(vlist, function(v){
-##             poly_pval_bootsub_v2(y, G, v, nboot, sigma, adjustmean)
-##         })
-##     }
-## }
 
-## ##' Experimenting with bootsub v2
-## poly_pval_bootsub_v2 <- function(y, G, vlist, nboot, sigma){
-
-##     y.centered = y - adjustmean
-##     obj = poly.pval(y=y, G=G, v=v, u=rep(0,nrow(G)), sigma=sigma)
-##     Vlo = obj$vlo
-##     Vup = obj$vup
-##     vty = sum(v*y)
-##     p = poly_pval_bootsub_inner(Vlo, Vup, vty, v, y, nboot=nboot,
-##                                 bootmat=bootmat,
-##                                 bootmat.times.v=bootmat.times.v,
-##                                 adjustmean=adjustmean)
-##     return(p)
-## }
-
-
-
-##' If a list of contrast vectors are supplied, use this.
+##' If a list of contrast vectors are supplied, use this. (large sample size)
 poly_pval_bootsub_large_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=mean(y)){
     if(!is.null(vlist)){
         pvs = sapply(vlist, function(v){
             poly_pval_bootsub_large(y, G, v, nboot, sigma, adjustmean)
+        })
+    }
+}
+
+##' If a list of contrast vectors are supplied, use this!
+poly_pval_bootsub_for_vlist <- function(y,G,vlist,nboot,sigma,adjustmean=mean(y)){
+    if(!is.null(vlist)){
+        pvs = sapply(vlist, function(v){
+            poly_pval_bootsub(y=y, G=G, v=v, nboot=nboot, sigma=sigma,
+                              adjustmean=adjustmean)
         })
     }
 }
@@ -449,7 +440,7 @@ poly_pval_from_inner_products <- function(Gy, Gv, v,y,sigma,u,bits=1000, warn=TR
     vup = suppressWarnings(min(vec[rho<0]))
     vy = max(min(vy, vup),vlo)
 
-    z = Rmpfr::mpfr(vy/sd, precBits=bits)
+    z = Rmpfr::mpfr( vy/sd, precBits=bits)
     a = Rmpfr::mpfr(vlo/sd, precBits=bits)
     b = Rmpfr::mpfr(vup/sd, precBits=bits)
     
@@ -466,7 +457,7 @@ poly_pval_from_inner_products <- function(Gy, Gv, v,y,sigma,u,bits=1000, warn=TR
 
 
 
-##' One-sided z-test regarding $v^T\mu$, using $v^Ty$.
+##' One-sided z-test regarding $v^Tmu$, using $v^Ty$.
 ##' @param y data vector
 ##' @param v contrast vector
 ##' @param sigma noise standard deviation
@@ -474,6 +465,72 @@ poly_pval_from_inner_products <- function(Gy, Gv, v,y,sigma,u,bits=1000, warn=TR
 ztest <- function(y, v, sigma=1){
     sigma.v = sigma * sqrt(sum(v * v))
     vty = sum(v * y)
-    pv = 1 - pnorm(vty, mean=0, sd = sigma.v)
+    pv = 1 - Rmpfr::pnorm(vty, mean=0, sd = sigma.v)
     return(pv)
 }
+
+
+
+
+
+##' From polyhedron and data vector and contrast, gets the probability of vtY
+##' larger than v^Ty , conditional on the orthogonal projection on v.
+##' @param y data
+##' @param poly polyhedra object produced form \code{polyhedra(wbs_object)}
+##' @param sigma data noise (standard deviation)
+##' @param nullcontrast the null value of \eqn{v^T\mu}, for \eqn{\mu = E(y)}.
+##' @param v contrast vector
+##'
+##' @return list of two vectors: denominators and numerators, each named
+##'     \code{denom} and \code{numer}.
+partition_TG <- function(y, poly, v, sigma, nullcontrast=0, bits=50, reduce,
+                         shift=NULL, ic.poly=NULL, warn=TRUE){
+
+    ## Basic checks
+    stopifnot(length(v)==length(y))
+
+    vy = sum(v*y)
+    vv = sum(v^2)
+    sd = sigma*sqrt(vv)
+
+    ## Shift polyhedron by a constant \R^n shift if needed
+    if(!is.null(shift)){
+        stopifnot(length(shift)==length(y))
+        poly$u = poly$u - poly$gamma%*%shift
+    }
+
+    ## Add stopping component to the polyhedron at this point, if needed
+    if(!is.null(ic.poly)){
+        poly$gamma = rbind(poly$gamma, ic.poly$gamma)
+        poly$u = c(poly$u, ic.poly$u)
+    }
+
+    pvobj <- poly.pval2(y, poly, v, sigma)
+    vup = pvobj$vup
+    vlo = pvobj$vlo
+    vy = max(min(vy, vup),vlo)
+    
+    ## Make it so that vlo<vup is ensured (maybe not here..)
+    ## if(vlo >= vup) stop("vlo < vup must hold.")
+    ## if(vlo >= vup) return("vlo < vup must hold.")
+
+    ## Calculate a,b,z for TG = (F(b)-F(z))/(F(b)-F(a))
+    z = Rmpfr::mpfr(vy/sd, precBits=bits)
+    a = Rmpfr::mpfr(vlo/sd, precBits=bits)
+    b = Rmpfr::mpfr(vup/sd, precBits=bits)
+    if(!(a<=z &  z<=b) & warn){
+        warning("F(vlo)<vy<F(vup) was violated, in partition_TG()!")
+    }
+
+    ## Separately store and return num&denom of TG
+    numer = as.numeric(Rmpfr::pnorm(b)-Rmpfr::pnorm(z))
+    denom = as.numeric(Rmpfr::pnorm(b)-Rmpfr::pnorm(a))
+
+    ## Form p-value as well.
+    pv = as.numeric(numer/denom)
+    ## if(!(0 <= pv & pv <= 1)) print("pv was not between 0 and 1, in partition_TG()!")
+
+    return(list(denom=denom, numer=numer, pv=pv, vlo=vlo, vy=vy, vup=vup,
+                flag=pvobj$flag))
+}
+

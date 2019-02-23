@@ -16,18 +16,20 @@
 #'     (if not null) is the added noise.
 
 #' @export
-cbsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL){
-  if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
-
-  ## Basic checks
+cbsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL, y.addnoise=NULL){
+    if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y") 
+    ## Basic checks
   if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
-
+    
   y.orig = y
-  if(!is.null(sigma.add)){
-      y.addnoise = rnorm(length(y), 0, sigma.add)
-      y = y + y.addnoise
-  }
-
+    if(!is.null(y.addnoise) & is.null(sigma.add))  stop("Provide |sigma.add|.")
+    if(!is.null(sigma.add)){
+        if(is.null(y.addnoise)){
+            y.addnoise = rnorm(length(y), 0, sigma.add)
+        }
+        y = y + y.addnoise
+    }
+  
   #initialization
   n <- length(y); tree <- .create_node(1, n); vec <- cumsum(y)
 
@@ -63,12 +65,15 @@ cbsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL){
   cp.sign = unlist(all.signs)
 
   ## Handling when cp is NA, from jump.cbsfs
+  cp.all = cp ## this is the version including NA's
+  cp.sign.all = cp.sign ## this is the version including NA's
   cp.sign = cp.sign[which(!is.na(cp))]
   cp = cp[which(!is.na(cp))]
 
   ## Return with cp and cp.sign
-  obj <- structure(list(y=y, tree = tree, numSteps = numSteps,
-                        cp = cp, cp.sign=cp.sign, y.orig=y.orig), class = "cbsfs")
+  obj <- structure(list(y=y, tree = tree, numSteps = numSteps, cp = cp,
+                        cp.sign=cp.sign, y.orig=y.orig, cp.all=cp.all,
+                        cp.sign.all=cp.sign.all), class = "cbsfs")
 
   if(!is.null(sigma.add)){
       obj$sigma.add = sigma.add
@@ -249,6 +254,6 @@ print.cbsfs <- function(obj){
     cat("Detected changepoints using CBS with", obj$numSteps, "steps is",
         obj$cp * obj$cp.sign, fill=TRUE)
     if(!is.null(obj$pvs)){
-        cat("Pvalues of", obj$cp * obj$cp.sign, "are", obj$pvs, fill=TRUE)
+        cat("Pvalues of", names(obj$pvs), "are", obj$pvs, fill=TRUE)
     }
 }

@@ -37,7 +37,8 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
                                min.num.things=10,
                                mc.cores=1,
                                start.time=NULL,
-                               warn=FALSE
+                               warn=FALSE,
+                               stable.thresh=1E-3
                                ){
 
     ## New: Get many fudged TG statistics.
@@ -56,7 +57,7 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
     ## Helper function
     one_IS_addnoise = function(isim, numIS.cumulative, investigate){
         if(verbose) {printprogress(isim+numIS.cumulative, numIS+numIS.cumulative,
-                                  "importance sampling replicate",
+                                  paste0("importance sampling replicate (with ", things, " valid draws so far):"),
                                   start.time = start.time)}
 
         new.noise = rnorm(length(y),0,sigma.add)
@@ -105,9 +106,7 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
             return(emptyrow)
         }
         if(pv.new > 1 | pv.new < 0)  browser() ## Not sure why this would happen, but anyway!
-        if(weight.new < 0 | weight.new > 1){
-            weight.new=0 ## Nomass problem is to be caught here.
-        }
+        if(weight.new < 0 | weight.new > 1){ weight.new = 0 } ## Nomass problem is to be caught here. 
         info = cbind(pv=pv.new, weight=weight.new, vlo=obj.new$vlo,
                      vty=obj.new$vy, vup=obj.new$vup, sigma=sigma)
         return(info)
@@ -117,6 +116,10 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
     parts.so.far = cbind(c(Inf, Inf, Inf, Inf, Inf, Inf))[,-1, drop=FALSE]
     rownames(parts.so.far) = c("pv", "weight", "vlo", "vty", "vup", "sigma")
     numIS.cumulative = things = 0
+    pv.so.far = c(-1)
+    pv_from_parts <- function(parts.so.far){
+        sum(unlist(Map('*', parts.so.far["pv",], parts.so.far["weight",])))/
+                                                sum(unlist(parts.so.far["weight",]))}
     done = FALSE
     while(!done){
         parts = mcmapply(one_IS_addnoise, 1:numIS, numIS.cumulative,
@@ -126,19 +129,27 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
         parts.so.far = cbind(parts.so.far, parts)
 
         ## Handling the problem of p-value being NaN/0/1
-        things = sum((parts.so.far["weight",]>0)&
-                     (parts.so.far["pv",] != 1) &
-                     (parts.so.far["pv",] != 0))
+        things = sum((parts.so.far["weight",] > 0) &
+                     (parts.so.far["pv",] != 1)) ## &
+                     ## (parts.so.far["pv",] != 0)) ## Temporarily excluded b/c it seems extraneous.
+
+        pv.latest = pv_from_parts(parts.so.far)
 
         enough.things = (things >= min.num.things)
         numIS.cumulative = numIS.cumulative + numIS
         reached.limit = numIS.cumulative > max.numIS
+        stable.enough = (stable(pv.latest, pv.so.far, stable.thresh) & (things > 10) )
+
+        ## Not used now: Maybe small p-values should just be accepted, for practical reasons
+        ## pvtol = 1E-15 pv.is.really.small = (latest.pv < pvtol)
+
+
         if(reached.limit | enough.things | sigma.add == 0){ done = TRUE }
+        pv.so.far = c(pv.so.far, pv.latest)
     }
 
     ## Calculate randomized TG statistic.
-    pv = sum(unlist(Map('*', parts.so.far["pv",], parts.so.far["weight",])))/
-        sum(unlist(parts.so.far["weight",]))
+    pv = pv_from_parts(parts.so.far)
 
     return(list(things=things, min.num.things=min.num.things,
                 numIS.cumulative=numIS.cumulative, parts.so.far=parts.so.far,
@@ -173,7 +184,7 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
 ##'     \code{Sys.time()}.
 ##' @param bits Number of precision bits to use for the calculation of the
 ##'     Gaussian probabilities (regarding Vup and Vlo and vty).
-##' @param verbose If \code{TRUE}, the importance sampling progress
+##' @param verbose If \code{TRUE}, the importance sampling progress is printed.
 ##' @export 
 randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
                             inference.type=c("rows", "pre-multiply"),
@@ -183,10 +194,12 @@ randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
                             min.num.things=30, verbose=FALSE,
                             mc.cores=1,
                             warn=FALSE,
+                            stable.thresh=1E-3,
                             start.time=NULL){
 
     numIntervals = winning.wbs.obj$numIntervals
     numSteps = winning.wbs.obj$numSteps
+    things = 0
 
     ## Basic checks
     if(inference.type=="pre-multiply" & (is.null(cumsum.y) | is.null(cumsum.v)) ){
@@ -195,9 +208,9 @@ randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
 
     ## Helper function (bundler) for a single importance sampling replicate
     one_IS_wbs = function(isim, numIS.cumulative){
-        if(verbose) printprogress(isim+numIS.cumulative, numIS+numIS.cumulative,
-                                  "importance sampling replicate",
-                                  start.time = start.time)
+        if(verbose) {printprogress(isim+numIS.cumulative, numIS+numIS.cumulative,
+                                  paste0("importance sampling replicate (with ", things, " valid draws so far):"),
+                                  start.time = start.time)}
 
 
         rerun_wbs(v=v, winning.wbs.obj=winning.wbs.obj,
@@ -218,24 +231,36 @@ randomize_wbsfs <- function(v, winning.wbs.obj, numIS = 100, sigma,
     parts.so.far = cbind(c(Inf,Inf))[,-1,drop=FALSE]
     rownames(parts.so.far) = c("pv", "weight")
     numIS.cumulative=0
+    pv.so.far = c(-1)
+    pv_from_parts <- function(parts.so.far){
+        sum(unlist(Map('*', parts.so.far["pv",], parts.so.far["weight",])))/
+            sum(unlist(parts.so.far["weight",]))}
+
     while(!done){
-        numIS.cumulative = numIS.cumulative + numIS
 
         ## Collect parts and combine with preexisting
         parts = mcmapply(one_IS_wbs, 1:numIS , numIS.cumulative, mc.cores=mc.cores)
         parts.so.far = cbind(parts.so.far, parts)
+        numIS.cumulative = numIS.cumulative + numIS
 
         ## Handling issue of p-value being NaN/0/1
         things = sum(parts.so.far["weight",] > 0)
-        enough.things = (things > min.num.things)
-        reached.limit = (numIS.cumulative > max.numIS)
+        pv.latest = pv_from_parts(parts.so.far)
 
-        if( reached.limit | enough.things){ done = TRUE }
+        ## Not used now: Maybe small p-values should just be accepted, for practical reasons
+        ## pvtol = 1E-15 pv.is.really.small = (latest.pv < pvtol)
+
+        ## Check termination of while loop
+        enough.things = (things >= min.num.things)
+        reached.limit = (numIS.cumulative > max.numIS)
+        stable.enough = (stable(pv.latest, pv.so.far, stable.thresh) & things > 10) 
+
+        if( reached.limit | enough.things | stable.enough){ done = TRUE }
+        pv.so.far = c(pv.so.far, pv.latest)
     }
 
     ## Calculate p-value
-    pv = sum(unlist(Map('*', parts.so.far["pv",], parts.so.far["weight",])))/
-        sum(unlist(parts.so.far["weight",]))
+    pv = pv_from_parts(parts.so.far)
 
     ## Return information from this simulation.
     return(list(things=things, min.num.things=min.num.things, numIS.cumulative=numIS.cumulative,
@@ -264,18 +289,20 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
     stopifnot(n==length(winning.wbs.obj$y))
     winning_se = rbind(winning.wbs.obj$results[1:stop.time, c("max.s", "max.e")])
     colnames(winning_se) = c("s", "e")
-    intervals.new = intervals(numIntervals=numIntervals-stop.time, n=n, existing=winning_se)
+    intervals.new = intervals(numIntervals=numIntervals-stop.time, n=n, existing=winning_se,
+                              precuts=winning.wbs.obj$precuts ## New addition!
+                              )
     intervals.new = add2(intervals=intervals.new,
                          winning.wbs.obj=winning.wbs.obj,
                          stop.time=stop.time)
 
     ## Create new halfspaces (through |mimic| option)
     if(inference.type=="rows"){
-        g.new = wbsfs(y=winning.wbs.obj$y, numSteps= numSteps,
-                                      intervals= intervals.new, mimic=TRUE,
-                                      wbs.obj=winning.wbs.obj,
-                                      inference.type=inference.type)
-        poly.new = polyhedra(obj=g.new$gamma, u=g.new$u)
+        obj.new = wbsfs(y=winning.wbs.obj$y, numSteps= numSteps,
+                        intervals= intervals.new, mimic=TRUE,
+                        wbs.obj=winning.wbs.obj,
+                        inference.type=inference.type)
+        poly.new = polyhedra(obj=obj.new$gamma, u=obj.new$u)
 
         ## Partition TG to denom and numer
         pvobj = partition_TG(y=winning.wbs.obj$y, poly.new, v=v, sigma=sigma,
@@ -286,7 +313,7 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
 
 
     } else {
-        g.new = wbsfs(y=winning.wbs.obj$y, numSteps= numSteps,
+        obj.new = wbsfs(y=winning.wbs.obj$y, numSteps= numSteps,
                       intervals= intervals.new, mimic=TRUE,
                       wbs.obj=winning.wbs.obj,
                       cumsum.y=cumsum.y,
@@ -295,8 +322,8 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
                       stop.time=stop.time,
                       ic.poly=ic.poly,
                       v=v)
-        pvobj = poly_pval_from_inner_products(Gy=g.new$Gy, Gv=g.new$Gv, v=v,
-                                              y=g.new$y, sigma=sigma, u=g.new$u,
+        pvobj = poly_pval_from_inner_products(Gy=obj.new$Gy, Gv=obj.new$Gv, v=v,
+                                              y=obj.new$y, sigma=sigma, u=obj.new$u,
                                               bits=bits, warn=warn)
 
         pv = pvobj$pv
@@ -312,3 +339,13 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
     return(info)
 }
 
+##' Helper to discern whether a sequence of p-values have stabilized, based on
+##' last two p-values in \code{p.so.far}.
+##' @param p new p-value under scrutiny (not included in p.so.far)
+##' @param p.so.far numeric vector of p-values so far.
+##' @return TRUE or FALSE for whether p-values have stabilized or not.
+stable <- function(p, p.so.far, stable.thresh=1E-3){
+    gap = abs(mean(tail(p.so.far,2))-p)
+    if(is.nan(gap)) return(FALSE)
+    return(gap < stable.thresh)
+}

@@ -2,10 +2,10 @@
 % Please edit documentation in R/pvalue.R
 \name{poly.pval}
 \alias{poly.pval}
-\title{Temporarily added from selectiveInference package.}
+\title{Added from selectiveInference package.}
 \usage{
 poly.pval(y, G, u, v, sigma, bits = NULL)
 }
 \description{
-Temporarily added from selectiveInference package.
+Added from selectiveInference package.
 }

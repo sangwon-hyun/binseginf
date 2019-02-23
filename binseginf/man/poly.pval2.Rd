@@ -7,7 +7,7 @@ selectiveInfernece package. Modified to take a polyhedra class object
 \code{poly}.}
 \usage{
 poly.pval2(y, poly = NULL, v, sigma, vup = NULL, vlo = NULL,
-  bits = NULL, reduce = FALSE, correct.ends = FALSE)
+  bits = NULL, shift = NULL, ic.poly = NULL)
 }
 \arguments{
 \item{y}{data vector}

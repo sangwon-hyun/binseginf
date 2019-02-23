@@ -4,7 +4,8 @@
 \alias{cbsfs}
 \title{Circular binary segmentation - fixed steps}
 \usage{
-cbsfs(y, numSteps, sigma.add = NULL, numIntervals = NULL)
+cbsfs(y, numSteps, sigma.add = NULL, numIntervals = NULL,
+  y.addnoise = NULL)
 }
 \arguments{
 \item{y}{data, numeric vector}

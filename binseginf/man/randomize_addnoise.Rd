@@ -11,7 +11,8 @@ randomize_addnoise(y, sigma, sigma.add, v, orig.fudged.poly = NULL,
   numSteps = NA, numIS = 100, bits = 1000, orig.fudged.obj = NULL,
   ic.poly = NULL, max.numIS = 2000, inference.type = c("rows",
   "pre-multiply"), verbose = FALSE, min.num.things = 10,
-  mc.cores = 1, start.time = NULL, warn = FALSE)
+  mc.cores = 1, start.time = NULL, warn = FALSE,
+  stable.thresh = 0.001)
 }
 \arguments{
 \item{y}{Data}

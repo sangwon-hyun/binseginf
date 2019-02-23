@@ -4,15 +4,15 @@
 \alias{addpv.cbsfs}
 \title{Appends the inference results to an object of class |bsFs|.}
 \usage{
-\method{addpv}{cbsfs}(obj, loc = NULL, type = c("plain", "addnoise"),
+\method{addpv}{cbsfs}(obj, locs = NULL, type = c("plain", "addnoise"),
   sigma, sigma.add = NULL, declutter = FALSE, mn = NULL,
-  min.num.things = 30, numIntervals = NULL,
-  inference.type = c("rows", "pre-multiply"))
+  min.num.things = 30, numIntervals = NULL, vlist = NULL,
+  max.numIS = 2000, inference.type = c("rows", "pre-multiply"))
 }
 \arguments{
 \item{obj}{object of type bsFs}
 
-\item{loc}{only test locations in \code{loc}.}
+\item{locs}{only test locations in \code{locs}.}
 
 \item{type}{One of \code{ c("plain", "addnoise")}. If equal to
 \code{"addnoise"}, then \code{sigma.add} needs to be provided.}
@@ -23,6 +23,8 @@
 noise randomization inference is done.}
 
 \item{mn}{original mean vector.}
+
+\item{max.numIS}{Maximum number of importance sampling replicates to perform.}
 
 \item{inference.type}{One of \code{c("rows","pre-multiply")}. Defaults to '
 \code{"rows"}. Use \code{"pre-multiply"} if the polyhedron is too big

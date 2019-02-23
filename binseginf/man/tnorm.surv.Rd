@@ -2,10 +2,10 @@
 % Please edit documentation in R/pvalue.R
 \name{tnorm.surv}
 \alias{tnorm.surv}
-\title{Temporarily added from selectiveInference package.}
+\title{Added from selectiveInference package.}
 \usage{
-tnorm.surv(z, mean, sd, a, b, bits = NULL, correct.ends = TRUE)
+tnorm.surv(z, mean, sd, a, b, bits = NULL)
 }
 \description{
-Temporarily added from selectiveInference package.
+Added from selectiveInference package.
 }

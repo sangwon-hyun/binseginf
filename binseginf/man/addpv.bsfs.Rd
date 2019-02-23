@@ -4,15 +4,16 @@
 \alias{addpv.bsfs}
 \title{Appends the inference results to an object of class |bsFs|.}
 \usage{
-\method{addpv}{bsfs}(obj, loc = NULL, type = c("plain", "addnoise"),
+\method{addpv}{bsfs}(obj, locs = NULL, type = c("plain", "addnoise"),
   sigma, sigma.add = NULL, declutter = FALSE, min.num.things = 30,
   max.numIS = 2000, mn = NULL, only.test.nulls = FALSE,
-  bootsub = FALSE, nboot = 10000, v2 = FALSE)
+  bootsub = FALSE, nboot = 10000, verbose = FALSE, vlist = NULL,
+  v2 = FALSE)
 }
 \arguments{
 \item{obj}{object of type bsFs.}
 
-\item{loc}{only test locations in \code{loc}.}
+\item{locs}{only test locations in \code{locs}.}
 
 \item{type}{One of \code{ c("plain", "addnoise")}. If equal to
 \code{"addnoise"}, then \code{sigma.add} needs to be
@@ -24,11 +25,16 @@ concerns) but instead it uses the \code{type=pre-multiply} option.}
 \item{sigma.add}{Additive noise. Defaults to NULL, in which case no additive
 noise randomization inference is done.}
 
+\item{max.numIS}{Maximum number of importance sampling replicates to
+perform.}
+
 \item{mn}{Original mean vector. This is purely for simulation purposes,
 along with the |only.test.nulls| option.}
 
 \item{only.test.nulls}{If \code{TRUE}, only test the contrasts whose true
 mean is zero (i.e. the ones that constitute null tests).}
+
+\item{v2}{Experimental; doing bootsub version 2.}
 
 \item{inference.type}{One of \code{c("rows","pre-multiply")}. Defaults to '
 \code{"rows"}. Use \code{"pre-multiply"} if the polyhedron is too big
@@ -36,7 +42,7 @@ for memory.  (Warning: the rest is more of a note to self (Justin) than
 ' for users.). The use of \code{"pre-multiply"} was originally built for
 ' WBS. It actually prevents \code{polyhedra.wbsfs()} from having to form
 ' the entire WBS polyhedron in the first place. It also makes importance
-' sampling faster the \code{type="rows"} option for WBS (thanks to
+' sampling faster than the \code{type="rows"} option for WBS (thanks to
 manual ' speedups we've made), but slower for all other segmentation
 methods ' since there are no such manual tweaks for speedup. The most
 crucial ' difference for the user is perhaps that, when the size of the

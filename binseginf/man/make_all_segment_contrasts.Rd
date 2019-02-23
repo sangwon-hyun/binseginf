@@ -7,7 +7,7 @@ object or path object (from genlassoinf package). Essentially, the
 requirements are that \code{obj} has a nonempty component called \code{cp}
 and \code{cp.sign} and \code{y}.}
 \usage{
-make_all_segment_contrasts(obj, numSteps = NULL)
+make_all_segment_contrasts(obj, numSteps = obj$numSteps)
 }
 \arguments{
 \item{obj}{Result from running one of: \code{bsfs(), bsft(), wbsfs(),

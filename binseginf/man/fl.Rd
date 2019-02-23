@@ -13,7 +13,7 @@ into the same object, to /encapsulate/ all results. One important point is
 to make the /default/ option for addpv to be good.}
 \usage{
 fl(y, numSteps, sigma.add = NULL, ic.stop = FALSE,
-  numIntervals = NULL, ...)
+  numIntervals = NULL, y.addnoise = NULL, ...)
 }
 \arguments{
 \item{sigma.add}{is important}

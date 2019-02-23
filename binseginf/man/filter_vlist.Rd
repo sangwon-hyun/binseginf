@@ -3,16 +3,16 @@
 \name{filter_vlist}
 \alias{filter_vlist}
 \title{Takes a named list of n-length contrast vectors, and filters them so that
-only the contrasts that are desired i.e. contained in \code{visc}.}
+only the contrasts that are desired i.e. contained in \code{locs}.}
 \usage{
-filter_vlist(vlist, visc = NULL, only.test.nulls = FALSE, mn = NULL)
+filter_vlist(vlist, locs = NULL, only.test.nulls = FALSE, mn = NULL)
 }
 \arguments{
-\item{visc}{Only test points in visc}
+\item{locs}{Only test points in locs}
 
 \item{only.test.nulls}{If TRUE, only test NULLs.}
 }
 \description{
 Takes a named list of n-length contrast vectors, and filters them so that
-only the contrasts that are desired i.e. contained in \code{visc}.
+only the contrasts that are desired i.e. contained in \code{locs}.
 }

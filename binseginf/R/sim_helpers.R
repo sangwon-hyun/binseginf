@@ -68,3 +68,18 @@ samplesplit <- function(y, mn, numSteps, only.test.nulls){
     pvs = sapply(vlist, function(v){  pv = ztest(y2, v) })
     return(pvs)
 }
+
+
+##' Mutation on the edge.
+edge_mutation <- function(lev, n=200){
+    mn = rep(0,n)
+    mn[seq(from=n-40+1, to=n)] = lev
+    return(mn)
+}
+
+##' Mutation in the middle (off-center)
+middle_mutation <- function(lev, n=200){
+    mn = rep(0,n)
+    mn[seq(from=n/2+1, to=n/2+40)] = lev
+    return(mn)
+}

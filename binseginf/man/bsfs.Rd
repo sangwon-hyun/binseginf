@@ -7,7 +7,7 @@ y must not have duplicated values. This is to avoid
 degenerate behavior of binary segmentation}
 \usage{
 bsfs(y, numSteps, sigma.add = NULL, numIntervals = NULL,
-  ic.stop = FALSE)
+  ic.stop = FALSE, y.addnoise = NULL)
 }
 \arguments{
 \item{y}{numeric vector to contain data}
@@ -16,6 +16,8 @@ bsfs(y, numSteps, sigma.add = NULL, numIntervals = NULL,
 
 \item{sigma.add}{is the amount (standard deviation) of i.i.d. Gaussian noise
 added to the data.}
+
+\item{y.addnoise}{Manully inputted additive noise. Defaults to \code{NULL}.}
 }
 \value{
 a bsfs object, which is a list of information regarding the fitted

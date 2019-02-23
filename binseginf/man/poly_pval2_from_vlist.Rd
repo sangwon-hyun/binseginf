@@ -4,7 +4,25 @@
 \alias{poly_pval2_from_vlist}
 \title{If a list of contrast vectors are supplied, use this.}
 \usage{
-poly_pval2_from_vlist(y, poly, vlist, sigma, bits = 5000)
+poly_pval2_from_vlist(y, poly, vlist, sigma, shift = NULL, bits = 5000,
+  ic.poly = NULL)
+}
+\arguments{
+\item{y}{data vector.}
+
+\item{poly}{polyhedra object.}
+
+\item{vlist}{list of contrast vectors.}
+
+\item{sigma}{data noise level.}
+
+\item{shift}{how much additive noise was used in detection.}
+
+\item{bits}{numerical precision in Gaussian probability mass calculation,
+for methods from the Rmpfr package.}
+}
+\value{
+vector of p-values. \code{Inf} are the ones that were not calculated
 }
 \description{
 If a list of contrast vectors are supplied, use this.

@@ -99,33 +99,70 @@ contained.polyhedra <- function(obj, y){
 }
 
 ##' Make empty polyhedra object
-make_empty <- function(obj,...)
-contained <- function(obj,...){UseMethod("contained")}
-make_empty.polyhedra <- function(n){
-    emptyrow = rbind(rep(NA,n))[-1,,drop=FALSE]
-    return(polyhedra(obj=emptyrow, u=c()))
+## make_empty <- function(obj,...)
+make_empty_polyhedra <- function(n){
+            emptyrow = rbind(rep(NA,n))[-1,,drop=FALSE]
+            return(polyhedra(obj=emptyrow, u=c()))
 }
 
 
 ##' Obtains polyhedron from |path| object. A |path| object is created from
 ##' generalized lasso dual path algorithm in the |genlassoinf| R package.
+##' @export
 polyhedra.path <- function(obj, numSteps=obj$maxSteps){
-    polyhedra(obj = obj$Gobj.naive$G, u = obj$Gobj.naive$u)
+    stopifnot(numSteps==obj$maxSteps)
+    polyhedra(obj=obj$Gobj.naive$G, u=obj$Gobj.naive$u, nrow.by.step=obj$nkstep)
 }
 
 
 #' Function generic, for a function to get a snapshot of the polyhedron from a
 #' particular algorithm step.
 #' @param obj \code{polyhedra} class object.
+#' @export
 snapshot <- function(obj, ...) {UseMethod("snapshot")}
 
 ##' Gets a snapshot of the polyhedron from a particular algorithm step.
 ##' @param obj \code{polyhedra} class object.
 ##' @param numSteps Algorithm step you want a snapshot from
+##' @export
 snapshot.polyhedra <- function(obj, numSteps){
     assert_that("nrow.by.step" %in% names(obj))
     inds = (1:obj$nrow.by.step[numSteps])
     return(polyhedra(obj=obj$gamma[inds, ],
                      u=rep(0, length(inds)),
                      nrow.by.step=obj$nrow.by.step))
+}
+
+
+## addpv_fl = addpv.fl
+
+## ##' Helper to harvest polyhedra from FL object.
+## polyhedra.fl <- function(obj, numSteps=NULL, record.nrows=TRUE){
+##     if(is.null(numSteps)) numSteps = obj$maxsteps
+##     Gobj = genlassoinf::getGammat.naive(obj=obj, y=obj$y,
+##                                         condition.step=numSteps)
+    
+##     ## Harvest number of rows per step
+##     if(record.nrows){
+##         nrow.by.step = obj$nkstep
+##     } else {
+##         nrow.by.step = NULL
+##     }
+
+##     poly = polyhedra(obj=Gobj$G, u=Gobj$u, nrow.by.step=nrow.by.step)
+##     return(poly)
+## }
+
+## polyhedra_fl = polyhedra.fl
+
+
+##' Proprietary print object for |path| class object. This is temporary, and
+##' assumes that fused lasso (and not a different form of generalized lasso) is
+##' run.
+print.fl <- function(obj){
+    cat("Detected changepoints using FL with", obj$numSteps, "steps is",
+        obj$cp * obj$cp.sign, fill=TRUE)
+    if(!is.null(obj$pvs)){
+        cat("Pvalues of", names(obj$pvs), "are", obj$pvs, fill=TRUE)
+    }
 }

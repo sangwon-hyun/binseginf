@@ -7,22 +7,25 @@
 #' @param numSteps numeric of number of steps
 #' @param sigma.add is the amount (standard deviation) of i.i.d. Gaussian noise
 #'     added to the data.
+#' @param y.addnoise Manully inputted additive noise. Defaults to \code{NULL}.
 #'
 #' @return a bsfs object, which is a list of information regarding the fitted
 #'     algorithm. The list component \code{y} is the data used for actual
 #'     fitting; \code{y.orig} is the pre-noise original data; \code{y.addnoise}
 #'     (if not null) is the added noise.
 #' @export
-bsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL, ic.stop=FALSE){
+bsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL, ic.stop=FALSE, y.addnoise=NULL){
 
     ## Basic checks
     if(numSteps >= length(y)) stop("numSteps must be strictly smaller than the length of y")
     if(numSteps <= 0) step("numSteps must be at least 1.")
     if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
-
     y.orig = y
+    if(!is.null(y.addnoise) & is.null(sigma.add))  stop("Provide |sigma.add|.")
     if(!is.null(sigma.add)){
-        y.addnoise = rnorm(length(y), 0, sigma.add)
+        if(is.null(y.addnoise)){
+            y.addnoise = rnorm(length(y), 0, sigma.add)
+        }
         y = y + y.addnoise
     }
 
@@ -82,7 +85,7 @@ bsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL, ic.stop=FALSE){
     }
 
 
-  if(!is.null(sigma.add)){
+  if(!is.null(sigma.add) | !is.null(y.addnoise) ){
       obj$sigma.add = sigma.add
       obj$y.addnoise = y.addnoise
       obj$noisy = TRUE

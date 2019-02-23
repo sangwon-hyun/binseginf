@@ -59,71 +59,6 @@ cusum <- function(s,b,e,n=NULL, y=NULL, right.to.left = TRUE, contrast.vec = FAL
 
 
 
-
-##' From polyhedron and data vector and contrast, gets the probability that vtY
-##' is in the polyhedron, conditional on PvperpY. i.e. the probability that Y
-##' stays in the polyhedron, fixing n-1 dimensions of it.
-##' @param y data
-##' @param poly polyhedra object produced form \code{polyhedra(wbs_object)}
-##' @param sigma data noise (standard deviation)
-##' @param nullcontrast the null value of \eqn{v^T\mu}, for \eqn{\mu = E(y)}.
-##' @param v contrast vector
-##'
-##' @return list of two vectors: denominators and numerators, each named
-##'     \code{denom} and \code{numer}.
-partition_TG <- function(y, poly, v, sigma, nullcontrast=0, bits=50, reduce,correct.ends=FALSE, shift=NULL, ic.poly=NULL, warn=TRUE){
-
-    ## Basic checks
-    stopifnot(length(v)==length(y))
-
-    vy = sum(v*y)
-    vv = sum(v^2)
-    sd = sigma*sqrt(vv)
-
-    ## Shift polyhedron by a constant \R^n shift if needed
-    if(!is.null(shift)){
-        stopifnot(length(shift)==length(y))
-        poly$u = poly$u - poly$gamma%*%shift
-    }
-
-    ## Add stopping component to the polyhedron at this point, if needed
-    if(!is.null(ic.poly)){
-        poly$gamma = rbind(poly$gamma, ic.poly$gamma)
-        poly$u = c(poly$u, ic.poly$u)
-    }
-
-    ## Just in case |poly| doesn't contain |vup| and |vlo|, we manually form it.
-    ## This is because in order to partition the TG statistic, we need to form
-    ## these anyway.
-    pvobj <- poly.pval2(y, poly, v, sigma, correct.ends=correct.ends)
-    vup = pvobj$vup
-    vlo = pvobj$vlo
-    vy = max(min(vy, vup),vlo)
-
-    ## Make it so that vlo<vup is ensured
-
-    ## Calculate a,b,z for TG = (F(b)-F(z))/(F(b)-F(a))
-    z = Rmpfr::mpfr(vy/sd, precBits=bits)
-    a = Rmpfr::mpfr(vlo/sd, precBits=bits)
-    b = Rmpfr::mpfr(vup/sd, precBits=bits)
-    if(!(a<=z &  z<=b) & warn){
-        warning("F(vlo)<vy<F(vup) was violated, in partition_TG()!")
-    }
-
-    ## Separately store and return num&denom of TG
-    numer = as.numeric(Rmpfr::pnorm(b)-Rmpfr::pnorm(z))
-    denom = as.numeric(Rmpfr::pnorm(b)-Rmpfr::pnorm(a))
-
-    ## Form p-value as well.
-    pv = as.numeric(numer/denom)
-    ## if(!(0 <= pv & pv <= 1)) print("pv was not between 0 and 1, in partition_TG()!")
-
-    return(list(denom=denom, numer=numer, pv=pv, vlo=vlo, vy=vy, vup=vup))
-}
-
-
-
-
 ##' Function to plot qqlot of p-values. Use extra parameter
 ##' @param pp numeric vector of p-values.
 ##' @param main label to plot as main title.
@@ -403,20 +338,33 @@ piecewise_mean <- function(y, cp){
 ##' @param obj Result from running one of: \code{bsfs(), bsft(), wbsfs(),
 ##'     wbsft(), cbsfs()}.
 ##' @export
-make_all_segment_contrasts <- function(obj, numSteps=NULL){
+make_all_segment_contrasts <- function(obj, numSteps=obj$numSteps){
 
     ## Basic checks
     if(length(obj$cp)==0) stop("No detected changepoints!")
     if(all(is.na(obj$cp)))stop("No detected changepoints!")
     assert_that(!is.null(obj$y))
-    if(is.null(numSteps)){
-        all.cp = obj$cp
-        all.cp.sign = obj$cp.sign
-    } else {
-        all.cp = obj$cp[1:numSteps]
-        all.cp.sign = obj$cp.sign[1:numSteps]
+
+    cp = obj$cp
+    cp.sign = obj$cp.sign
+
+    ## Handle CBS specially because it detects 2 at a time, sometimes with
+    ## overlaps
+    if("cbsfs" %in% class(obj) ){
+        numSteps = numSteps * 2
+        cp = obj$cp.all
+        cp.sign = sign(obj$cp.sign.all)
     }
-    return(make_all_segment_contrasts_from_cp(all.cp, all.cp.sign, length(obj$y)))
+
+    cp = cp[1:numSteps]
+    cp.sign = cp.sign[1:numSteps]
+    if(any(is.na(cp))){
+        na.cp = which(is.na(cp))
+        cp = cp[-na.cp]
+        cp.sign = cp.sign[-na.cp]
+    }
+
+    return(make_all_segment_contrasts_from_cp(cp, cp.sign, length(obj$y)))
 }
 
 
@@ -429,6 +377,7 @@ make_all_segment_contrasts <- function(obj, numSteps=NULL){
 ##' @export
 make_all_segment_contrasts_from_cp <- function(cp, cp.sign, n, scaletype = c("segmentmean", "unitnorm")){
 
+    ## Basic checks
     scaletype = match.arg(scaletype)
 
     ## Augment the changepoint set for convenience
@@ -490,7 +439,7 @@ make_all_segment_contrasts_from_wbs <- function(wbsfs_obj, cps=NULL, scaletype =
         } else {
             stop("scaletype not written yet!")
         }
-        if(length(d)!=n) browser()
+        assert_that(length(d)==n)
     }
     names(dlist) = (cp * cp.sign)
 
@@ -606,17 +555,17 @@ get_cp_from_piecewise_mean <- function(mn, cp){
 
 
 ##' Takes a named list of n-length contrast vectors, and filters them so that
-##' only the contrasts that are desired i.e. contained in \code{visc}.
-##' @param visc Only test points in visc
+##' only the contrasts that are desired i.e. contained in \code{locs}.
+##' @param locs Only test points in locs
 ##' @param only.test.nulls If TRUE, only test NULLs.
 ##' @export
-filter_vlist <- function(vlist, visc=NULL, only.test.nulls=FALSE, mn=NULL){
+filter_vlist <- function(vlist, locs=NULL, only.test.nulls=FALSE, mn=NULL){
 
     ## Filter by location
-    if(!is.null(visc)){
-        retain = which(abs(as.numeric(names(vlist))) %in% visc)
+    if(!is.null(locs)){
+        retain = which(abs(as.numeric(names(vlist))) %in% locs)
         if(length(retain)==0){
-            return(data.frame(pvs=NA, locs=NA))
+            return(list())
         }
         vlist = vlist[retain]
     }
@@ -708,14 +657,6 @@ jumps.numeric <- function(obj, tol = 1e-10, ...){
 }
 
 
-##' Experimental: a convenience wrapper to \code{mclapply()} that takes
-##' \code{start.time}.
-Mclapply <- function(nsim, myfun, mc.cores, start.time=NULL){
-    results.list = parallel::mclapply(1:nsim, function(isim){
-        printprogress(isim, nsim, start.time=start.time)
-        myfun(isim)
-    }, mc.cores=mc.cores, mc.preschedule=TRUE)
-}
 
 ##' Helper for tests; checks of \code{vec} is uniform.
 ##' @export
@@ -736,56 +677,22 @@ cv.bsfs <- function(y, max.numSteps=30, numsplit=2){
     if(length(y)%%2 != 0) y = y[-length(y)] ## Just in case y is odd lengthed
     testerrors = matrix(nrow=max.numSteps, ncol=numsplit)
     testinds = lapply(1:numsplit, function(ii)seq(from=ii, to=length(y), by=numsplit))
-    for(numSteps in 1:max.numSteps){
 
-        ## Cycle through each partition of the data and calculate test error
-        for(jj in 1:numsplit){
-            leaveout = testinds[[jj]]
-            testData <- y[leaveout]
-            trainData <- y[-leaveout]
-            obj = bsfs(trainData, numSteps)
-            testcp = round(obj$cp / length(trainData) * length(testData))
+    ## Cycle through each partition of the data and calculate test error
+    for(jj in 1:numsplit){
+        leaveout = testinds[[jj]]
+        testData <- y[leaveout]
+        trainData <- y[-leaveout]
+        obj = bsfs(trainData, max.numSteps)
+        for(numSteps in 1:max.numSteps){
+            cp = obj$cp[1:numSteps]
+            testcp = round(cp / length(trainData) * length(testData))
             testerrors[numSteps,jj] = mean((testData - piecewise_mean(trainData, testcp))^2)
-       }
+        }
     }
     errors = apply(testerrors, 1, mean)
     return(list(k=which.min(errors), errors=testerrors))
 }
-
-
-
-##' (A copy for debugging) Train a binseg changepoint model size using cross
-##' validation.
-##' @export
-cv2.bsfs <- function(y, max.numSteps=30, numsplit=2){
-    if(length(y)%%2 != 0) y = y[-length(y)] ## Just in case y is odd lengthed
-    testerrors = matrix(nrow=max.numSteps, ncol=numsplit)
-    testinds = lapply(1:numsplit, function(ii)seq(from=ii, to=length(y), by=numsplit))
-    browser()
-    par(mfrow=c(1,3))
-    for(numSteps in 1:max.numSteps){
-        numSteps=3
-        ## Cycle through each partition of the data and calculate test error
-        ## for(jj in 1:numsplit){
-        jj=1
-
-
-            leaveout = testinds[[jj]]
-            testData <- y[leaveout]
-            trainData <- y[-leaveout]
-            obj = bsfs(trainData, numSteps)
-            testcp = round(obj$cp / length(trainData) * length(testData))
-            fittedMean = piecewise_mean(trainData, testcp)
-        plot(trainData)
-        lines(fittedMean)
-
-            testerrors[numSteps,jj] = mean((testData - fittedMean)^2)
-       ## }
-    }
-    errors = apply(testerrors, 1, mean)
-    return(list(k=which.min(errors), errors=testerrors))
-}
-
 
 
 ##' Helper to make segment indices. 
@@ -804,4 +711,120 @@ linpredict <- function(ptail,p){
     g = lm(y~x,data=data.frame(y=ptail,x=ind))
     y = predict(g, newdata = data.frame(x=length(ptail)+1))
     return(y)
+}
+
+
+##' Helper function to take all neighboring-to-each-other clusters, and
+##' declutter them by removing all but middle value of centroids. The sign is
+##' only returned if the signs all agree.
+##' @param coords (not necessarily sorted) Coordinates.
+##' @param coords.sign Accompanying signs.
+##' @param how.close how close you want the cluster members to be.
+##' @return List containing |cp| and |cp.sign|, which are lists containing the
+##'     de-cluttered changepoints and signs. Additionally, the list contains the
+##'     raw, uncluttered versions |cp.raw| and |cp.sign.raw|.
+##' @export
+declutter <- function(coords, coords.sign, how.close = 1){
+
+    ## Preprocess
+    unsorted.coords = coords
+    unsorted.coords.sign = coords.sign
+    ord = order(unsorted.coords)
+    coords = unsorted.coords[ord]
+    coords.sign = unsorted.coords.sign[ord]
+
+    ## Define a helper to identify centroid cluster.
+    get_center <- function(members){
+        mn = mean(members)
+        stay = max(members[members<=mn])
+        return(stay)
+    }
+
+    ## error checking
+    if(length(coords)<=1){
+      if(length(coords)==0) cat('\n',"attempting to declutter", length(coords), "coordinates",'\n')
+      return(coords)
+    }
+
+    ## get the clique memberships
+    adjacent.diffs = abs(coords[1:(length(coords)-1)] - coords[2:length(coords)])
+
+    cliq.num = 1
+    cliq.vec = rep(NA,length(coords))
+    for(ii in 1:length(adjacent.diffs)){
+      if(adjacent.diffs[ii] <= how.close){  ## used to be ==1
+        cliq.vec[ii] = cliq.vec[ii+1] = cliq.num
+      } else {
+        cliq.num = cliq.num+1
+      }
+    }
+    unique.cliq.nums = unique(cliq.vec[!is.na(cliq.vec)])
+
+    ## Get membership
+    members.list = list()
+    if(length(unique.cliq.nums)!=0){
+        for(ii in 1:length(unique.cliq.nums)){
+            cliq.num = unique.cliq.nums[ii]
+            members.list[[ii]] = which(cliq.vec == cliq.num)
+        }
+    }
+
+    ## Add back all others
+    all.other = 1:length(unsorted.coords)
+    all.other= all.other[!(all.other%in%unlist(members.list))]
+    members.list = c(members.list,
+                     lapply(all.other, function(a)a))
+
+    ## Determine one or two-sidedness
+    signs.list = lapply(members.list, function(members)coords.sign[members])
+    one.sided = which(sapply(signs.list, function(signs) all(signs==signs[1])))
+    if(length(one.sided)==0){
+        two.sided = (1:length(members.list))
+    } else {
+        two.sided = (1:length(members.list))[-one.sided]
+    }
+    clustered.signs.list = list()
+    for(ii in one.sided){
+        clustered.signs.list[[ii]] = signs.list[[ii]][1]
+    }
+    clustered.signs.list[two.sided] = NA
+
+    ## Likewise, get centers
+    clustered.members.list = unlist(lapply(members.list, get_center))
+    clustered.coords.list = unlist(lapply(clustered.members.list, function(members){ coords[members]}))
+
+    ## Also prepare uncluttered output
+    unclustered.coords.list = lapply(members.list, function(members){coords[members]})
+    unclustered.signs.list = signs.list
+
+    output = list(cp = clustered.coords.list,
+                  cp.sign = clustered.signs.list,
+                  cp.raw = unclustered.coords.list,
+                  cp.sign.raw = unclustered.signs.list)
+    
+    return(output)
+}
+
+
+##' A helper function to print the progress of a simulation.
+printprogress <- function(isim, nsim, type="simulation", lapsetime=NULL,
+                          lapsetimeunit="seconds", start.time=NULL,
+                          fill=FALSE){
+
+    ## If lapse time is present, then use it
+    if(fill) cat(fill=TRUE)
+    if(is.null(lapsetime) & is.null(start.time)){
+            cat("\r", type, " ", isim, "out of", nsim)
+    } else {
+        if(!is.null(start.time)){
+            lapsetime = round(difftime(Sys.time(), start.time,
+                                       units = "secs"), 0)
+            remainingtime = round(lapsetime * (nsim-isim)/isim,0)
+            endtime = Sys.time() + remainingtime
+        }
+        cat("\r", type, " ", isim, "out of", nsim, "with lapsed time",
+            lapsetime, lapsetimeunit, "and remaining time", remainingtime,
+            lapsetimeunit, "and will finish at", strftime(endtime))
+    }
+    if(fill) cat(fill=TRUE)
 }

@@ -10,7 +10,8 @@ randomize_wbsfs(v, winning.wbs.obj, numIS = 100, sigma,
   cumsum.v = NULL, stop.time = min(winning.wbs.obj$numSteps,
   length(winning.wbs.obj$cp)), ic.poly = NULL, bits = 50,
   max.numIS = 2000, min.num.things = 30, verbose = FALSE,
-  mc.cores = 1, warn = FALSE, start.time = NULL)
+  mc.cores = 1, warn = FALSE, stable.thresh = 0.001,
+  start.time = NULL)
 }
 \arguments{
 \item{v}{Test contrast vector. This is assumed to be fixed in the model
@@ -38,7 +39,7 @@ Gaussian probabilities (regarding Vup and Vlo and vty).}
 
 \item{max.numIS}{Maximum number of importance sampling replicates to take.}
 
-\item{verbose}{If \code{TRUE}, the importance sampling progress}
+\item{verbose}{If \code{TRUE}, the importance sampling progress is printed.}
 
 \item{mc.cores}{Number of cores to use for importance sampling. Defaults to
 \code{1}.}

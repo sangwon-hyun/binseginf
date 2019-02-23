@@ -9,14 +9,15 @@ on a noise-added response. This is flagged by \code{obj$noisy}. When
 information criteria stopping is involved, then only contrasts from the
 stopped model are used.}
 \usage{
-\method{addpv}{fl}(obj, loc = NULL, type = c("plain", "addnoise"),
+\method{addpv}{fl}(obj, locs = NULL, type = c("plain", "addnoise"),
   sigma, sigma.add = NULL, declutter = FALSE, mn = NULL,
-  numIntervals = NULL, inference.type = c("rows", "pre-multiply"))
+  vlist = NULL, min.num.things = 30, inference.type = c("rows",
+  "pre-multiply"), max.numIS = 2000)
 }
 \arguments{
 \item{obj}{object of |path| type.}
 
-\item{loc}{only test locations in \code{loc}.}
+\item{locs}{only test locations in \code{locs}.}
 
 \item{type}{One of \code{ c("plain", "addnoise")}. If equal to
 \code{"addnoise"}, then \code{sigma.add} needs to be provided.}
@@ -27,6 +28,8 @@ stopped model are used.}
 noise randomization inference is done.}
 
 \item{mn}{original mean vector.}
+
+\item{max.numIS}{Maximum number of importance sampling replicates to perform.}
 }
 \description{
 Appends the inference results to an object created as a result of
