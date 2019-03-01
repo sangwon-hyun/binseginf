@@ -7,11 +7,8 @@
 .Rproj.user
 *.RData
 *.Rdata
-\#*\#
 .\#*
 main/figures/
-man/
 output/
 *NAMESPACE
-*.Rd
 *.tar.gz

@@ -1,6 +1,6 @@
 Package: binseginf
 Title: Post-selection inference for segmentation methods
-Version: 0.0.0.9000
+Version: 0.0.0.9002
 Authors@R: person("Sangwon", "Hyun", email = "shyun@cmu.edu", role = c("aut", "cre"))
 Description: Post-selection inference for segmentation methods (binary segmentation, wild binary segmentation)
 Depends:
@@ -19,7 +19,8 @@ Imports:
     glmgen,
     Matrix,
     pryr,
-    parallel
+    parallel,
+    assertthat
 Suggests:
     testthat
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
