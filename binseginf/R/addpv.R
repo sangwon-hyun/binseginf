@@ -7,7 +7,16 @@
 ##' @export
 addpv <- function(obj,...) UseMethod("addpv")
 
-##' Conducts basic checks for addpv.bsfs()
+##' Conducts basic checks for addpv.bsfs(). If the inference type is with
+##' additive noise i.e. \code{type=="addnoise"}, then the object \code{obj} must
+##' have been done with additive noise (i.e. \code{obj$noisy==TRUE} in the first
+##' place, and the object \code{obj} must also contain the amount of additive
+##' noise, in \code{obj$sigma.add}).
+##'
+##' @param obj Object of class bsfs, wbsfs, cbsfs, fl, etc..
+##' @param type One of "addnoise" or "plain".
+##'
+##' @return NULL.
 checks_addpv_bsfs <- function(obj, type){
     assert_that(class(obj)=="bsfs")
     assert_that(is.null(obj$pvs))
@@ -15,10 +24,11 @@ checks_addpv_bsfs <- function(obj, type){
         assert_that(obj$noisy)
         assert_that(!is.null(obj$sigma.add))
     }
-    if(obj$ic.stop) stop("ic stopping is not coded for bsfs yet!")
+    if(obj$ic.stop) stop("IC stopping is not coded for bsfs yet!")
     if(!is.null(obj$sigma.add) & type=="plain"){
         stop("Original algorithm was run with additive noise! Can't do plain inference.")
     }
+    return(NULL)
 }
 
 
@@ -51,6 +61,10 @@ checks_addpv_bsfs <- function(obj, type){
 ##' @param max.numIS Maximum number of importance sampling replicates to
 ##'     perform.
 ##' @param v2 Experimental; doing bootsub version 2.
+##'
+##'
+##' @return \code{obj} but with new list values "pvs" and "vlist".
+##'
 ##' @export
 addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                        sigma.add=NULL, declutter=FALSE, min.num.things=30,
@@ -114,8 +128,9 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
 }
 
 
-##' Appends the inference results to an object of class |bsFs|.
-##' @param obj object of type bsFs
+##' Appends the inference results to an object of class |wbsfs|.
+##'
+##' @param obj object of type wbsfs.
 ##' @param locs only test locations in \code{locs}.
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
 ##'     \code{"addnoise"}, then \code{sigma.add} needs to be provided.
@@ -126,6 +141,8 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
 ##'     WBS.
 ##' @param max.numIS Maximum number of importance sampling replicates to perform.
 ##' @param mn original mean vector.
+##'
+##' @return \code{obj} but with new list values "pvs" and "vlist".
 ##' @export
 addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
                         declutter=FALSE, mn=NULL, min.num.things = 30, sigma.add=NULL,
@@ -206,6 +223,7 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
 
 
 ##' Appends the inference results to an object of class |bsFs|.
+##'
 ##' @param obj object of type bsFs
 ##' @param locs only test locations in \code{locs}.
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
@@ -218,6 +236,8 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
 ##'     for memory. 
 ##' @param mn original mean vector.
 ##' @param max.numIS Maximum number of importance sampling replicates to perform.
+##'
+##' @return \code{obj} but with new list values "pvs" and "vlist".
 ##' @export
 addpv.cbsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                         sigma.add=NULL, declutter=FALSE, mn=NULL,
