@@ -36,34 +36,36 @@ checks_addpv_bsfs <- function(obj, type){
 ##' @param obj object of type bsFs.
 ##' @param locs only test locations in \code{locs}.
 ##' @param type One of \code{ c("plain", "addnoise")}. If equal to
-##'     \code{"addnoise"}, then \code{sigma.add} needs to be
-##'     provided. Currently, the polyhedron is not formed (due to memory
-##'     concerns) but instead it uses the \code{type=pre-multiply} option.
+##'   \code{"addnoise"}, then \code{sigma.add} needs to be provided. Currently,
+##'   the polyhedron is not formed (due to memory concerns) but instead it uses
+##'   the \code{type=pre-multiply} option.
 ##' @param sigma Noise level (standard deviation) of data.
 ##' @param sigma.add Additive noise. Defaults to NULL, in which case no additive
-##'     noise randomization inference is done.
+##'   noise randomization inference is done.
 ##' @param inference.type One of \code{c("rows","pre-multiply")}. Defaults to '
-##'     \code{"rows"}. Use \code{"pre-multiply"} if the polyhedron is too big
-##'     for memory.  (Warning: the rest is more of a note to self (Justin) than
-##'     ' for users.). The use of \code{"pre-multiply"} was originally built for
-##'     ' WBS. It actually prevents \code{polyhedra.wbsfs()} from having to form
-##'     ' the entire WBS polyhedron in the first place. It also makes importance
-##'     ' sampling faster than the \code{type="rows"} option for WBS (thanks to
-##'     manual ' speedups we've made), but slower for all other segmentation
-##'     methods ' since there are no such manual tweaks for speedup. The most
-##'     crucial ' difference for the user is perhaps that, when the size of the
-##'     polyhedron ' is too big in memory, then this is a !necessity! as it
-##'     circumvents ' having to actually form the polyhedron.
+##'   \code{"rows"}. Use \code{"pre-multiply"} if the polyhedron is too big for
+##'   memory.  (Warning: the rest is more of a note to self (Justin) than ' for
+##'   users.). The use of \code{"pre-multiply"} was originally built for '
+##'   WBS. It actually prevents \code{polyhedra.wbsfs()} from having to form '
+##'   the entire WBS polyhedron in the first place. It also makes importance '
+##'   sampling faster than the \code{type="rows"} option for WBS (thanks to
+##'   manual ' speedups we've made), but slower for all other segmentation
+##'   methods ' since there are no such manual tweaks for speedup. The most
+##'   crucial ' difference for the user is perhaps that, when the size of the
+##'   polyhedron ' is too big in memory, then this is a !necessity! as it
+##'   circumvents ' having to actually form the polyhedron.
 ##' @param mn Original mean vector. This is purely for simulation purposes,
-##'     along with the |only.test.nulls| option.
+##'   along with the |only.test.nulls| option.
 ##' @param only.test.nulls If \code{TRUE}, only test the contrasts whose true
-##'     mean is zero (i.e. the ones that constitute null tests).
+##'   mean is zero (i.e. the ones that constitute null tests).
 ##' @param max.numIS Maximum number of importance sampling replicates to
-##'     perform.
+##'   perform.
 ##' @param v2 Experimental; doing bootsub version 2.
+##' @param mc.cores Number of CPU cores to use (to be used directly by
+##'   \code{parallel::mclapply()} in \code{randomize_addnoise()}).
 ##'
 ##'
-##' @return \code{obj} but with new list values "pvs" and "vlist".
+##' @return Same as \code{obj} but with new list objects "pvs" and "vlist".
 ##'
 ##' @export
 addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
@@ -72,7 +74,8 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                        bootsub=FALSE, nboot=10000,
                        verbose=FALSE,
                        vlist=NULL,
-                       v2=FALSE){
+                       v2=FALSE,
+                       mc.cores=1){
 
     ## Basic checks
     type = match.arg(type)
@@ -113,6 +116,7 @@ addpv.bsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                                     max.numIS=max.numIS,
                                     min.num.things=min.num.things,
                                     verbose=verbose,
+                                    mc.cores=mc.cores,
                                     inference.type="rows")$pv})
         names(pvs) = names(vlist)
         if(verbose) cat(fill=TRUE)

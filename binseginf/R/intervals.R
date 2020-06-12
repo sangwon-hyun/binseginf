@@ -10,7 +10,13 @@
 ##'     columns must be the numeric (no check yet), but the last column can be
 ##'     of any type you want. Initializes to numeric.
 ##' @export
-intervals <- function(numIntervals, n, comprehensive=FALSE, existing=NULL, distance=0, maxlength=n-1, precuts=NULL, draw.fac=5) {
+intervals <- function(numIntervals, n,
+                      comprehensive = FALSE,
+                      existing = NULL,
+                      distance = 0,
+                      maxlength = n-1,
+                      precuts = NULL,
+                      draw.fac = 5) {
 
     ## Basic checks
     if(!is.null(existing)){

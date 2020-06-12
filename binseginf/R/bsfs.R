@@ -11,7 +11,7 @@
 #'
 #' @return a bsfs object, which is a list of information regarding the fitted
 #'     algorithm. The list component \code{y} is the data used for actual
-#'     fitting; \code{y.orig} is the pre-noise original data; \code{y.addnoise}
+#'     fitting; \code{y} is the pre-noise original data; \code{y.addnoise}
 #'     (if not null) is the added noise.
 #' @export
 bsfs <- function(y, numSteps, sigma.add=NULL, numIntervals=NULL, ic.stop=FALSE, y.addnoise=NULL){
