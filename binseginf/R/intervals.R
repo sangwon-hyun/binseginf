@@ -20,7 +20,7 @@ intervals <- function(numIntervals, n,
 
     ## Basic checks
     if(!is.null(existing)){
-        assert_that(all(colnames(existing) %in% c("s", "e")),
+        assertthat::assert_that(all(colnames(existing) %in% c("s", "e")),
                    msg = "|existing| must be a 2-column matrix with columns names s and e.")
     }
 
@@ -156,7 +156,7 @@ form_rows.intervals <- function(intervals, max.s, max.b, max.e, max.sign, qual.i
     all.rows = rbind(rows1, rows2, rows3)
 
     ## Optionally, assert that all halfspaces should actually contain y
-    if(!is.null(y)) assert_that(all(all.rows%*%y>=0))
+    if(!is.null(y)) assertthat::assert_that(all(all.rows%*%y>=0))
     return(all.rows)
 }
 

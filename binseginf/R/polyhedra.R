@@ -126,7 +126,7 @@ snapshot <- function(obj, ...) {UseMethod("snapshot")}
 ##' @param numSteps Algorithm step you want a snapshot from
 ##' @export
 snapshot.polyhedra <- function(obj, numSteps){
-    assert_that("nrow.by.step" %in% names(obj))
+    assertthat::assert_that("nrow.by.step" %in% names(obj))
     inds = (1:obj$nrow.by.step[numSteps])
     return(polyhedra(obj=obj$gamma[inds, ],
                      u=rep(0, length(inds)),

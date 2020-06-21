@@ -221,7 +221,7 @@ print.bsfs <- function(obj){
 ##     if(obj$ic.stop) stop("Can't take a snapshot of an IC-stopped |bsfs| object.")
 ##     if(numSteps > obj){ stop("Can't take a snapshot of a higher number of steps than that of the original |bsfs| object.") }
 ##     if(numSteps == obj){ return(obj) }
-##     assert_that(numSteps >= 1)
+##     assertthat::assert_that(numSteps >= 1)
 
 ##     ## The code goes here. Basically, reduce everything to be at numSteps
 ##     set.seed(0)

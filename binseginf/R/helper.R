@@ -95,7 +95,7 @@ qqunif <- function(pp, main=NULL, plot.it=TRUE, cols=NULL, type=c("p","l"),
 
     ## Else, if a list of p-values is given, plot all of them
     } else {
-        assert_that(!is.null(cols))
+        assertthat::assert_that(!is.null(cols))
         allpoints = lapply(pp, function(pvs){qqunif(pvs, plot.it=FALSE)})
         if(plot.it){
             myplotter(allpoints[[1]], main, col=cols[1], pch=16, type=type,...)
@@ -124,7 +124,7 @@ qqunif_line <- function(pp, main=NULL, cols=NULL,ltys=NULL,lwds=NULL,...){
     }
 
     ## Plot the list of things
-    assert_that(!is.null(cols))
+    assertthat::assert_that(!is.null(cols))
     if(is.null(ltys))ltys=rep(1,length(pp))
     if(is.null(lwds))lwds=rep(1,length(pp))
     allpoints = lapply(pp, function(pvs){qqunif(pvs, plot.it=FALSE)})
@@ -443,7 +443,7 @@ filter_vlist <- function(vlist, locs=NULL, only.test.nulls=FALSE, mn=NULL){
 
     ## Only test the null contrasts
     if(only.test.nulls){
-        assert_that(!is.null(mn))
+        assertthat::assert_that(!is.null(mn))
         means = sapply(vlist, function(v){ sum(v*mn) })
         tol = 1E-10
         which.null = which(abs(means)<tol)

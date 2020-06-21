@@ -18,11 +18,11 @@ addpv <- function(obj,...) UseMethod("addpv")
 ##'
 ##' @return NULL.
 checks_addpv_bsfs <- function(obj, type){
-    assert_that(class(obj)=="bsfs")
-    assert_that(is.null(obj$pvs))
+    assertthat::assert_that(class(obj)=="bsfs")
+    assertthat::assert_that(is.null(obj$pvs))
     if(type=="addnoise"){
-        assert_that(obj$noisy)
-        assert_that(!is.null(obj$sigma.add))
+        assertthat::assert_that(obj$noisy)
+        assertthat::assert_that(!is.null(obj$sigma.add))
     }
     if(obj$ic.stop) stop("IC stopping is not coded for bsfs yet!")
     if(!is.null(obj$sigma.add) & type=="plain"){
@@ -159,8 +159,8 @@ addpv.wbsfs <- function(obj, locs=NULL, type=c("plain", "rand"), sigma,
                         inference.type=c("pre-multiply","rows")){
 
     ## Basic checks
-    assert_that(class(obj)=="wbsfs")
-    assert_that(is.null(obj$pvs))
+    assertthat::assert_that(class(obj)=="wbsfs")
+    assertthat::assert_that(is.null(obj$pvs))
     type = match.arg(type)
     inference.type = match.arg(inference.type)
     if(!is.null(sigma.add)) warning("You provided |sigma.add| but this will not be used.")
@@ -251,12 +251,12 @@ addpv.cbsfs <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                         inference.type = c("rows", "pre-multiply")){
 
     ## Basic checks
-    assert_that(class(obj)=="cbsfs")
-    assert_that(is.null(obj$pvs))
+    assertthat::assert_that(class(obj)=="cbsfs")
+    assertthat::assert_that(is.null(obj$pvs))
     type = match.arg(type)
     if(type=="addnoise"){
-        assert_that(obj$noisy)
-        assert_that(!is.null(obj$sigma.add))
+        assertthat::assert_that(obj$noisy)
+        assertthat::assert_that(!is.null(obj$sigma.add))
     }
     if(!is.null(numIntervals)) warning("You provided |numIntervals| but this will not be used.")
     if(!is.null(obj$sigma.add) & type=="plain"){
@@ -320,11 +320,11 @@ addpv.fl <- function(obj, locs=NULL, type=c("plain", "addnoise"), sigma,
                      inference.type = c("rows", "pre-multiply"), max.numIS=2000){
 
     ## Basic checks
-    if(obj$ic.stop){assert_that(obj$ic_flag=="normal")}
-    assert_that(is.null(obj$pvs))
+    if(obj$ic.stop){assertthat::assert_that(obj$ic_flag=="normal")}
+    assertthat::assert_that(is.null(obj$pvs))
     type = match.arg(type)
     if(type=="addnoise"){
-        assert_that(!is.null(obj$noisy) & obj$noisy & !is.null(obj$sigma.add))
+        assertthat::assert_that(!is.null(obj$noisy) & obj$noisy & !is.null(obj$sigma.add))
     }
     if(!is.null(obj$sigma.add) & type=="plain"){
         stop("Original algorithm was run with additive noise! Can't do plain inference.")

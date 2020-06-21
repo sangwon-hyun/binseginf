@@ -282,7 +282,7 @@ rerun_wbs <- function(winning.wbs.obj, v, numIntervals, numSteps, sigma,
                       ic.poly=NULL, bits=50, warn=FALSE){
 
     ## Basic checks
-    assert_that(is_valid.wbsfs(winning.wbs.obj))
+    assertthat::assert_that(is_valid.wbsfs(winning.wbs.obj))
 
     ## New intervals added onto old winning intervals
     n = length(v)

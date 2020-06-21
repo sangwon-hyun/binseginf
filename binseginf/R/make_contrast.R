@@ -12,7 +12,7 @@ make_all_segment_contrasts <- function(obj, numSteps=obj$numSteps){
     ## Basic checks
     if(length(obj$cp)==0) stop("No detected changepoints!")
     if(all(is.na(obj$cp)))stop("No detected changepoints!")
-    assert_that(!is.null(obj$y))
+    assertthat::assert_that(!is.null(obj$y))
 
     cp = obj$cp
     cp.sign = obj$cp.sign
@@ -108,7 +108,7 @@ make_all_segment_contrasts_from_wbs <- function(wbsfs_obj, cps=NULL, scaletype =
         } else {
             stop("scaletype not written yet!")
         }
-        assert_that(length(d)==n)
+        assertthat::assert_that(length(d)==n)
     }
     names(dlist) = (cp * cp.sign)
 

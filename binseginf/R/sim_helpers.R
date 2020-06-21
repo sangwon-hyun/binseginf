@@ -54,7 +54,7 @@ fourjump_hybrid <- function(n,lev){
 ##' splitting.
 ##' @param y data vector.
 samplesplit <- function(y, mn, numSteps, only.test.nulls){
-    assert_that(length(y)%%2==0)
+    assertthat::assert_that(length(y)%%2==0)
     ind = seq(from=1, to=length(y),by=2)
     y1 = y[ind]
     mn1 =  mn[ind] ## This is actually tricky business, because what might be

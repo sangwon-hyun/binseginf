@@ -268,7 +268,7 @@ poly_pval_bootsub_inner <- function(Vlo, Vup, vty, v, y=NULL, nboot=1000, bootma
     ## if needed, calculate bootstrapped v^T(y^*-\bar y).
     if(is.null(bootmat.times.v)){
         if(is.null(bootmat)){
-            assert_that(!is.null(y))
+            assertthat::assert_that(!is.null(y))
             y.centered = y - adjustmean
             n = length(y)
             bootmat = t(sapply(1:nboot, function(iboot){

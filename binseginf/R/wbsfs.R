@@ -184,7 +184,7 @@ is_valid.wbsfs <- function(obj){
 .get_max_info <- function(wbs.obj,...){ UseMethod(".get_max_info")}
 ##' Helper to /manually/ obtain maximizing information from a |wbs| class object, at i'th step
 .get_max_info.wbsfs <- function(wbs.obj, istep){
-    assert_that(is_valid.wbsfs(wbs.obj))
+    assertthat::assert_that(is_valid.wbsfs(wbs.obj))
     myrow  = wbs.obj$results[istep,]
     mylist = lapply(myrow, function(a) a)
     mylist = mylist[names(mylist) %in% c("max.s", "max.b", "max.e", "max.sign")]
@@ -194,7 +194,7 @@ is_valid.wbsfs <- function(obj){
 
 ## Basic checks for wbsfs.
 wbsfs_checks <- function(y, numIntervals, intervals, mimic, wbs.obj, sigma.add){
-    assert_that(!is.null(numIntervals) | !is.null(intervals),
+    assertthat::assert_that(!is.null(numIntervals) | !is.null(intervals),
                 msg="Must provide either |numIntervals| or |intervals|.")
     if(mimic & is.null(wbs.obj))stop("When mimic=TRUE, provide a wbs object.")
     if(!mimic & !is.null(wbs.obj))stop("Even though mimic==FALSE, you're providing a wbs object.")
