@@ -2,10 +2,26 @@
 % Please edit documentation in R/addpv.R
 \name{checks_addpv_bsfs}
 \alias{checks_addpv_bsfs}
-\title{Conducts basic checks for addpv.bsfs()}
+\title{Conducts basic checks for addpv.bsfs(). If the inference type is with
+additive noise i.e. \code{type=="addnoise"}, then the object \code{obj} must
+have been done with additive noise (i.e. \code{obj$noisy==TRUE} in the first
+place, and the object \code{obj} must also contain the amount of additive
+noise, in \code{obj$sigma.add}).}
 \usage{
 checks_addpv_bsfs(obj, type)
 }
+\arguments{
+\item{obj}{Object of class bsfs, wbsfs, cbsfs, fl, etc..}
+
+\item{type}{One of "addnoise" or "plain".}
+}
+\value{
+NULL.
+}
 \description{
-Conducts basic checks for addpv.bsfs()
+Conducts basic checks for addpv.bsfs(). If the inference type is with
+additive noise i.e. \code{type=="addnoise"}, then the object \code{obj} must
+have been done with additive noise (i.e. \code{obj$noisy==TRUE} in the first
+place, and the object \code{obj} must also contain the amount of additive
+noise, in \code{obj$sigma.add}).
 }

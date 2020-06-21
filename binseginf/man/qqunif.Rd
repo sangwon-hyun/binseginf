@@ -4,8 +4,15 @@
 \alias{qqunif}
 \title{Function to plot qqlot of p-values. Use extra parameter}
 \usage{
-qqunif(pp, main = NULL, plot.it = TRUE, cols = NULL, type = c("p",
-  "l"), legend.location = "bottomright", ...)
+qqunif(
+  pp,
+  main = NULL,
+  plot.it = TRUE,
+  cols = NULL,
+  type = c("p", "l"),
+  legend.location = "bottomright",
+  ...
+)
 }
 \arguments{
 \item{pp}{numeric vector of p-values.}

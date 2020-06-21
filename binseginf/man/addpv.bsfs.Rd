@@ -4,11 +4,24 @@
 \alias{addpv.bsfs}
 \title{Appends the inference results to an object of class |bsFs|.}
 \usage{
-\method{addpv}{bsfs}(obj, locs = NULL, type = c("plain", "addnoise"),
-  sigma, sigma.add = NULL, declutter = FALSE, min.num.things = 30,
-  max.numIS = 2000, mn = NULL, only.test.nulls = FALSE,
-  bootsub = FALSE, nboot = 10000, verbose = FALSE, vlist = NULL,
-  v2 = FALSE)
+\method{addpv}{bsfs}(
+  obj,
+  locs = NULL,
+  type = c("plain", "addnoise"),
+  sigma,
+  sigma.add = NULL,
+  declutter = FALSE,
+  min.num.things = 30,
+  max.numIS = 2000,
+  mn = NULL,
+  only.test.nulls = FALSE,
+  bootsub = FALSE,
+  nboot = 10000,
+  verbose = FALSE,
+  vlist = NULL,
+  v2 = FALSE,
+  mc.cores = 1
+)
 }
 \arguments{
 \item{obj}{object of type bsFs.}
@@ -16,9 +29,9 @@
 \item{locs}{only test locations in \code{locs}.}
 
 \item{type}{One of \code{ c("plain", "addnoise")}. If equal to
-\code{"addnoise"}, then \code{sigma.add} needs to be
-provided. Currently, the polyhedron is not formed (due to memory
-concerns) but instead it uses the \code{type=pre-multiply} option.}
+\code{"addnoise"}, then \code{sigma.add} needs to be provided. Currently,
+the polyhedron is not formed (due to memory concerns) but instead it uses
+the \code{type=pre-multiply} option.}
 
 \item{sigma}{Noise level (standard deviation) of data.}
 
@@ -36,18 +49,24 @@ mean is zero (i.e. the ones that constitute null tests).}
 
 \item{v2}{Experimental; doing bootsub version 2.}
 
+\item{mc.cores}{Number of CPU cores to use (to be used directly by
+\code{parallel::mclapply()} in \code{randomize_addnoise()}).}
+
 \item{inference.type}{One of \code{c("rows","pre-multiply")}. Defaults to '
-\code{"rows"}. Use \code{"pre-multiply"} if the polyhedron is too big
-for memory.  (Warning: the rest is more of a note to self (Justin) than
-' for users.). The use of \code{"pre-multiply"} was originally built for
-' WBS. It actually prevents \code{polyhedra.wbsfs()} from having to form
-' the entire WBS polyhedron in the first place. It also makes importance
-' sampling faster than the \code{type="rows"} option for WBS (thanks to
+\code{"rows"}. Use \code{"pre-multiply"} if the polyhedron is too big for
+memory.  (Warning: the rest is more of a note to self (Justin) than ' for
+users.). The use of \code{"pre-multiply"} was originally built for '
+WBS. It actually prevents \code{polyhedra.wbsfs()} from having to form '
+the entire WBS polyhedron in the first place. It also makes importance '
+sampling faster than the \code{type="rows"} option for WBS (thanks to
 manual ' speedups we've made), but slower for all other segmentation
 methods ' since there are no such manual tweaks for speedup. The most
 crucial ' difference for the user is perhaps that, when the size of the
 polyhedron ' is too big in memory, then this is a !necessity! as it
 circumvents ' having to actually form the polyhedron.}
+}
+\value{
+Same as \code{obj} but with new list objects "pvs" and "vlist".
 }
 \description{
 Appends the inference results to an object of class |bsFs|.

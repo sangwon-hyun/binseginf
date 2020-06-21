@@ -4,8 +4,12 @@
 \alias{make_all_segment_contrasts_from_cp}
 \title{Take |cp| and |cp.sign| and make all segment contrast vectors.}
 \usage{
-make_all_segment_contrasts_from_cp(cp, cp.sign, n,
-  scaletype = c("segmentmean", "unitnorm"))
+make_all_segment_contrasts_from_cp(
+  cp,
+  cp.sign,
+  n,
+  scaletype = c("segmentmean", "unitnorm")
+)
 }
 \arguments{
 \item{cp}{An integer vector of changepoints.}

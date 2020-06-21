@@ -4,12 +4,25 @@
 \alias{inference_wbs}
 \title{Does a single randomized wbs (rwbs) inference for a given y}
 \usage{
-inference_wbs(y = y, max.numSteps = 20, numIntervals = length(y),
-  intervals = NULL, consec = 2, sigma, postprocess = TRUE,
-  how.close = 5, better.segment = FALSE, locs = 1:length(y),
-  numIS = 100, inference.type = inference.type, bits = 1000,
-  max.numIS = 2000, verbose = FALSE, mc.cores = 1,
-  min.num.things = 30)
+inference_wbs(
+  y = y,
+  max.numSteps = 20,
+  numIntervals = length(y),
+  intervals = NULL,
+  consec = 2,
+  sigma,
+  postprocess = TRUE,
+  how.close = 5,
+  better.segment = FALSE,
+  locs = 1:length(y),
+  numIS = 100,
+  inference.type = inference.type,
+  bits = 1000,
+  max.numIS = 2000,
+  verbose = FALSE,
+  mc.cores = 1,
+  min.num.things = 30
+)
 }
 \arguments{
 \item{numIntervals}{Defaults to \code{length(y)}, or if |intervals| is

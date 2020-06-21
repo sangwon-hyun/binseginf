@@ -4,9 +4,18 @@
 \alias{polyhedra.bsfs}
 \title{Generate polyhedra matrix from bsfs object}
 \usage{
-\method{polyhedra}{bsfs}(obj, numSteps = NA, inference.type = c("rows",
-  "pre-multiply"), new.noise = NULL, v = NULL, icpoly = NULL,
-  y = NULL, excessive = FALSE, record.nrows = TRUE, ...)
+\method{polyhedra}{bsfs}(
+  obj,
+  numSteps = NA,
+  inference.type = c("rows", "pre-multiply"),
+  new.noise = NULL,
+  v = NULL,
+  icpoly = NULL,
+  y = NULL,
+  excessive = FALSE,
+  record.nrows = TRUE,
+  ...
+)
 }
 \arguments{
 \item{obj}{bsfs object}

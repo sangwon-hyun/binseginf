@@ -4,8 +4,15 @@
 \alias{printprogress}
 \title{A helper function to print the progress of a simulation.}
 \usage{
-printprogress(isim, nsim, type = "simulation", lapsetime = NULL,
-  lapsetimeunit = "seconds", start.time = NULL, fill = FALSE)
+printprogress(
+  isim,
+  nsim,
+  type = "simulation",
+  lapsetime = NULL,
+  lapsetimeunit = "seconds",
+  start.time = NULL,
+  fill = FALSE
+)
 }
 \description{
 A helper function to print the progress of a simulation.

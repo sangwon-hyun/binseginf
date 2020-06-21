@@ -4,8 +4,15 @@
 \alias{poly_pval2_from_vlist}
 \title{If a list of contrast vectors are supplied, use this.}
 \usage{
-poly_pval2_from_vlist(y, poly, vlist, sigma, shift = NULL, bits = 5000,
-  ic.poly = NULL)
+poly_pval2_from_vlist(
+  y,
+  poly,
+  vlist,
+  sigma,
+  shift = NULL,
+  bits = 5000,
+  ic.poly = NULL
+)
 }
 \arguments{
 \item{y}{data vector.}

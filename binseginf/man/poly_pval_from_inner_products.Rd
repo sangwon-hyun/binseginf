@@ -6,8 +6,7 @@
 case that Gy and Gv are pre-calculated; the option
 inference.type="pre-multiply".}
 \usage{
-poly_pval_from_inner_products(Gy, Gv, v, y, sigma, u, bits = 1000,
-  warn = TRUE)
+poly_pval_from_inner_products(Gy, Gv, v, y, sigma, u, bits = 1000, warn = TRUE)
 }
 \arguments{
 \item{Gy}{G times y}

@@ -6,11 +6,23 @@
 new polyhedron that says that the same |numSteps| winners win, but among a
 new set of intervals.}
 \usage{
-wbsfs(y, numSteps, numIntervals = NULL, intervals = NULL,
-  mimic = FALSE, wbs.obj = NULL, comprehensive = FALSE,
-  cumsum.y = NULL, cumsum.v = NULL, inference.type = c("rows",
-  "pre-multiply", "none"), stop.time = numSteps, ic.poly = NULL,
-  sigma.add = NULL, v = NULL, precuts = NULL)
+wbsfs(
+  y,
+  numSteps,
+  numIntervals = NULL,
+  intervals = NULL,
+  mimic = FALSE,
+  wbs.obj = NULL,
+  comprehensive = FALSE,
+  cumsum.y = NULL,
+  cumsum.v = NULL,
+  inference.type = c("rows", "pre-multiply", "none"),
+  stop.time = numSteps,
+  ic.poly = NULL,
+  sigma.add = NULL,
+  v = NULL,
+  precuts = NULL
+)
 }
 \arguments{
 \item{intervals}{Optionally, add an |intervals| class object that contains

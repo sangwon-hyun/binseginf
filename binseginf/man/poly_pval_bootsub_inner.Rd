@@ -4,9 +4,19 @@
 \alias{poly_pval_bootsub_inner}
 \title{Calculating TG p-value from bootstrapping centered residuals}
 \usage{
-poly_pval_bootsub_inner(Vlo, Vup, vty, v, y = NULL, nboot = 1000,
-  bootmat = NULL, weight = FALSE, bootmat.times.v = NULL, adjustmean,
-  pad = FALSE)
+poly_pval_bootsub_inner(
+  Vlo,
+  Vup,
+  vty,
+  v,
+  y = NULL,
+  nboot = 1000,
+  bootmat = NULL,
+  weight = FALSE,
+  bootmat.times.v = NULL,
+  adjustmean,
+  pad = FALSE
+)
 }
 \arguments{
 \item{y}{data vector.}

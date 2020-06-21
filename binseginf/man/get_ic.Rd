@@ -7,8 +7,15 @@ they entered, from fixed step SBS of fixed step WBS), and calculates BIC of
 each intermediate changepoint model (changepoint model = piecewise constant
 underlying mean Gaussian model).}
 \usage{
-get_ic(cp, y, sigma, consec = 2, maxsteps = length(cp), type = "bic",
-  verbose = FALSE)
+get_ic(
+  cp,
+  y,
+  sigma,
+  consec = 2,
+  maxsteps = length(cp),
+  type = "bic",
+  verbose = FALSE
+)
 }
 \arguments{
 \item{cp}{Vector of changepoints}

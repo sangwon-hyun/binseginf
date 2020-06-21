@@ -6,9 +6,18 @@
 chunking into 10000 replicates each. TODO In the future, we want to do /not/
 repeat the bootstrap for each v, but do it in batch.}
 \usage{
-poly_pval_bootsub_large(y, G, v, nboot.max = 100 * 10000, sigma,
-  adjustmean = mean(y), pad = FALSE, vlist = NULL, ridlong = FALSE,
-  stable.thresh = 0.01)
+poly_pval_bootsub_large(
+  y,
+  G,
+  v,
+  nboot.max = 100 * 10000,
+  sigma,
+  adjustmean = mean(y),
+  pad = FALSE,
+  vlist = NULL,
+  ridlong = FALSE,
+  stable.thresh = 0.01
+)
 }
 \arguments{
 \item{y}{data vector.}

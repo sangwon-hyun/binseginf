@@ -4,8 +4,7 @@
 \alias{form_rows.intervals}
 \title{Forms polyhedron's rows, given a maximizing b and all the qualifying indices}
 \usage{
-\method{form_rows}{intervals}(intervals, max.s, max.b, max.e, max.sign,
-  qual.inds, n, y = NULL)
+\method{form_rows}{intervals}(intervals, max.s, max.b, max.e, max.sign, qual.inds, n, y = NULL)
 }
 \arguments{
 \item{y}{Defaults to NULL, but you can input y to assert that your contrasts

@@ -2,35 +2,34 @@
 % Please edit documentation in R/fl.R
 \name{fl}
 \alias{fl}
-\title{Wrapper for running FL. Unclear whether keeping this in the actual package
-code is prudent, or whether this and addpv.fl should be moved to simulation
-code; it directly calls genlassoinf::dualpathSvd2() which will not disappear
-in the foreseeable future, so it is viable to just keep it here. One other
-option is to /add/ the addpv.genlassoinf() functionality to the generalized
-lasso framework. This is perhaps a good idea because of the same reason
-addpv.OOO() functions are prudent; it allows the embedding of the p-values
-into the same object, to /encapsulate/ all results. One important point is
-to make the /default/ option for addpv to be good.}
+\title{Wrapper for running FL.}
 \usage{
-fl(y, numSteps, sigma.add = NULL, ic.stop = FALSE,
-  numIntervals = NULL, y.addnoise = NULL, ...)
+fl(
+  y,
+  numSteps,
+  sigma.add = NULL,
+  ic.stop = FALSE,
+  numIntervals = NULL,
+  y.addnoise = NULL,
+  ...
+)
 }
 \arguments{
 \item{sigma.add}{is important}
 }
 \value{
 list of information regarding the fitted algorithm. The list
-    component \code{y} is the data used for actual fitting; \code{y.orig} is
-    the pre-noise original data; \code{y.addnoise} (if not null) is the
-    added noise.
+  component \code{y} is the data used for actual fitting; \code{y.orig} is
+  the pre-noise original data; \code{y.addnoise} (if not null) is the added
+  noise.
 }
 \description{
-Wrapper for running FL. Unclear whether keeping this in the actual package
-code is prudent, or whether this and addpv.fl should be moved to simulation
-code; it directly calls genlassoinf::dualpathSvd2() which will not disappear
-in the foreseeable future, so it is viable to just keep it here. One other
-option is to /add/ the addpv.genlassoinf() functionality to the generalized
-lasso framework. This is perhaps a good idea because of the same reason
+Unclear whether keeping this in the actual package code is prudent, or
+whether this and addpv.fl should be moved to simulation code; it directly
+calls genlassoinf::dualpathSvd2() which will not disappear in the
+foreseeable future, so it is viable to just keep it here. One other option
+is to /add/ the addpv.genlassoinf() functionality to the generalized lasso
+framework. This is perhaps a good idea because of the same reason
 addpv.OOO() functions are prudent; it allows the embedding of the p-values
 into the same object, to /encapsulate/ all results. One important point is
 to make the /default/ option for addpv to be good.

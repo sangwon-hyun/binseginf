@@ -5,8 +5,18 @@
 \title{From polyhedron and data vector and contrast, gets the probability of vtY
 larger than v^Ty , conditional on the orthogonal projection on v.}
 \usage{
-partition_TG(y, poly, v, sigma, nullcontrast = 0, bits = 50, reduce,
-  shift = NULL, ic.poly = NULL, warn = TRUE)
+partition_TG(
+  y,
+  poly,
+  v,
+  sigma,
+  nullcontrast = 0,
+  bits = 50,
+  reduce,
+  shift = NULL,
+  ic.poly = NULL,
+  warn = TRUE
+)
 }
 \arguments{
 \item{y}{data}

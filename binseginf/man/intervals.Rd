@@ -4,8 +4,16 @@
 \alias{intervals}
 \title{Constructor for intervals object.}
 \usage{
-intervals(numIntervals, n, comprehensive = FALSE, existing = NULL,
-  distance = 0, maxlength = n - 1, precuts = NULL, draw.fac = 5)
+intervals(
+  numIntervals,
+  n,
+  comprehensive = FALSE,
+  existing = NULL,
+  distance = 0,
+  maxlength = n - 1,
+  precuts = NULL,
+  draw.fac = 5
+)
 }
 \arguments{
 \item{existing}{A 2-row numeric matrix containing start and end points.

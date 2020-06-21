@@ -4,8 +4,7 @@
 \alias{jumps.cbsfs}
 \title{Get jumps from cbsfs objects}
 \usage{
-\method{jumps}{cbsfs}(obj, sorted = T, unique = TRUE, cbs = FALSE,
-  remove.na = FALSE, ...)
+\method{jumps}{cbsfs}(obj, sorted = T, unique = TRUE, cbs = FALSE, remove.na = FALSE, ...)
 }
 \arguments{
 \item{obj}{cbs object}

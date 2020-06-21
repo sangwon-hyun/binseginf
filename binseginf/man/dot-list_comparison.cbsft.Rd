@@ -23,7 +23,7 @@ at a particular step of ciruclar binary segmentation.
 \details{
 The 4 columns represent (from left to right) the first (left) index of the left shoulder,
 the first (left) index of the hump, the last (right) index of the hump,
-and the last (right) index of the right shoulder.
+and the last (right) index of the right shoulder. 
 
 If an element in the returned list has \code{winning} set to 4 \code{NA}'s,
 it means for that particular split, all possible future splits resulted in

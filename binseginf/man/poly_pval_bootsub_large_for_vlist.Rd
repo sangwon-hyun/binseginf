@@ -4,8 +4,14 @@
 \alias{poly_pval_bootsub_large_for_vlist}
 \title{If a list of contrast vectors are supplied, use this. (large sample size)}
 \usage{
-poly_pval_bootsub_large_for_vlist(y, G, vlist, nboot, sigma,
-  adjustmean = mean(y))
+poly_pval_bootsub_large_for_vlist(
+  y,
+  G,
+  vlist,
+  nboot,
+  sigma,
+  adjustmean = mean(y)
+)
 }
 \description{
 If a list of contrast vectors are supplied, use this. (large sample size)

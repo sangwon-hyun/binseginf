@@ -5,8 +5,17 @@
 \title{Produces a function whose single input is the null value of \eqn{v^T\mu},
 and whose output is the TG p-value according to that nonzero null.}
 \usage{
-get_nonzero_mean_pv_fun(y, G, u, v, sigma, alpha, gridrange = c(-100,
-  100), gridpts = 100, bits = NULL)
+get_nonzero_mean_pv_fun(
+  y,
+  G,
+  u,
+  v,
+  sigma,
+  alpha,
+  gridrange = c(-100, 100),
+  gridpts = 100,
+  bits = NULL
+)
 }
 \description{
 Produces a function whose single input is the null value of \eqn{v^T\mu},

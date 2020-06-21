@@ -5,13 +5,25 @@
 \title{Conduct randomized inference for WBS. Implements an importance sampling
 scheme.}
 \usage{
-randomize_wbsfs(v, winning.wbs.obj, numIS = 100, sigma,
-  inference.type = c("rows", "pre-multiply"), cumsum.y = NULL,
-  cumsum.v = NULL, stop.time = min(winning.wbs.obj$numSteps,
-  length(winning.wbs.obj$cp)), ic.poly = NULL, bits = 50,
-  max.numIS = 2000, min.num.things = 30, verbose = FALSE,
-  mc.cores = 1, warn = FALSE, stable.thresh = 0.001,
-  start.time = NULL)
+randomize_wbsfs(
+  v,
+  winning.wbs.obj,
+  numIS = 100,
+  sigma,
+  inference.type = c("rows", "pre-multiply"),
+  cumsum.y = NULL,
+  cumsum.v = NULL,
+  stop.time = min(winning.wbs.obj$numSteps, length(winning.wbs.obj$cp)),
+  ic.poly = NULL,
+  bits = 50,
+  max.numIS = 2000,
+  min.num.things = 30,
+  verbose = FALSE,
+  mc.cores = 1,
+  warn = FALSE,
+  stable.thresh = 0.001,
+  start.time = NULL
+)
 }
 \arguments{
 \item{v}{Test contrast vector. This is assumed to be fixed in the model

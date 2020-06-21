@@ -6,9 +6,17 @@
 location and sign, at a particular step of the binary segmentation
 algorithm.}
 \usage{
-.gammaRows_from_comparisons(vec, mat, sign.win, n, y = NULL, v = NULL,
-  w = NULL, inference.type = c("rows", "pre-multiply"),
-  excessive = FALSE)
+.gammaRows_from_comparisons(
+  vec,
+  mat,
+  sign.win,
+  n,
+  y = NULL,
+  v = NULL,
+  w = NULL,
+  inference.type = c("rows", "pre-multiply"),
+  excessive = FALSE
+)
 }
 \arguments{
 \item{vec}{contains the start, break, and endpoints of this winner.}

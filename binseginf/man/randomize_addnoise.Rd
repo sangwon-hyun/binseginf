@@ -7,12 +7,26 @@ segmentation (But also applies to sequential changepoint methods that
 creates a valid polyhedron and has $cp and $cp.sign, like fused lasso from
 the genlassoinf::dualpathSvd2()). Implements an importance sampling scheme.}
 \usage{
-randomize_addnoise(y, sigma, sigma.add, v, orig.fudged.poly = NULL,
-  numSteps = NA, numIS = 100, bits = 1000, orig.fudged.obj = NULL,
-  ic.poly = NULL, max.numIS = 2000, inference.type = c("rows",
-  "pre-multiply"), verbose = FALSE, min.num.things = 10,
-  mc.cores = 1, start.time = NULL, warn = FALSE,
-  stable.thresh = 0.001)
+randomize_addnoise(
+  y,
+  sigma,
+  sigma.add,
+  v,
+  orig.fudged.poly = NULL,
+  numSteps = NA,
+  numIS = 100,
+  bits = 1000,
+  orig.fudged.obj = NULL,
+  ic.poly = NULL,
+  max.numIS = 2000,
+  inference.type = c("rows", "pre-multiply"),
+  verbose = FALSE,
+  min.num.things = 10,
+  mc.cores = 1,
+  start.time = NULL,
+  warn = FALSE,
+  stable.thresh = 0.001
+)
 }
 \arguments{
 \item{y}{Data}

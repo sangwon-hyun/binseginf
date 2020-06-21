@@ -8,9 +8,20 @@ new set of halfspaces that characterize the maximization of the original
 |winning.wbs.obj| but among /different/ set of |numIntervals|-|numSteps|
 spaces.}
 \usage{
-rerun_wbs(winning.wbs.obj, v, numIntervals, numSteps, sigma,
-  cumsum.y = NULL, cumsum.v = NULL, inference.type,
-  stop.time = numSteps, ic.poly = NULL, bits = 50, warn = FALSE)
+rerun_wbs(
+  winning.wbs.obj,
+  v,
+  numIntervals,
+  numSteps,
+  sigma,
+  cumsum.y = NULL,
+  cumsum.v = NULL,
+  inference.type,
+  stop.time = numSteps,
+  ic.poly = NULL,
+  bits = 50,
+  warn = FALSE
+)
 }
 \arguments{
 \item{winning.wbs.obj}{Original contrast. We call it winning because we will

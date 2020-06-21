@@ -7,14 +7,30 @@ segmentation inference -- segment test inference for all detected
 changepoints -- for a given n-lengthed data vector y, with or without IC
 stopping.}
 \usage{
-inference_bsfs(y = y, max.numSteps = 20, consec = 2, sigma,
-  icstop = TRUE, postprocess = TRUE, locs = 1:length(y),
-  numIS = 100, sigma.add = 0.2, bits = 50,
-  inference.type = c("rows", "pre-multiply"), numIntervals = length(y),
-  max.numIS = 2000, verbose = FALSE, min.num.things = 10,
-  added.noise = NULL, mc.cores = 1, start.time = NULL,
-  how.close = 5, mn = NULL, sim.options = list(retain.only.null.cases
-  = FALSE), bootstrap.inds = NULL)
+inference_bsfs(
+  y = y,
+  max.numSteps = 20,
+  consec = 2,
+  sigma,
+  icstop = TRUE,
+  postprocess = TRUE,
+  locs = 1:length(y),
+  numIS = 100,
+  sigma.add = 0.2,
+  bits = 50,
+  inference.type = c("rows", "pre-multiply"),
+  numIntervals = length(y),
+  max.numIS = 2000,
+  verbose = FALSE,
+  min.num.things = 10,
+  added.noise = NULL,
+  mc.cores = 1,
+  start.time = NULL,
+  how.close = 5,
+  mn = NULL,
+  sim.options = list(retain.only.null.cases = FALSE),
+  bootstrap.inds = NULL
+)
 }
 \arguments{
 \item{y}{data vector}

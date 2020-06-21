@@ -6,8 +6,14 @@
 y must not have duplicated values. This is to avoid
 degenerate behavior of binary segmentation}
 \usage{
-bsfs(y, numSteps, sigma.add = NULL, numIntervals = NULL,
-  ic.stop = FALSE, y.addnoise = NULL)
+bsfs(
+  y,
+  numSteps,
+  sigma.add = NULL,
+  numIntervals = NULL,
+  ic.stop = FALSE,
+  y.addnoise = NULL
+)
 }
 \arguments{
 \item{y}{numeric vector to contain data}
@@ -22,7 +28,7 @@ added to the data.}
 \value{
 a bsfs object, which is a list of information regarding the fitted
     algorithm. The list component \code{y} is the data used for actual
-    fitting; \code{y.orig} is the pre-noise original data; \code{y.addnoise}
+    fitting; \code{y} is the pre-noise original data; \code{y.addnoise}
     (if not null) is the added noise.
 }
 \description{

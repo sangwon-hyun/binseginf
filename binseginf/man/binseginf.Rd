@@ -3,8 +3,4 @@
 \docType{package}
 \name{binseginf}
 \alias{binseginf}
-\alias{binseginf-package}
 \title{binseginf}
-\description{
-binseginf
-}

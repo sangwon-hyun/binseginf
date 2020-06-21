@@ -4,8 +4,17 @@
 \alias{poly_pval_bootsub}
 \title{Calculating TG p-value from bootstrapped residuals}
 \usage{
-poly_pval_bootsub(y, G, v, nboot = 1000, bootmat = NULL,
-  bootmat.times.v = NULL, sigma, adjustmean = mean(y), pad = FALSE)
+poly_pval_bootsub(
+  y,
+  G,
+  v,
+  nboot = 1000,
+  bootmat = NULL,
+  bootmat.times.v = NULL,
+  sigma,
+  adjustmean = mean(y),
+  pad = FALSE
+)
 }
 \description{
 Calculating TG p-value from bootstrapped residuals

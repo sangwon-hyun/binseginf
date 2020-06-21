@@ -9,10 +9,19 @@ on a noise-added response. This is flagged by \code{obj$noisy}. When
 information criteria stopping is involved, then only contrasts from the
 stopped model are used.}
 \usage{
-\method{addpv}{fl}(obj, locs = NULL, type = c("plain", "addnoise"),
-  sigma, sigma.add = NULL, declutter = FALSE, mn = NULL,
-  vlist = NULL, min.num.things = 30, inference.type = c("rows",
-  "pre-multiply"), max.numIS = 2000)
+\method{addpv}{fl}(
+  obj,
+  locs = NULL,
+  type = c("plain", "addnoise"),
+  sigma,
+  sigma.add = NULL,
+  declutter = FALSE,
+  mn = NULL,
+  vlist = NULL,
+  min.num.things = 30,
+  inference.type = c("rows", "pre-multiply"),
+  max.numIS = 2000
+)
 }
 \arguments{
 \item{obj}{object of |path| type.}

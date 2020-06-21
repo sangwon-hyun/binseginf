@@ -5,9 +5,17 @@
 \title{TG confidence interval from post-selection inference. Assumes that one-sided
 test is in the right-sided direction i.e. H_0: v^T mu>0.}
 \usage{
-confidence_interval(y, polyhedra, contrast, sigma = 1, alpha = 0.05,
-  gridsize = 250, alternative = c("two.sided", "one.sided"),
-  precBits = NA, fac = 10)
+confidence_interval(
+  y,
+  polyhedra,
+  contrast,
+  sigma = 1,
+  alpha = 0.05,
+  gridsize = 250,
+  alternative = c("two.sided", "one.sided"),
+  precBits = NA,
+  fac = 10
+)
 }
 \arguments{
 \item{y}{numeric vector}

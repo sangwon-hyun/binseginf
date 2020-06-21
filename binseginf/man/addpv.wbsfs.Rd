@@ -2,16 +2,28 @@
 % Please edit documentation in R/addpv.R
 \name{addpv.wbsfs}
 \alias{addpv.wbsfs}
-\title{Appends the inference results to an object of class |bsFs|.}
+\title{Appends the inference results to an object of class |wbsfs|.}
 \usage{
-\method{addpv}{wbsfs}(obj, locs = NULL, type = c("plain", "rand"),
-  sigma, declutter = FALSE, mn = NULL, min.num.things = 30,
-  sigma.add = NULL, max.numIS = 5000, numIS.base = 10,
-  only.test.nulls = FALSE, verbose = FALSE, vlist = NULL,
-  mc.cores = 1, inference.type = c("pre-multiply", "rows"))
+\method{addpv}{wbsfs}(
+  obj,
+  locs = NULL,
+  type = c("plain", "rand"),
+  sigma,
+  declutter = FALSE,
+  mn = NULL,
+  min.num.things = 30,
+  sigma.add = NULL,
+  max.numIS = 5000,
+  numIS.base = 10,
+  only.test.nulls = FALSE,
+  verbose = FALSE,
+  vlist = NULL,
+  mc.cores = 1,
+  inference.type = c("pre-multiply", "rows")
+)
 }
 \arguments{
-\item{obj}{object of type bsFs}
+\item{obj}{object of type wbsfs.}
 
 \item{locs}{only test locations in \code{locs}.}
 
@@ -29,6 +41,9 @@
 too big for memory. There is really no reason to use \code{"rows"} in
 WBS.}
 }
+\value{
+\code{obj} but with new list values "pvs" and "vlist".
+}
 \description{
-Appends the inference results to an object of class |bsFs|.
+Appends the inference results to an object of class |wbsfs|.
 }

@@ -4,8 +4,11 @@
 \alias{make_all_segment_contrasts_from_wbs}
 \title{Makes segment contrasts with endpoints as the winning intervals' start/ends}
 \usage{
-make_all_segment_contrasts_from_wbs(wbsfs_obj, cps = NULL,
-  scaletype = c("segmentmean", "unitnorm"))
+make_all_segment_contrasts_from_wbs(
+  wbsfs_obj,
+  cps = NULL,
+  scaletype = c("segmentmean", "unitnorm")
+)
 }
 \arguments{
 \item{wbsfs_obj}{An object of class \code{wbsfs}.}

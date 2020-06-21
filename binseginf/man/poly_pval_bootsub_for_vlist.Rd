@@ -4,8 +4,7 @@
 \alias{poly_pval_bootsub_for_vlist}
 \title{If a list of contrast vectors are supplied, use this!}
 \usage{
-poly_pval_bootsub_for_vlist(y, G, vlist, nboot, sigma,
-  adjustmean = mean(y))
+poly_pval_bootsub_for_vlist(y, G, vlist, nboot, sigma, adjustmean = mean(y))
 }
 \description{
 If a list of contrast vectors are supplied, use this!

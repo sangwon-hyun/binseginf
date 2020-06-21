@@ -4,10 +4,20 @@
 \alias{addpv.cbsfs}
 \title{Appends the inference results to an object of class |bsFs|.}
 \usage{
-\method{addpv}{cbsfs}(obj, locs = NULL, type = c("plain", "addnoise"),
-  sigma, sigma.add = NULL, declutter = FALSE, mn = NULL,
-  min.num.things = 30, numIntervals = NULL, vlist = NULL,
-  max.numIS = 2000, inference.type = c("rows", "pre-multiply"))
+\method{addpv}{cbsfs}(
+  obj,
+  locs = NULL,
+  type = c("plain", "addnoise"),
+  sigma,
+  sigma.add = NULL,
+  declutter = FALSE,
+  mn = NULL,
+  min.num.things = 30,
+  numIntervals = NULL,
+  vlist = NULL,
+  max.numIS = 2000,
+  inference.type = c("rows", "pre-multiply")
+)
 }
 \arguments{
 \item{obj}{object of type bsFs}
@@ -29,6 +39,9 @@ noise randomization inference is done.}
 \item{inference.type}{One of \code{c("rows","pre-multiply")}. Defaults to '
 \code{"rows"}. Use \code{"pre-multiply"} if the polyhedron is too big
 for memory.}
+}
+\value{
+\code{obj} but with new list values "pvs" and "vlist".
 }
 \description{
 Appends the inference results to an object of class |bsFs|.

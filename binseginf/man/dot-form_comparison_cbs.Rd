@@ -26,7 +26,7 @@ with 4 columns on all the possible comparisons made.
 \details{
 The returned object has a \code{winning} element, a matrix with 1 row and
 4 columns. It denotes where the split dictated by \code{breakpoint} occurs,
-in this example, \code{matrix(c(1,3,5,10), nrow = 1)}.
+in this example, \code{matrix(c(1,3,5,10), nrow = 1)}. 
 
 The returned object also has a \code{losing} element, a matrix with 4 columns.
 Each row denotes all the other splits that could have occurred that is not

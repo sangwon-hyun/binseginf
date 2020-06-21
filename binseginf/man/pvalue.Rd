@@ -4,8 +4,15 @@
 \alias{pvalue}
 \title{P-values for post-selection inference}
 \usage{
-pvalue(y, polyhedra, contrast, sigma = 1, null_mean = 0,
-  alternative = c("one.sided", "two.sided"), precBits = NA)
+pvalue(
+  y,
+  polyhedra,
+  contrast,
+  sigma = 1,
+  null_mean = 0,
+  alternative = c("one.sided", "two.sided"),
+  precBits = NA
+)
 }
 \arguments{
 \item{y}{numeric vector}

@@ -122,8 +122,8 @@ randomize_addnoise <- function(y, sigma, sigma.add, v, orig.fudged.poly=NULL,
                                                 sum(unlist(parts.so.far["weight",]))}
     done = FALSE
     while(!done){
-        parts = mcmapply(one_IS_addnoise, 1:numIS, numIS.cumulative,
-                         mc.cores=mc.cores)
+        parts = parallel::mcmapply(one_IS_addnoise, 1:numIS, numIS.cumulative,
+                                   mc.cores=mc.cores)
 
         ## Combine the new parts with the prexisting.
         parts.so.far = cbind(parts.so.far, parts)

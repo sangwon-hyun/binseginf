@@ -71,7 +71,7 @@ adddd = function(newsigns,M,env){
 ##' @param s start location of the current binseg call.
 ##' @param e end location of the current binseg call.
 ##' @param intervals set of random intervals, drawn between 1 and 60
-.make_semat = function(m, s, e, intervals, y, thresh){
+.make_semat <- function(m, s, e, intervals, y, thresh){
 
     ## Make bare matrix
     mymat = matrix(NA, ncol=7, nrow = length(m), dimnames=NULL)

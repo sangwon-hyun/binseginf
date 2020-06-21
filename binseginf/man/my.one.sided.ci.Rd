@@ -7,8 +7,16 @@ right-sided-alternative TG test. Matches the output of
 \code{confidence_interval()} when using the \code{alternative="one-sided"}
 option.}
 \usage{
-my.one.sided.ci(y, poly, contrast, sigma, alpha, fac = 10,
-  gridsize = 250, griddepth = 2)
+my.one.sided.ci(
+  y,
+  poly,
+  contrast,
+  sigma,
+  alpha,
+  fac = 10,
+  gridsize = 250,
+  griddepth = 2
+)
 }
 \description{
 A more barebones, readable version of a one-sided CI from a

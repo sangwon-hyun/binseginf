@@ -4,8 +4,13 @@
 \alias{plot.CpVector}
 \title{Plot function for CpVector}
 \usage{
-\method{plot}{CpVector}(x, col.dots = defaultColors(-1, 0.75),
-  col.line = defaultColors(1), ylim = NA, ...)
+\method{plot}{CpVector}(
+  x,
+  col.dots = defaultColors(-1, 0.75),
+  col.line = defaultColors(1),
+  ylim = NA,
+  ...
+)
 }
 \arguments{
 \item{x}{the CpVector instance}

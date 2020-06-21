@@ -4,8 +4,17 @@
 \alias{cusum}
 \title{Computes the CUSUM (cumulative sum) statistic.}
 \usage{
-cusum(s, b, e, n = NULL, y = NULL, right.to.left = TRUE,
-  contrast.vec = FALSE, unsigned = FALSE, sign.of.vy = NULL)
+cusum(
+  s,
+  b,
+  e,
+  n = NULL,
+  y = NULL,
+  right.to.left = TRUE,
+  contrast.vec = FALSE,
+  unsigned = FALSE,
+  sign.of.vy = NULL
+)
 }
 \arguments{
 \item{s}{starting index.}
