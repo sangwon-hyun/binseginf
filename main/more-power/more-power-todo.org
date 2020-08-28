@@ -1,7 +1,0 @@
-* Temporary todo list for this script to be completed
-** TODO Cursory Test cusum_comparison().
-** TODO Properly Test cusum_comparison().
-- [ ] See if inference is valid after first step polyhedron.
-** TODO Code second_step().
-
-** TODO HURRAH!! The polyhedron seems correct. So now I can try to produce null p-values.
