@@ -1,8 +1,8 @@
 # binseginf
 
 ## Motivation and Synopsis
-Implementation code and examples for segmentation inference, for changepoint
-detection.
+Implementation code and examples for post-selection inference in the 1D changepoint
+estimation setting using the saturated model. For the post-selection inference using the selected model, see https://github.com/linnykos/selectiveModel.
 
 ## Installation
 On command line, use
@@ -13,9 +13,6 @@ or in R,
 ~~~~
 devtools::install_github("robohyun66/binseginf", subdir="binseginf")
 ~~~~
-
-## Tests
-All tests and code examples are shown in /main
 
 ## Contributors
 Sangwon Hyun (Justin), Kevin Lin, Max G'Sell, Ryan Tibshirani
