@@ -1,4 +1,4 @@
-** Access to data
+# Access to data
 - The data for the Snijders analysis (primarily displayed in Section 4.1 and 4.2) is located within the GLAD package (see `data(snijders)`).
 
 You can download the package using the instructors from https://www.bioconductor.org/packages/release/bioc/html/GLAD.html. Specifically, use the code below to access this data.
