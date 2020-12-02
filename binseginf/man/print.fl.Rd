@@ -6,7 +6,7 @@
 assumes that fused lasso (and not a different form of generalized lasso) is
 run.}
 \usage{
-print.fl(obj)
+\method{print}{fl}(obj)
 }
 \description{
 Proprietary print object for |path| class object. This is temporary, and

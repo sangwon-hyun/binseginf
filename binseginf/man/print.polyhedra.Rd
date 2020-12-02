@@ -4,7 +4,7 @@
 \alias{print.polyhedra}
 \title{Prints polyhedra}
 \usage{
-print.polyhedra(mypoly)
+\method{print}{polyhedra}(mypoly)
 }
 \arguments{
 \item{obj}{\code{polyhedra} class object.}

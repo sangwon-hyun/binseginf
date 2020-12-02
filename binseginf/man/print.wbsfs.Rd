@@ -4,7 +4,7 @@
 \alias{print.wbsfs}
 \title{Print function for convenience, of |wbs| class object.}
 \usage{
-print.wbsfs(obj)
+\method{print}{wbsfs}(obj)
 }
 \description{
 Print function for convenience, of |wbs| class object.

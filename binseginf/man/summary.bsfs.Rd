@@ -4,7 +4,7 @@
 \alias{summary.bsfs}
 \title{Summary of bsfs object}
 \usage{
-summary.bsfs(object, ...)
+\method{summary}{bsfs}(object, ...)
 }
 \arguments{
 \item{object}{bsfs object}

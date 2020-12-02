@@ -2,82 +2,82 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 c_initial_theta <- function(y, v, w) {
-    .Call('_binseginf_c_initial_theta', PACKAGE = 'binseginf', y, v, w)
+    .Call(`_binseginf_c_initial_theta`, y, v, w)
 }
 
 c_basic_interval <- function(endpoints, theta) {
-    .Call('_binseginf_c_basic_interval', PACKAGE = 'binseginf', endpoints, theta)
+    .Call(`_binseginf_c_basic_interval`, endpoints, theta)
 }
 
 c_partition_interval <- function(interval) {
-    .Call('_binseginf_c_partition_interval', PACKAGE = 'binseginf', interval)
+    .Call(`_binseginf_c_partition_interval`, interval)
 }
 
 c_interval <- function(endpoints, initial_theta) {
-    .Call('_binseginf_c_interval', PACKAGE = 'binseginf', endpoints, initial_theta)
+    .Call(`_binseginf_c_interval`, endpoints, initial_theta)
 }
 
 c_form_interval <- function(a, b, y, v, w) {
-    .Call('_binseginf_c_form_interval', PACKAGE = 'binseginf', a, b, y, v, w)
+    .Call(`_binseginf_c_form_interval`, a, b, y, v, w)
 }
 
 c_l2norm <- function(vec) {
-    .Call('_binseginf_c_l2norm', PACKAGE = 'binseginf', vec)
+    .Call(`_binseginf_c_l2norm`, vec)
 }
 
 c_quadratic <- function(a, b, c) {
-    .Call('_binseginf_c_quadratic', PACKAGE = 'binseginf', a, b, c)
+    .Call(`_binseginf_c_quadratic`, a, b, c)
 }
 
 c_unique_sort_native <- function(x) {
-    .Call('_binseginf_c_unique_sort_native', PACKAGE = 'binseginf', x)
+    .Call(`_binseginf_c_unique_sort_native`, x)
 }
 
 c_construct_midpoints <- function(x) {
-    .Call('_binseginf_c_construct_midpoints', PACKAGE = 'binseginf', x)
+    .Call(`_binseginf_c_construct_midpoints`, x)
 }
 
 c_which_native <- function(x) {
-    .Call('_binseginf_c_which_native', PACKAGE = 'binseginf', x)
+    .Call(`_binseginf_c_which_native`, x)
 }
 
 c_consecutive_true <- function(vec) {
-    .Call('_binseginf_c_consecutive_true', PACKAGE = 'binseginf', vec)
+    .Call(`_binseginf_c_consecutive_true`, vec)
 }
 
 c_unlist_native <- function(list) {
-    .Call('_binseginf_c_unlist_native', PACKAGE = 'binseginf', list)
+    .Call(`_binseginf_c_unlist_native`, list)
 }
 
 c_theta_in_matrix <- function(x, mat) {
-    .Call('_binseginf_c_theta_in_matrix', PACKAGE = 'binseginf', x, mat)
+    .Call(`_binseginf_c_theta_in_matrix`, x, mat)
 }
 
 c_theta_in_all_matrix <- function(x, list) {
-    .Call('_binseginf_c_theta_in_all_matrix', PACKAGE = 'binseginf', x, list)
+    .Call(`_binseginf_c_theta_in_all_matrix`, x, list)
 }
 
 c_intersect_intervals <- function(list) {
-    .Call('_binseginf_c_intersect_intervals', PACKAGE = 'binseginf', list)
+    .Call(`_binseginf_c_intersect_intervals`, list)
 }
 
 c_intersect_circle_tester <- function(a, b, center, radius) {
-    .Call('_binseginf_c_intersect_circle_tester', PACKAGE = 'binseginf', a, b, center, radius)
+    .Call(`_binseginf_c_intersect_circle_tester`, a, b, center, radius)
 }
 
 c_intersect_basis_tester <- function(a, b, y, v, w) {
-    .Call('_binseginf_c_intersect_basis_tester', PACKAGE = 'binseginf', a, b, y, v, w)
+    .Call(`_binseginf_c_intersect_basis_tester`, a, b, y, v, w)
 }
 
 c_euclidean_to_radian_tester <- function(center, radius, point) {
-    .Call('_binseginf_c_euclidean_to_radian_tester', PACKAGE = 'binseginf', center, radius, point)
+    .Call(`_binseginf_c_euclidean_to_radian_tester`, center, radius, point)
 }
 
 c_gibbs_step <- function(state, direction, U, alpha) {
-    invisible(.Call('_binseginf_c_gibbs_step', PACKAGE = 'binseginf', state, direction, U, alpha))
+    invisible(.Call(`_binseginf_c_gibbs_step`, state, direction, U, alpha))
 }
 
 c_sample_truncnorm_white <- function(state, U, directions, alphas, burnin, ndraw) {
-    .Call('_binseginf_c_sample_truncnorm_white', PACKAGE = 'binseginf', state, U, directions, alphas, burnin, ndraw)
+    .Call(`_binseginf_c_sample_truncnorm_white`, state, U, directions, alphas, burnin, ndraw)
 }
 

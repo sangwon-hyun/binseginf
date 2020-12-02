@@ -21,6 +21,7 @@ Imports:
     pryr,
     parallel,
     assertthat
+LinkingTo: Rcpp, RcppArmadillo
 Suggests:
     testthat
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1

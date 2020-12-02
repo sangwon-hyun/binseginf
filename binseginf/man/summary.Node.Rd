@@ -4,7 +4,7 @@
 \alias{summary.Node}
 \title{Summary of Node object}
 \usage{
-summary.Node(object, ...)
+\method{summary}{Node}(object, ...)
 }
 \arguments{
 \item{object}{Node object}

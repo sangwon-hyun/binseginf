@@ -4,7 +4,7 @@
 \alias{print.cplist}
 \title{Print function}
 \usage{
-print.cplist(cplist)
+\method{print}{cplist}(cplist)
 }
 \description{
 Print function

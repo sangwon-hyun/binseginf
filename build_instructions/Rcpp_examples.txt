@@ -1,0 +1,19 @@
+See following packages for some examples:
+
+calculus: https://cran.r-project.org/web/packages/calculus/index.html
+clusteval: https://cran.r-project.org/web/packages/clusteval/index.html
+DrImpute: https://cran.r-project.org/web/packages/DrImpute/index.html
+fastLink: https://cran.r-project.org/web/packages/fastLink/index.html
+HDclust: https://cran.r-project.org/web/packages/HDclust/index.html
+kde1d: https://cran.r-project.org/web/packages/kde1d/index.html
+lime: https://cran.r-project.org/web/packages/lime/index.html
+markovchain: https://cran.r-project.org/web/packages/markovchain/index.html
+minerva: https://cran.r-project.org/web/packages/minerva/index.html
+mvnfast: https://cran.r-project.org/web/packages/mvnfast/index.html
+princurve: https://cran.r-project.org/web/packages/princurve/index.html
+sparsereg: https://cran.r-project.org/web/packages/sparsereg/index.html
+umap: https://cran.r-project.org/web/packages/umap/index.html
+word2vec: https://cran.r-project.org/web/packages/word2vec/index.html
+
+See https://github.com/r-lib/roxygen2/issues/124
+https://stackoverflow.com/questions/38725060/error-could-not-find-build-tools-necessary-to-build-stringi-when-trying-devto -disabling RStudio's search for libraries
