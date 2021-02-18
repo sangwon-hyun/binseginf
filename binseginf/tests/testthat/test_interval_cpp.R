@@ -163,47 +163,47 @@ test_that(".partition_interval works when endpoints are same signs, yes wrap-aro
 
 ## c_initial_theta is correct
 
-test_that("c_initial_theta works", {
-  set.seed(10)
-  y <- rnorm(10)
-  v <- rnorm(10); w <- rnorm(10)
-  v <- v/.l2norm(v)
-  w <- .projection(w, v); w <- w/.l2norm(w)
+# test_that("c_initial_theta works", {
+#   set.seed(10)
+#   y <- rnorm(10)
+#   v <- rnorm(10); w <- rnorm(10)
+#   v <- v/.l2norm(v)
+#   w <- .projection(w, v); w <- w/.l2norm(w)
+# 
+#   res <- c_initial_theta(y, v, w)
+# 
+#   expect_true(is.numeric(res))
+#   expect_true(!is.matrix(res))
+#   expect_true(length(res) == 1)
+#   expect_true(res <= pi/2)
+#   expect_true(res >= -pi/2)
+# })
 
-  res <- c_initial_theta(y, v, w)
+# test_that(".initial_theta gives a radius of 0", {
+#   set.seed(10)
+#   y <- rnorm(10)
+#   v <- rnorm(10); w <- rnorm(10)
+#   v <- v/.l2norm(v)
+#   w <- .projection(w, v); w <- w/.l2norm(w)
+#   theta <- c_initial_theta(y, v, w)
+# 
+#   radius <- .radius(theta, y, v, w)
+# 
+#   expect_true(abs(radius) < 1e-6)
+# })
 
-  expect_true(is.numeric(res))
-  expect_true(!is.matrix(res))
-  expect_true(length(res) == 1)
-  expect_true(res <= pi/2)
-  expect_true(res >= -pi/2)
-})
-
-test_that(".initial_theta gives a radius of 0", {
-  set.seed(10)
-  y <- rnorm(10)
-  v <- rnorm(10); w <- rnorm(10)
-  v <- v/.l2norm(v)
-  w <- .projection(w, v); w <- w/.l2norm(w)
-  theta <- c_initial_theta(y, v, w)
-
-  radius <- .radius(theta, y, v, w)
-
-  expect_true(abs(radius) < 1e-6)
-})
-
-test_that(".initial_theta gives the proper theta", {
-  set.seed(10)
-  y <- rnorm(10)
-  v <- rnorm(10); w <- rnorm(10)
-  v <- v/.l2norm(v)
-  w <- .projection(w, v); w <- w/.l2norm(w)
-  theta <- c_initial_theta(y, v, w)
-
-  res <- .radians_to_data(theta, y, v, w)
-
-  expect_true(sum(abs(y - res)) < 1e-6)
-})
+# test_that(".initial_theta gives the proper theta", {
+#   set.seed(10)
+#   y <- rnorm(10)
+#   v <- rnorm(10); w <- rnorm(10)
+#   v <- v/.l2norm(v)
+#   w <- .projection(w, v); w <- w/.l2norm(w)
+#   theta <- c_initial_theta(y, v, w)
+# 
+#   res <- .radians_to_data(theta, y, v, w)
+# 
+#   expect_true(sum(abs(y - res)) < 1e-6)
+# })
 
 #################
 
@@ -235,63 +235,63 @@ test_that("c_interval gives the correct answer", {
 
 ## c_form_interval is correct
 
-test_that("c_form_interval works on one particular case", {
-  set.seed(10)
-  y <- rnorm(10)
-  obj <- binseginf::bsfs(y, 2)
-  poly <- binseginf::polyhedra(obj)
+# test_that("c_form_interval works on one particular case", {
+#   set.seed(10)
+#   y <- rnorm(10)
+#   obj <- binseginf::bsfs(y, 2)
+#   poly <- binseginf::polyhedra(obj)
+# 
+#   v <- rnorm(10); w <- rnorm(10)
+#   v <- v/.l2norm(v)
+#   w <- .projection(w, v); w <- w/.l2norm(w)
+# 
+#   res <- c_form_interval(poly$gamma[1,], poly$u[1], y, v, w)
+# 
+#   expect_true(is.matrix(res))
+#   expect_true(ncol(res) == 2)
+# })
 
-  v <- rnorm(10); w <- rnorm(10)
-  v <- v/.l2norm(v)
-  w <- .projection(w, v); w <- w/.l2norm(w)
-
-  res <- c_form_interval(poly$gamma[1,], poly$u[1], y, v, w)
-
-  expect_true(is.matrix(res))
-  expect_true(ncol(res) == 2)
-})
-
-test_that("c_form_interval is correct", {
-  set.seed(10)
-  y <- rnorm(10)
-  obj <- binseginf::bsfs(y, 2)
-  poly <- binseginf::polyhedra(obj)
-
-  v <- rnorm(10); w <- rnorm(10)
-  v <- v/.l2norm(v)
-  w <- .projection(w, v); w <- w/.l2norm(w)
-
-  res_list1 <- sapply(1:length(poly$u), function(x){
-    plane <- .plane(poly$gamma[x,], poly$u[x])
-    plane <- .intersect_plane_basis(plane, y, v, w)
-    if(any(is.na(plane))) return(matrix(c(-pi/2, pi/2), ncol = 2))
-    center <- c(-y%*%v, -y%*%w)
-    radius <- sqrt(sum(center^2))
-    circle <- .circle(center, radius)
-    dis <- .distance_point_to_plane(center, plane)
-
-    if(dis >= radius){
-      matrix(c(-pi/2, pi/2), ncol = 2)
-    } else {
-      mat <- .intersect_circle_line(plane, circle)
-      stopifnot(nrow(mat) == 2)
-      vec <- apply(mat, 2, .euclidean_to_radian, circle = circle)
-      init_theta <- .initial_theta(y, v, w)
-      .interval(vec, init_theta)
-    }
-  })
-
-  res_list2 <- sapply(1:length(poly$u), function(x){
-    c_form_interval(poly$gamma[x,], poly$u[x], y, v, w)
-  })
-
-  expect_true(length(res_list1) == length(res_list2))
-
-  bool <- sapply(1:length(res_list1), function(x){
-    sum(abs(res_list1[[x]] - res_list2[[x]])) < 1e-6
-  })
-
-  expect_true(all(bool))
-})
+# test_that("c_form_interval is correct", {
+#   set.seed(10)
+#   y <- rnorm(10)
+#   obj <- binseginf::bsfs(y, 2)
+#   poly <- binseginf::polyhedra(obj)
+# 
+#   v <- rnorm(10); w <- rnorm(10)
+#   v <- v/.l2norm(v)
+#   w <- .projection(w, v); w <- w/.l2norm(w)
+# 
+#   res_list1 <- sapply(1:length(poly$u), function(x){
+#     plane <- .plane(poly$gamma[x,], poly$u[x])
+#     plane <- .intersect_plane_basis(plane, y, v, w)
+#     if(any(is.na(plane))) return(matrix(c(-pi/2, pi/2), ncol = 2))
+#     center <- c(-y%*%v, -y%*%w)
+#     radius <- sqrt(sum(center^2))
+#     circle <- .circle(center, radius)
+#     dis <- .distance_point_to_plane(center, plane)
+# 
+#     if(dis >= radius){
+#       matrix(c(-pi/2, pi/2), ncol = 2)
+#     } else {
+#       mat <- .intersect_circle_line(plane, circle)
+#       stopifnot(nrow(mat) == 2)
+#       vec <- apply(mat, 2, .euclidean_to_radian, circle = circle)
+#       init_theta <- .initial_theta(y, v, w)
+#       .interval(vec, init_theta)
+#     }
+#   })
+# 
+#   res_list2 <- sapply(1:length(poly$u), function(x){
+#     c_form_interval(poly$gamma[x,], poly$u[x], y, v, w)
+#   })
+# 
+#   expect_true(length(res_list1) == length(res_list2))
+# 
+#   bool <- sapply(1:length(res_list1), function(x){
+#     sum(abs(res_list1[[x]] - res_list2[[x]])) < 1e-6
+#   })
+# 
+#   expect_true(all(bool))
+# })
 
 

@@ -3,79 +3,79 @@ source("test_R_source.R")
 
 #########################
 
-test_that("Plane can be generated properly", {
-  trials <- 100
-  bool <- sapply(1:trials, function(x){
-    set.seed(10*x)
-    a <- rnorm(10); b <- rnorm(1)
-
-    res1 <- .plane(a = a, b = b)
-    res2 <- new(Plane, a, b)
-
-    sum(abs(res1$a - res2$a)) <= 1e-6 & abs(res1$b - res2$b) <= 1e-6
-  })
-
-  expect_true(all(bool))
-})
+# test_that("Plane can be generated properly", {
+#   trials <- 100
+#   bool <- sapply(1:trials, function(x){
+#     set.seed(10*x)
+#     a <- rnorm(10); b <- rnorm(1)
+# 
+#     res1 <- .plane(a = a, b = b)
+#     res2 <- new(Plane, a, b)
+# 
+#     sum(abs(res1$a - res2$a)) <= 1e-6 & abs(res1$b - res2$b) <= 1e-6
+#   })
+# 
+#   expect_true(all(bool))
+# })
 
 ########
 
-test_that("c_intersect_plane_basis works properly", {
-  trials <- 100
-  bool <- sapply(1:trials, function(x){
-    set.seed(10*x)
-    a <- rnorm(10); b <- rnorm(1)
-    y <- rnorm(10); v <- rnorm(10); w <- rnorm(10)
-
-    res1 <- .plane(a = a, b = b)
-    res1 <- .intersect_plane_basis(res1, y, v, w)
-
-    res2 <- new(Plane, a, b)
-    res2$c_intersect_basis(y, v, w)
-
-    sum(abs(res1$a - res2$a)) <= 1e-6 & abs(res1$b - res2$b) <= 1e-6
-  })
-
-  expect_true(all(bool))
-})
+# test_that("c_intersect_plane_basis works properly", {
+#   trials <- 100
+#   bool <- sapply(1:trials, function(x){
+#     set.seed(10*x)
+#     a <- rnorm(10); b <- rnorm(1)
+#     y <- rnorm(10); v <- rnorm(10); w <- rnorm(10)
+# 
+#     res1 <- .plane(a = a, b = b)
+#     res1 <- .intersect_plane_basis(res1, y, v, w)
+# 
+#     res2 <- new(Plane, a, b)
+#     res2$c_intersect_basis(y, v, w)
+# 
+#     sum(abs(res1$a - res2$a)) <= 1e-6 & abs(res1$b - res2$b) <= 1e-6
+#   })
+# 
+#   expect_true(all(bool))
+# })
 
 ############
 
-test_that("c_point_on_plane works properly", {
-  trials <- 100
-  bool <- sapply(1:trials, function(x){
-    set.seed(10*x)
-    a <- rnorm(10); b <- rnorm(1)
-
-    plane <- new(Plane, a, b)
-    res <- plane$c_point_on_plane()
-
-    sum(abs(res %*% plane$a - plane$b)) <= 1e-6
-  })
-
-  expect_true(all(bool))
-})
+# test_that("c_point_on_plane works properly", {
+#   trials <- 100
+#   bool <- sapply(1:trials, function(x){
+#     set.seed(10*x)
+#     a <- rnorm(10); b <- rnorm(1)
+# 
+#     plane <- new(Plane, a, b)
+#     res <- plane$c_point_on_plane()
+# 
+#     sum(abs(res %*% plane$a - plane$b)) <= 1e-6
+#   })
+# 
+#   expect_true(all(bool))
+# })
 
 ###########
 
-test_that("c_distance_point_to_plane works properly", {
-  trials <- 100
-  bool <- sapply(1:trials, function(x){
-    set.seed(10*x)
-    a <- rnorm(10); b <- rnorm(1)
-    point <- rnorm(10)
-
-    plane1 <- .plane(a = a, b = b)
-    res1 <- .distance_point_to_plane(point, plane1)
-
-    plane2 <- new(Plane, a, b)
-    res2 <- plane2$c_distance_point_to_plane(point)
-
-    abs(res1 - res2) <= 1e-6
-  })
-
-  expect_true(all(bool))
-})
+# test_that("c_distance_point_to_plane works properly", {
+#   trials <- 100
+#   bool <- sapply(1:trials, function(x){
+#     set.seed(10*x)
+#     a <- rnorm(10); b <- rnorm(1)
+#     point <- rnorm(10)
+# 
+#     plane1 <- .plane(a = a, b = b)
+#     res1 <- .distance_point_to_plane(point, plane1)
+# 
+#     plane2 <- new(Plane, a, b)
+#     res2 <- plane2$c_distance_point_to_plane(point)
+# 
+#     abs(res1 - res2) <= 1e-6
+#   })
+# 
+#   expect_true(all(bool))
+# })
 
 #################
 

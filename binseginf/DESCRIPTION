@@ -20,8 +20,10 @@ Imports:
     Matrix,
     pryr,
     parallel,
-    assertthat
+    assertthat,
+    Rcpp
 LinkingTo: Rcpp, RcppArmadillo
+NeedsCompilation: yes
 Suggests:
     testthat
 RoxygenNote: 7.1.1

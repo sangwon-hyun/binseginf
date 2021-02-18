@@ -1,0 +1,4 @@
+- Sys.setenv("PKG_CXXFLAGS"="-std=c++11") from https://gallery.rcpp.org/articles/first-steps-with-C++11/ to set the correct compiler 
+-- (We can also set this in the Makevars file: see https://cran.r-project.org/doc/manuals/R-exts.html#Using-Makevars): See the importance of PKG_LIBS in https://stackoverflow.com/questions/58132832/error-function-is-not-available-for-call-for-package-x
+
+- see Big Sur complication in https://github.com/immunogenomics/harmony/issues/113
